@@ -2,7 +2,7 @@
 title: "写了 6.6 万行代码，只发了 2 篇文章：我的博客复盘"
 slug: blog-postmortem
 date: 2026-09-24
-draft: true
+draft: false
 tags: ["复盘", "AI 开发", "Agent", "Speckit", "Claude Code", "Codex", "OpenCode"]
 summary: "一个博客，两周多时间，6.6 万行代码、2.4 万行文档、92 条架构决定，最后线上只有 2 篇文章。新博客用 Hugo 两三分钟就上线了。这篇写清楚中间到底错在哪。"
 ShowToc: true
