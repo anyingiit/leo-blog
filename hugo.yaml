@@ -1,6 +1,7 @@
 baseURL: https://douseful.eu.org/
 languageCode: zh-CN
 defaultContentLanguage: zh
+timeZone: Asia/Shanghai  # 只写日期的 date 按北京时间解释，避免被当成未来文章跳过
 title: Leoblog
 theme: PaperMod
 hasCJKLanguage: true
