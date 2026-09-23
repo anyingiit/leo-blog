@@ -1,0 +1,9 @@
+.alert { border-inline-start: 4px solid var(--alert-color); padding: 0.5rem 1rem; }
+.alert .alert-title { font-weight: 600; color: var(--alert-color); margin-bottom: 0.25rem; }
+.alert-note { --alert-color: #0969da; }
+.alert-tip { --alert-color: #1a7f37; }
+.alert-important { --alert-color: #8250df; }
+.alert-warning { --alert-color: #9a6700; }
+.alert-caution { --alert-color: #d1242f; }
+.post-content .katex-display { overflow-x: auto; overflow-y: hidden; }
+.post-content pre.mermaid { background: none; text-align: center; }

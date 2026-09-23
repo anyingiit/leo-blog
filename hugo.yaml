@@ -1,0 +1,59 @@
+baseURL: https://douseful.eu.org/
+languageCode: zh-CN
+defaultContentLanguage: zh
+title: Leoblog
+theme: PaperMod
+hasCJKLanguage: true
+enableRobotsTXT: true
+enableEmoji: true
+summaryLength: 120
+pagination:
+  pagerSize: 10
+
+outputs:
+  home: [HTML, RSS, JSON]  # JSON 供 PaperMod 站内搜索
+
+permalinks:
+  page:
+    posts: /posts/:slug/
+
+params:
+  env: production
+  description: 记录学习、实践与思考。先写下来，再慢慢完善。
+  defaultTheme: auto
+  ShowReadingTime: true
+  ShowWordCount: true
+  ShowToc: true
+  TocOpen: false
+  ShowCodeCopyButtons: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: false
+  ShowShareButtons: false
+  ShowRssButtonInSectionTermList: true
+  disableSpecial1stPost: true
+  homeInfoParams:
+    Title: Leoblog
+    Content: 记录学习、实践与思考。先写下来，再慢慢完善。
+  assets:
+    disableHLJS: true  # 用 Hugo 自带的 Chroma 高亮
+  fuseOpts:
+    keys: [title, permalink, summary, content]
+
+menu:
+  main:
+    - { name: 归档, url: /archives/, weight: 10 }
+    - { name: 标签, url: /tags/, weight: 20 }
+    - { name: 搜索, url: /search/, weight: 30 }
+
+markup:
+  highlight:
+    noClasses: false
+    codeFences: true
+    lineNos: false
+  goldmark:
+    extensions:
+      passthrough:
+        enable: true
+        delimiters:
+          block: [['\[', '\]'], ['$$', '$$']]
+          inline: [['\(', '\)'], ['$', '$']]

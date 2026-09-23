@@ -1,0 +1,11 @@
+{{- if eq .Type "alert" }}
+{{- $titles := dict "note" "注意" "tip" "提示" "important" "重要" "warning" "警告" "caution" "小心" }}
+<blockquote class="alert alert-{{ .AlertType }}">
+  <p class="alert-title">{{ with .AlertTitle }}{{ . }}{{ else }}{{ index $titles .AlertType | default (.AlertType | title) }}{{ end }}</p>
+  {{ .Text }}
+</blockquote>
+{{- else }}
+<blockquote>
+  {{ .Text }}
+</blockquote>
+{{- end }}
