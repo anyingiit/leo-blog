@@ -2,6 +2,8 @@
 
 Hugo + [PaperMod](https://github.com/adityatelange/hugo-PaperMod) 静态博客，部署在 Cloudflare Pages（push 到 `main` 即发布）。
 
+CF Pages 构建命令为 `bash build.sh`：`main` 按 `hugo.yaml` 的 `baseURL` 生成，其他分支的预览构建改用 `$CF_PAGES_URL`，保证预览站内链接不跳回主站。
+
 ```bash
 git clone --recurse-submodules <repo>
 hugo server -D        # 本地预览（含草稿）
