@@ -9,18 +9,28 @@ on:
     types: [created, completed]
 
 permissions:
+  checks: read
   pull-requests: write
+
+# 同一提交的 created / completed 事件排队执行，避免并发时重复发评论
+concurrency:
+  group: pages-preview-${{ github.event.check_run.head_sha }}
+  cancel-in-progress: false
 
 jobs:
   comment:
-    if: github.event.check_run.name == 'Cloudflare Pages'
+    # 只认 Cloudflare 官方 App 创建的 check run（名称可被其他 App 冒用，App ID 不能）
+    if: github.event.check_run.name == 'Cloudflare Pages' && github.event.check_run.app.id == 85455
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
-            const run = context.payload.check_run;
             const { owner, repo } = context.repo;
+            // 重新拉取 check run 的最新状态，晚到的 created 事件不会把"成功"覆盖回"部署中"
+            const { data: run } = await github.rest.checks.get({
+              owner, repo, check_run_id: context.payload.check_run.id,
+            });
             const marker = '<!-- cf-pages-preview -->';
 
             // 只接受 *.pages.dev 链接，避免把 summary 中的其他内容带进评论
@@ -51,7 +61,9 @@ jobs:
             ];
             if (preview) lines.push(`| 本次提交预览 | ${preview} |`);
             if (branchPreview) lines.push(`| 分支预览（始终指向最新提交） | ${branchPreview} |`);
-            lines.push('', `[部署详情](${run.details_url})`);
+            if (/^https:\/\/dash\.cloudflare\.com\//.test(run.details_url || '')) {
+              lines.push('', `[部署详情](${run.details_url})`);
+            }
             const body = lines.join('\n');
 
             const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
