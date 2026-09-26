@@ -4,7 +4,7 @@ slug: blog-postmortem
 date: 2026-09-24
 draft: false
 tags: ["Postmortem", "AI Development", "Agent", "Speckit", "Claude Code", "Codex", "OpenCode"]
-summary: "One blog, a little over two weeks, 66,000 lines of code, 24,000 lines of docs, 92 architecture decisions — and in the end, just 2 posts online. The new blog went live on Hugo in two or three minutes. This post lays out exactly where things went wrong."
+summary: "One blog, a little over two weeks, 66,000 lines of code, 24,000 lines of docs, 92 architecture decisions, two rewrites across OpenCode, Codex and Claude Code — and in the end, just 2 posts online."
 ShowToc: true
 ---
 
@@ -17,13 +17,11 @@ My previous blog took a little over two weeks of tinkering. Here is what it left
 - **92** architecture decisions
 - Posts online: **2**
 
-The blog you're reading now runs on Hugo with a popular theme, and it went live in about two or three minutes.
-
-Both were "a blog you can publish posts on." One took over two weeks, two rewrites, and still wasn't really usable; the other took two or three minutes. This is the first post on the new blog, and I want to spell out exactly what went wrong in between — partly as a set of rules for myself.
+The admin backend got built, but it couldn't actually publish a post.
 
 ## What I wanted in the first place
 
-The old blog's architecture looked like this:
+The architecture looked like this:
 
 ```
 Browser
@@ -153,7 +151,7 @@ The idea was straightforward: a SOTA model's output price is more than twenty ti
 
 **Subscription quota isn't API pricing.** I hit a similar trap on Codex: I assumed that since Terra is cheap on the API, it would also drain the subscription more slowly. But subscription quota is most likely charged by actual compute consumed, not by API price.
 
-**Time is the real killer.** At first I thought that with parallel development, it didn't matter if weak models were a bit slower. But between repeated trial and error, redundant code and rework, the longer a task drags on, the more of my attention it takes. The time cost grows almost exponentially.
+**Time is the real killer.** At first I thought that with parallel development, it didn't matter if weak models were a bit slower. But between repeated trial and error, redundant code and rework, the longer a task drags on, the more of my attention it takes. A process where you can't see progress, are afraid to interrupt, and keep redoing work is the most expensive one there is, no matter how cheap the tokens. So V2 will use SOTA models throughout.
 
 ### Specs described "modules," not "outcomes"
 
@@ -169,44 +167,12 @@ Take comments. Instead of writing "ship a comments module, implement such-and-su
 
 That's the real scenario, the thing you actually want. Endpoints and auth are for the agent to figure out.
 
-## The five goals, in hindsight
-
-1. **Portable content**: this one was right. The old blog's 2 posts were already Markdown + frontmatter, so moving them to Hugo cost almost nothing. But I took too big a step and lost sight of priorities: publishing posts first matters far more than building a perfect project first.
-2. **"One person + weak agents" building a SaaS**: a false premise, covered above.
-3. **Showcasing the agent development workflow**: it needs showing, but not as "build something big, then show it" — rather "show each bit as soon as it exists." People don't need a perfect employee; they need to understand what you're thinking and what your potential is.
-4. **Showcasing technical skills**: meaningful, but without even an MVP, there's nothing to show. Getting the blog up and publishing dev logs consistently is the most effective way to show technical skill.
-5. **Full admin backend + AI-native**: meaningful, but not now.
-
-## Five things I learned
-
-**1. Human attention is the scarcest resource.** All planning should be built around the fact that human attention is limited. A process where you can't see progress, are afraid to interrupt, and keep redoing work is the most expensive process there is, no matter how cheap the tokens.
-
-**2. Once you have something, ship it, show it and distribute it as soon as possible.** My problem wasn't shipping slowly — it was shipping without distributing. With crawl4ai-mcp, myanyagent and evidence-search, I thought I was a genius and that they were incredibly useful, so I published them right away — but I did no promotion and never looked at market feedback. You don't know what's actually useful until you put it out there.
-
-**3. The blog is almost the only channel that carries my value.** GitHub matters just as much, but I don't yet have a high-star project that can convince people; X is a secondary channel. I need to tell a story and prove my potential. Seen that way, while the blog was offline, my value from the outside was actually eroding.
-
-**4. Use SOTA for everything.** SOTA orchestration with weak-model execution is pointless. Today's SOTA models are efficient enough and cheap enough.
-
-**5. Don't obsess over the tech stack, and don't give up an efficient stack to accommodate agents.** Retreating from Rails to PHP so weak agents could follow along, then bolting on a pile of optimizations for PHP performance, was putting the cart before the horse. Pin the stack down in the constitution (for V2 I'll restrict it to an efficient stack like Rust), then stop worrying about technical details. Write clearly in the spec what the end result should look like, and leave the rest entirely to the agent.
-
 ## How I'm doing it this time
 
-The new blog comes in two steps:
+The blog you're reading now is Hugo + PaperMod, with only the most basic post publishing, and it went live in two or three minutes. The old blog's 2 posts were already Markdown + frontmatter, so moving them over cost almost nothing. Of the original five goals, "portable content" is the only one that actually paid off.
 
-**MVP, which is what you're looking at**: Hugo + PaperMod, only the most basic post publishing. Live in two or three minutes, old posts migrated as-is. It has exactly one goal: be able to publish posts without getting in the way of anything else that matters.
+My old problem wasn't just shipping slowly — it was shipping without distributing. With crawl4ai-mcp, myanyagent and evidence-search, I thought they were incredibly useful, so I published them right away, but did no promotion and never looked at market feedback. So this time the admin backend, comments and AI-native features all wait; each time a piece is done, I'll post about it here.
 
-**V2, later**: spec-driven development with Speckit, the stack pinned down by a constitution, specs that describe only the end result, and SOTA models throughout. Each time a piece is done, I'll post a dev log here.
+V2 will be spec-driven with Speckit, with a constitution pinning the stack to something efficient like Rust, and specs that describe only what the user ends up seeing. The next post is about why I gave up on OpenCode.
 
-This time the order can't be backwards again.
-
-## What I'll write next
-
-- Why I gave up on OpenCode
-- The migration history of my AI development workflow: Claude Code → OpenCode → Codex → back to Claude Code
-- Three self-hosted projects that AI subscriptions "swallowed"
-
----
-
-Those 66,000 lines of code weren't written for nothing — at the very least, they bought this post.
-
-If you also have a blog that's "almost ready," my advice: grab any theme and get your first post out.
+One thing I haven't figured out: the active-parameters trick doesn't work for closed models that don't publish their parameter counts. To compare value between Sol, Terra and Luna, all I can do right now is burn quota and see. If you've had weak models execute tasks too, I'd really like to know how many tokens one finished task actually cost you — compare it with my "200 million tokens, 0 tasks."
