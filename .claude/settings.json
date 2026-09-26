@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "chefs-pick": {
+      "source": {
+        "source": "github",
+        "repo": "chefs-pick-oss-starter/chefs-pick-oss-starter-skill"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "chefs-pick-oss-starter@chefs-pick": true
+  }
+}
