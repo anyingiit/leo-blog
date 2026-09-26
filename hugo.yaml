@@ -1,6 +1,6 @@
 baseURL: https://douseful.eu.org/
-languageCode: zh-CN
 defaultContentLanguage: zh
+defaultContentLanguageInSubdir: false  # 中文保持根路径，英文在 /en/
 timeZone: Asia/Shanghai  # 只写日期的 date 按北京时间解释，避免被当成未来文章跳过
 title: Leoblog
 theme: PaperMod
@@ -20,7 +20,6 @@ permalinks:
 
 params:
   env: production
-  description: 记录学习、实践与思考。先写下来，再慢慢完善。
   defaultTheme: auto
   ShowReadingTime: true
   ShowWordCount: true
@@ -32,19 +31,41 @@ params:
   ShowShareButtons: false
   ShowRssButtonInSectionTermList: true
   disableSpecial1stPost: true
-  homeInfoParams:
-    Title: Leoblog
-    Content: 记录学习、实践与思考。先写下来，再慢慢完善。
   assets:
     disableHLJS: true  # 用 Hugo 自带的 Chroma 高亮
   fuseOpts:
     keys: [title, permalink, summary, content]
 
-menu:
-  main:
-    - { name: 归档, url: /archives/, weight: 10 }
-    - { name: 标签, url: /tags/, weight: 20 }
-    - { name: 搜索, url: /search/, weight: 30 }
+# 译文用同名 .en.md 文件，自动与中文原文互链
+languages:
+  zh:
+    languageCode: zh-CN
+    languageName: 中文
+    weight: 1
+    params:
+      description: 记录学习、实践与思考。先写下来，再慢慢完善。
+      homeInfoParams:
+        Title: Leoblog
+        Content: 记录学习、实践与思考。先写下来，再慢慢完善。
+    menu:
+      main:
+        - { name: 归档, url: /archives/, weight: 10 }
+        - { name: 标签, url: /tags/, weight: 20 }
+        - { name: 搜索, url: /search/, weight: 30 }
+  en:
+    languageCode: en-US
+    languageName: English
+    weight: 2
+    params:
+      description: Notes on learning, practice and thinking. Write it down first, polish it later.
+      homeInfoParams:
+        Title: Leoblog
+        Content: Notes on learning, practice and thinking. Write it down first, polish it later.
+    menu:
+      main:
+        - { name: Archive, url: /en/archives/, weight: 10 }
+        - { name: Tags, url: /en/tags/, weight: 20 }
+        - { name: Search, url: /en/search/, weight: 30 }
 
 markup:
   highlight:
