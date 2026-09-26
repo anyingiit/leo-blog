@@ -2,6 +2,10 @@
 
 Hugo + [PaperMod](https://github.com/adityatelange/hugo-PaperMod) 静态博客，部署在 Cloudflare Pages（push 到 `main` 即发布）。
 
+<a id="getting-started"></a>
+
+## 本地开发
+
 ```bash
 git clone --recurse-submodules <repo>
 hugo server -D        # 本地预览（含草稿）
