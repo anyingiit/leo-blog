@@ -9,12 +9,14 @@ set -euo pipefail
 HUGO_VERSION="0.151.0"
 # 下面各平台的 sha256 取自 https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_checksums.txt
 
+# 官方二进制输出 "hugo v0.151.0-<commit>+extended ..."，Homebrew 等自行编译的没有 -<commit>
 hugo_matches() {
-  command -v hugo >/dev/null 2>&1 &&
-    hugo version | grep -q "v${HUGO_VERSION}-.*+extended"
+  local out
+  out="$("$1" version 2>/dev/null)" || return 1
+  [[ "$out" =~ ^hugo\ v${HUGO_VERSION//./\\.}(-[0-9a-f]+)?\+extended ]]
 }
 
-if ! hugo_matches; then
+if ! { command -v hugo >/dev/null 2>&1 && hugo_matches hugo; }; then
   case "$(uname -s)-$(uname -m)" in
     Linux-x86_64) platform=linux-amd64
       sha256=f2fe3b4ef90bf053d93c713eca1d4d5a467d8d2d5da858a448d55eb71ad44ddf ;;
@@ -25,7 +27,8 @@ if ! hugo_matches; then
     *) echo "build.sh: 不支持的平台 $(uname -s)-$(uname -m)，请手动安装 Hugo Extended ${HUGO_VERSION}" >&2; exit 1 ;;
   esac
   bin_dir="${XDG_CACHE_HOME:-$HOME/.cache}/leo-blog/hugo-${HUGO_VERSION}"
-  if [ ! -x "$bin_dir/hugo" ]; then
+  # 缓存里的二进制也要核对版本；不对（被替换、解压不完整等）就重新下载
+  if ! { [ -x "$bin_dir/hugo" ] && hugo_matches "$bin_dir/hugo"; }; then
     echo "build.sh: 下载 Hugo Extended ${HUGO_VERSION} (${platform})" >&2
     mkdir -p "$bin_dir"
     tarball="$bin_dir/hugo.tar.gz"
@@ -41,8 +44,16 @@ if ! hugo_matches; then
       rm -f "$tarball"
       exit 1
     fi
-    tar -xzf "$tarball" -C "$bin_dir" hugo
-    rm -f "$tarball"
+    # 先解压到临时名再改名，中断时不会留下半截的 hugo
+    rm -rf "$bin_dir/extract"
+    mkdir "$bin_dir/extract"
+    tar -xzf "$tarball" -C "$bin_dir/extract" hugo
+    mv -f "$bin_dir/extract/hugo" "$bin_dir/hugo"
+    rm -rf "$tarball" "$bin_dir/extract"
+    if ! hugo_matches "$bin_dir/hugo"; then
+      echo "build.sh: 下载的 Hugo 版本不是 ${HUGO_VERSION} Extended" >&2
+      exit 1
+    fi
   fi
   export PATH="$bin_dir:$PATH"
 fi
