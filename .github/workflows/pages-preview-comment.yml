@@ -1,0 +1,87 @@
+# 把 Cloudflare Pages 的预览链接写进 PR 评论（每个 PR 一条，原地更新）。
+# CF Pages 的 GitHub 集成会在每个提交上创建名为 "Cloudflare Pages" 的 check run，
+# 其 output.summary 里带有 Preview URL / Branch Preview URL，这里直接解析，不需要 CF 的 secret。
+# 注意：check_run 事件只触发默认分支上的 workflow，所以本文件合并到 main 后才生效。
+name: Pages preview comment
+
+on:
+  check_run:
+    types: [created, completed]
+
+permissions:
+  checks: read
+  pull-requests: write
+
+# 同一提交的 created / completed 事件排队执行，避免并发时重复发评论
+concurrency:
+  group: pages-preview-${{ github.event.check_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  comment:
+    # 只认 Cloudflare 官方 App 创建的 check run（名称可被其他 App 冒用，App ID 不能）
+    if: github.event.check_run.name == 'Cloudflare Pages' && github.event.check_run.app.id == 85455
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            // 重新拉取 check run 的最新状态，晚到的 created 事件不会把"成功"覆盖回"部署中"
+            const { data: run } = await github.rest.checks.get({
+              owner, repo, check_run_id: context.payload.check_run.id,
+            });
+            const marker = '<!-- cf-pages-preview -->';
+
+            // 只接受 *.pages.dev 链接，避免把 summary 中的其他内容带进评论
+            const pick = (label) => {
+              const m = (run.output?.summary || '').match(
+                new RegExp(label + ':[\\s\\S]*?(https://[a-z0-9-]+\\.[a-z0-9-]+\\.pages\\.dev)')
+              );
+              return m ? m[1] : null;
+            };
+            const preview = pick('Preview URL');
+            const branchPreview = pick('Branch Preview URL');
+            const sha = run.head_sha;
+            const short = sha.slice(0, 7);
+
+            let status;
+            if (run.status !== 'completed') status = '⏳ 部署中…';
+            else if (run.conclusion === 'success') status = '✅ 部署成功';
+            else status = `❌ 部署失败（${run.conclusion}）`;
+
+            const lines = [
+              marker,
+              '### Cloudflare Pages 预览',
+              '',
+              '| | |',
+              '| --- | --- |',
+              `| 提交 | \`${short}\` |`,
+              `| 状态 | ${status} |`,
+            ];
+            if (preview) lines.push(`| 本次提交预览 | ${preview} |`);
+            if (branchPreview) lines.push(`| 分支预览（始终指向最新提交） | ${branchPreview} |`);
+            if (/^https:\/\/dash\.cloudflare\.com\//.test(run.details_url || '')) {
+              lines.push('', `[部署详情](${run.details_url})`);
+            }
+            const body = lines.join('\n');
+
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner, repo, commit_sha: sha,
+            });
+            for (const pr of prs) {
+              // 旧提交的事件晚到时不覆盖新提交的结果
+              if (pr.state !== 'open' || pr.head.sha !== sha) continue;
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: pr.number, per_page: 100,
+              });
+              const existing = comments.find(
+                (c) => c.user.type === 'Bot' && c.body.startsWith(marker)
+              );
+              if (existing) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body });
+              }
+              core.info(`PR #${pr.number}: ${existing ? 'updated' : 'created'} preview comment`);
+            }
