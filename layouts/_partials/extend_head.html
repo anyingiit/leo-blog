@@ -22,11 +22,11 @@
   mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "default" });
 </script>
 {{- end }}
-{{- /* 电脑端多图排版候选，只在预览站和回归测试里（tests/hugo.test.yaml）可用：/notes/?desk=rows|grid|wide|mosaic|masonry。选定后删除 */ -}}
+{{- /* 电脑端多图排版候选，只在预览站和回归测试里（tests/hugo.test.yaml）可用：/notes/?desk=rows|rows2|grid|wide|mosaic|masonry。选定后删除 */ -}}
 {{- if site.Params.deskPreview }}
 <script>
 (() => {
-  const all = { rows: "等高行", grid: "方格（第一版）", wide: "宽网格", mosaic: "主图拼贴", masonry: "瀑布流" };
+  const all = { rows: "等高行", rows2: "等高行·分行（评审建议）", grid: "方格（第一版）", wide: "宽网格", mosaic: "主图拼贴", masonry: "瀑布流" };
   const desk = new URLSearchParams(location.search).get("desk");
   if (!(desk in all)) return;
   document.documentElement.dataset.desk = desk;

@@ -200,12 +200,12 @@ test("关闭 JavaScript 时内容完整，分组照常显示", async () => {
 });
 
 // 电脑端排版候选（预览站 ?desk=，选定后连同这条测试一起删掉）：每种都不能溢出、不能重叠，前 9 张都看得见，+N 落在第 9 张上
-for (const desk of ["rows", "grid", "wide", "mosaic", "masonry"]) {
+for (const desk of ["rows", "rows2", "grid", "wide", "mosaic", "masonry"]) {
   test(`电脑候选 ${desk}：图片不溢出、不重叠，前 9 张可见，+N 在第 9 张上`, async () => {
     const { page, ctx, errors } = await open(`/notes/?desk=${desk}`, { viewport: { width: 1280, height: 900 } });
     assert.equal(await page.evaluate(() => document.documentElement.dataset.desk), desk);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    for (const slug of ["image-test", "travel-photos", "two-photos", "three-photos"]) {
+    for (const slug of ["image-test", "travel-photos", "two-photos", "three-photos", "four-photos", "seven-photos"]) {
       const bad = await card(page, slug).locator(".img-group").evaluate((g) => {
         const gb = g.getBoundingClientRect();
         const boxes = [...g.querySelectorAll("img")].filter((e) => getComputedStyle(e).display !== "none").map((e) => e.getBoundingClientRect());
@@ -238,5 +238,30 @@ test("电脑候选：不带 ?desk= 时没有切换条，默认是等高行", asy
   const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
   assert.equal(await page.locator(".desk-switch").count(), 0);
   assert.equal(await card(page, "two-photos").locator(".img-group").evaluate((g) => getComputedStyle(g).display), "flex");
+  await ctx.close();
+});
+
+test("电脑候选 rows2：每行都铺满、等高、不裁切；4 张横图不再一张一行；sizes 和显示宽度一致", async () => {
+  const { page, ctx } = await open("/notes/?desk=rows2", { viewport: { width: 1280, height: 900 } });
+  const plans = { "two-photos": [2], "three-photos": [3], "four-photos": [2, 2], "seven-photos": [4, 3], "image-test": [2, 2], "travel-photos": [3, 3, 3] };
+  for (const [slug, plan] of Object.entries(plans)) {
+    const group = card(page, slug).locator(".img-group");
+    await group.scrollIntoViewIfNeeded();
+    const r = await rows(group);
+    assert.deepEqual(r.map((x) => x.n), plan, slug);
+    r.forEach((row, i) => {
+      assert.ok(row.heightSpread <= 1, `${slug} 第 ${i + 1} 行高度不一致：${row.heightSpread}px`);
+      assert.ok(row.ratioError < 0.02, `${slug} 第 ${i + 1} 行有图片被拉伸或裁切：${row.ratioError}`);
+      assert.ok(row.fill > 0.99, `${slug} 第 ${i + 1} 行没铺满：${row.fill}`);
+    });
+    const h = await group.evaluate((g) => g.getBoundingClientRect().height);
+    assert.ok(h < 700, `${slug} 整组高 ${h}px`);
+    const off = await group.evaluate((g) => [...g.querySelectorAll("img")].filter((e) => getComputedStyle(e).display !== "none")
+      .map((e) => +e.sizes.match(/\) (\d+)px/)[1] / e.getBoundingClientRect().width).filter((k) => k < 0.99 || k > 1.1));
+    assert.deepEqual(off, [], `${slug} sizes 和显示宽度不符`);
+  }
+  // 引导语和下面的图组靠近：间距 8px
+  const gap = await card(page, "image-test").locator(".img-group").evaluate((g) => g.getBoundingClientRect().top - g.previousElementSibling.getBoundingClientRect().bottom);
+  assert.ok(Math.abs(gap - 8) <= 1, `引导语到图组 ${gap}px`);
   await ctx.close();
 });

@@ -27,7 +27,7 @@ async function inspect(path, slug) {
     const body = scope.querySelector(".note-body") || scope;
     return {
       imgs: [...scope.querySelectorAll("img")].map(img),
-      groups: [...scope.querySelectorAll(".img-group")].map((g) => ({ cls: g.className, imgs: [...g.querySelectorAll("img")].map(img), more: g.querySelector(".note-more")?.textContent ?? null })),
+      groups: [...scope.querySelectorAll(".img-group")].map((g) => ({ cls: g.className, rows: [...g.querySelectorAll(".img-row")].map((r) => r.querySelectorAll("img").length), imgs: [...g.querySelectorAll("img")].map(img), more: g.querySelector(".note-more")?.textContent ?? null })),
       // 正文顶层块的顺序：p 的文字、单张图、分组
       flow: [...body.children].map((c) => c.classList.contains("img-group") ? `group:${c.querySelectorAll("img").length}` : c.querySelector("img") && !c.textContent.trim() ? "img" : c.textContent.trim()),
       expand: body.dataset.expand, collapse: body.dataset.collapse,
@@ -87,7 +87,8 @@ test("原位分组：单张图留在原位，「几张截图：」后的 4 张�
   const { flow, groups } = await inspect("/notes/", "image-test");
   assert.deepEqual(flow.slice(1), ["img", "几张截图：", "group:4", "结尾的一段文字。"]);
   assert.equal(groups[0].cls, "img-group cols-2 n-4");
-  assert.ok(groups[0].imgs.every((i) => i.sizes === "(min-width: 768px) 360px, 50vw"));
+  assert.deepEqual(groups[0].rows, [2, 2]);
+  assert.ok(groups[0].imgs.every((i) => /^\(min-width: 768px\) \d+px, 50vw$/.test(i.sizes)), groups[0].imgs.map((i) => i.sizes).join(" | "));
 });
 
 test("原位分组：12 张排三列并显示 +3，2 张并排，1 张不分组", async () => {
@@ -95,7 +96,8 @@ test("原位分组：12 张排三列并显示 +3，2 张并排，1 张不分组"
   assert.equal(twelve.groups[0].cls, "img-group cols-3 n-12");
   assert.equal(twelve.groups[0].imgs.length, 12, "12 张都要在 HTML 里，图集才能翻到");
   assert.equal(twelve.groups[0].more, "+3");
-  assert.ok(twelve.groups[0].imgs.every((i) => i.sizes === "(min-width: 768px) 360px, 33vw"));
+  assert.deepEqual(twelve.groups[0].rows, [3, 3, 6], "第 10 张起放在最后一行并隐藏");
+  assert.ok(twelve.groups[0].imgs.every((i) => /^\(min-width: 768px\) \d+px, 33vw$/.test(i.sizes)));
   assert.equal((await inspect("/notes/", "two-photos")).groups[0].cls, "img-group cols-2 n-2");
   assert.equal((await inspect("/notes/", "single-photo")).groups.length, 0);
 });
@@ -127,4 +129,23 @@ test("测试短文只在 tests/fixtures 里，正式内容目录不包含它们"
 test("电脑端排版候选的切换只在预览站和测试里打开，正式配置不打开", () => {
   assert.ok(!readFileSync(`${root}/hugo.yaml`, "utf8").includes("deskPreview"));
   assert.match(readFileSync(`${root}/tests/hugo.test.yaml`, "utf8"), /deskPreview: true/);
+});
+
+test("构建时按张数分行：2→2，3→3，4→2+2，7→4+3；sizes 按每张图在电脑上的宽度（同一行加起来等于正文宽减去缝）", async () => {
+  for (const [slug, plan] of [["two-photos", [2]], ["three-photos", [3]], ["four-photos", [2, 2]], ["seven-photos", [4, 3]], ["travel-photos", [3, 3, 6]]]) {
+    const { groups } = await inspect("/notes/", slug);
+    assert.deepEqual(groups[0].rows, plan, slug);
+  }
+  const { groups } = await inspect("/notes/", "three-photos");
+  const px = groups[0].imgs.map((i) => +i.sizes.match(/\) (\d+)px/)[1]);
+  const total = px.reduce((a, b) => a + b, 0);
+  assert.ok(total >= 670 - 8 && total <= 670 - 8 + 3, `三张的 sizes 合计 ${total}`);
+  assert.ok(px[0] < px[1] && px[1] < px[2], `竖图最窄、16:9 最宽：${px}`);
+});
+
+test("CSS 括号配平（多一个 } 会让后面的规则整条失效）", () => {
+  const css = readFileSync(`${root}/assets/css/extended/custom.css`, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  let depth = 0;
+  for (const ch of css) { if (ch === "{") depth++; if (ch === "}") depth--; assert.ok(depth >= 0, "多了 }"); }
+  assert.equal(depth, 0, "少了 }");
 });
