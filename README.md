@@ -19,7 +19,7 @@ hugo new notes/<slug>.md   # 短文（随笔、感想）
 
 长文和短文分开放：`content/posts/` 是整理过的长文，出现在首页、归档和上一篇/下一篇里；`content/notes/` 是随笔、感想这类短文，只在「短文」栏目（`/notes/`）里按时间线展开全文，单篇页不显示目录和阅读时长。两者共用标签、搜索和全站 RSS，`/notes/index.xml` 是只含短文的 RSS。
 
-英文译文：在原文旁放同名 `<slug>.en.md`（slug 保持一致），发布在 `/en/posts/<slug>/`，并与中文版自动互链。
+英文译文：在原文旁放同名 `<slug>.en.md`（slug 保持一致），发布在 `/en/posts/<slug>/`，并与中文版自动互链。含中文文字的配图要同时生成英文版给英文页用，做法见 [docs/image-translation.md](docs/image-translation.md)。
 
 Markdown 扩展：`$...$` / `$$...$$` 数学公式（构建期 KaTeX）、` ```mermaid ` 图、`> [!NOTE]` 提示框。语法样例见 `content/posts/markdown-test/`（草稿，不发布）。
 

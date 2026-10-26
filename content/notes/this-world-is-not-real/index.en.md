@@ -5,7 +5,7 @@ date: 2026-10-26T20:18:28Z
 tags: [Notes, AI]
 ---
 
-![The model reports what's in its J-space: swapping "Soccer" for "Rugby" changes its answer; injecting "lightning" into its J-space lets it name the injected thought as lightning](j-space-injection.png)
+![The model reports what's in its J-space: swapping "Soccer" for "Rugby" changes its answer; injecting "lightning" into its J-space lets it name the injected thought as lightning](j-space-injection.en.png)
 
 I find it strange about myself: my first reaction to this research method was a philosophical one. "Injecting ideas into a mind. What if the subject were a person?" "If the model itself can feel pain, would this count as abuse?"
 
