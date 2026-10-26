@@ -141,8 +141,11 @@ def overlay(spec, src, auto):
             continue
         size = p["size"]
         f = font(p.get("font", "sans"), size)
-        while f.getlength(max(p["text"].split("\n"), key=f.getlength)) > x1 - x0 and size > 8:
-            size -= 1  # 英文放不下就缩小字号，保证不越出原来的区域
+        def overflows(f):
+            l, t, r, b = draw.multiline_textbbox((0, 0), p["text"], font=f)
+            return r - l > x1 - x0 or b - t > y1 - y0
+        while overflows(f) and size > 8:
+            size -= 1  # 英文放不下（宽或高）就缩小字号，保证不越出原来的区域
             f = font(p.get("font", "sans"), size)
         anchor = {"left": "lm", "center": "mm", "right": "rm"}[p.get("align", "left")]
         ax = {"left": x0, "center": (x0 + x1) / 2, "right": x1}[p.get("align", "left")]
