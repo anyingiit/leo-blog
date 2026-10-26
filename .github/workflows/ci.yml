@@ -43,6 +43,10 @@ jobs:
 
       # Add your project's linters below this line.
 
+      # 每个测试文件都必须在本文件里执行，新加的测试忘了接进 CI 会在这里失败（docs/testing.md）
+      - name: Check that CI runs every test file
+        run: node tests/ci-coverage.mjs
+
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -56,6 +60,14 @@ jobs:
       # build.sh 自己安装锁定版本的 Hugo，与 Cloudflare Pages 构建完全一致
       - name: Build site
         run: bash build.sh
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      # 站点回归测试：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、预览地址；只用 Node 内置模块（docs/testing.md）
+      - name: Test site
+        run: node --test tests/site.test.mjs tests/ci-coverage.test.mjs
 
       # 英文配图脚本的回归测试，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）
       - name: Test image-i18n

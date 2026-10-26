@@ -25,6 +25,10 @@ Markdown 扩展：`$...$` / `$$...$$` 数学公式（构建期 KaTeX）、` ```m
 
 PR 预览：Cloudflare Pages 会为每个 PR 分支部署预览，`.github/workflows/pages-preview-comment.yml` 从 CF 的 check run 中取出预览链接，写进 PR 的一条固定评论（每次 push 原地更新）。
 
+正文里的美元金额要写成 `\$30`：同一段里出现两个 `$` 时，中间的文字会被当成公式渲染。
+
+测试：全部自定义测试都在 CI（`.github/workflows/ci.yml`）里运行，新加的测试文件没接进 CI 会直接让 CI 失败。清单、本地运行方法和覆盖范围见 [docs/testing.md](docs/testing.md)。
+
 ## 许可证
 
 - 代码（配置、模板、脚本等）：[MIT](LICENSE)
