@@ -88,6 +88,10 @@ jobs:
           persist-credentials: false
           submodules: recursive
 
+      # 容器里的用户和检出目录的属主不同，git 会拒绝操作（ci-coverage.test.mjs 要用 git ls-files）
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Install test dependencies
         run: npm ci
 
