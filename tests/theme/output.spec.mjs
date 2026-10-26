@@ -7,13 +7,15 @@ import { sites } from "./helpers.mjs";
 
 const walk = (d) => readdirSync(d).flatMap((n) => statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]);
 const read = (site, p) => readFileSync(join(sites[site].dir, p), "utf8");
-// 每个标签一行，便于看差异
-const lines = (html) => html.replace(/></g, ">\n<");
+// 每个标签一行，便于看差异。资源指纹（文件名里的哈希、SRI）换成占位符：CSS/JS 内容的变化由截图和交互测试判断，
+// 这里只关心引用了哪些资源，否则改一个字的样式也会让所有 <head> 快照失败、看不出真正的问题
+const unhash = (s) => s.replace(/\.[0-9a-f]{64}\.(css|js)\b/g, ".<hash>.$1").replace(/sha(256|384|512)-[A-Za-z0-9+/=]+/g, "sha$1-<hash>");
+const lines = (html) => unhash(html).replace(/></g, ">\n<");
 const head = (html) => lines(html.split(/<head>/)[1].split("</head>")[0])
   .replace(/<style>[\s\S]*?<\/style>/g, "<style>…</style>"); // 内联样式的内容由截图覆盖
 
 const pages = {
-  site: ["index.html", "posts/sample-post/index.html", "en/posts/sample-post/index.html", "notes/index.html", "notes/sample-note/index.html", "tags/index.html", "search/index.html", "404.html"],
+  site: ["index.html", "posts/sample-post/index.html", "en/posts/sample-post/index.html", "notes/index.html", "en/notes/index.html", "en/index.html", "notes/sample-note/index.html", "tags/index.html", "search/index.html", "404.html"],
   example: ["index.html", "posts/markdown-syntax/index.html", "posts/inner-section/cover-page/index.html", "fr/index.html", "fa/index.html", "archives/index.html", "search/index.html"],
 };
 const feeds = {
@@ -24,7 +26,7 @@ const feeds = {
 for (const site of Object.keys(sites)) {
   test(`${site}：生成的文件清单`, () => {
     const files = walk(sites[site].dir).map((f) => relative(sites[site].dir, f)).sort();
-    expect(files.join("\n") + "\n").toMatchSnapshot(`${site}-files.txt`);
+    expect(unhash(files.join("\n")) + "\n").toMatchSnapshot(`${site}-files.txt`);
   });
   for (const p of pages[site]) {
     test(`${site}：${p} 的 <head>`, () => {

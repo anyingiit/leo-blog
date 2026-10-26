@@ -151,6 +151,18 @@ test("标签成对翻译：中文和英文标签数量相同，「随笔」对�
   }
 });
 
+test("正文图片都是懒加载、异步解码（layouts/_markup/render-image.html）", () => {
+  let n = 0;
+  for (const { path, html } of allPages(site)) {
+    for (const img of (html.includes("<main") ? main(html) : "").match(/<img [^>]*>/g) || []) {
+      if (!/loading="?lazy/.test(img)) continue;
+      n++;
+      assert.match(img, /decoding="?async/, `${path} 的图片缺少 decoding=async：${img.slice(0, 120)}`);
+    }
+  }
+  assert.ok(n > 0, "没有找到懒加载的正文图片，测试前提不成立");
+});
+
 test("有英文版的配图：英文页用 .en 图，中文页用原图（docs/image-translation.md）", () => {
   const specs = walk(join(root, "content")).filter((f) => f.endsWith(".i18n.yaml"));
   assert.ok(specs.length > 0, "content 里没有找到 .i18n.yaml，测试前提不成立");

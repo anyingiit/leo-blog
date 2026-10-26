@@ -1,7 +1,7 @@
 404.html
 archives/index.html
-assets/css/stylesheet.36aef43fb6312b2c873a6161b6cf681ae4ec5665b00d44d16bdefad1dba52d29.css
-assets/js/search.d927ddc6fe6819318b41a2c272a17c088ffbe88c92526876e6226270c20173eb.js
+assets/css/stylesheet.<hash>.css
+assets/js/search.<hash>.js
 categories/index.html
 categories/index.xml
 en/404.html
@@ -15,6 +15,7 @@ en/notes/four-photos/index.html
 en/notes/index.html
 en/notes/index.xml
 en/notes/long-text/index.html
+en/notes/math-note/index.html
 en/notes/page/1/index.html
 en/notes/page/2/index.html
 en/notes/photo-note/index.html
@@ -73,6 +74,7 @@ notes/four-photos/index.html
 notes/index.html
 notes/index.xml
 notes/long-text/index.html
+notes/math-note/index.html
 notes/page/1/index.html
 notes/page/2/index.html
 notes/photo-note/index.html

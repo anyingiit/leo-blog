@@ -102,12 +102,13 @@ export async function settle(page, { images = true, mermaid = true } = {}) {
     await page.waitForFunction(() => [...document.querySelectorAll("pre.mermaid")].every((p) => p.dataset.processed === "true" && p.querySelector("svg .node, svg .label, svg text")), null, { timeout: 15000 });
   }
   // 最后等版面静止：连续 10 帧里页面高度和所有图片、图表的位置尺寸都不再变化
-  await page.evaluate(() => new Promise((ok) => {
+  await page.evaluate(() => new Promise((ok, fail) => {
     const sig = () => [document.documentElement.scrollHeight, ...[...document.querySelectorAll("img, svg, .katex, pre")].map((e) => {
       const r = e.getBoundingClientRect(); return `${r.x},${r.y},${r.width},${r.height},${e.getElementsByTagName("*").length}`; })].join("|");
     let last = sig(), same = 0;
     const tick = () => { const now = sig(); same = now === last ? same + 1 : 0; last = now; same >= 10 ? ok() : requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
+    setTimeout(() => fail(new Error("页面 10 秒内没有静止下来（布局一直在变）")), 10000);
   }));
 }
 

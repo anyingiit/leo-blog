@@ -7,7 +7,7 @@
 <meta name=description content="Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod">
 <meta name=author content="Theme PaperMod">
 <link rel=canonical href=http://example.test/fr/>
-<link crossorigin=anonymous href=/assets/css/stylesheet.935499ff380d13bbd606995fd4035e93fb465202189389096f292d5b8e75f1a0.css integrity="sha256-k1SZ/zgNE7vWBplf1ANek/tGUgIYk4kJbyktW4518aA=" rel="preload stylesheet" as=style>
+<link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
 <link rel=icon href=http://example.test/favicon.ico>
 <link rel=icon type=image/png sizes=16x16 href=http://example.test/favicon-16x16.png>
 <link rel=icon type=image/png sizes=32x32 href=http://example.test/favicon-32x32.png>

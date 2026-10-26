@@ -1,8 +1,8 @@
 404.html
 about/index.html
 archives/index.html
-assets/css/stylesheet.935499ff380d13bbd606995fd4035e93fb465202189389096f292d5b8e75f1a0.css
-assets/js/search.e229e8d51c221f102254c8cc8c10b254d8f4faf0a0141b78d4827f9d925d6541.js
+assets/css/stylesheet.<hash>.css
+assets/js/search.<hash>.js
 categories/index.html
 categories/index.xml
 categories/syntax/index.html

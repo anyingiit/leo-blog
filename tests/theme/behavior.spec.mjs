@@ -215,8 +215,24 @@ test("长短文折叠：展开、收起", async ({ browser }, info) => {
   await btn.click();
   await expect(btn).toHaveAttribute("aria-expanded", "true");
   expect(await body.evaluate((b) => b.getBoundingClientRect().height)).toBeGreaterThan(folded + 100);
+  // 滚到展开后的正文底部再收起：页面要滚回这条短文的开头，不能让读者停在下面不相干的位置
+  await btn.scrollIntoViewIfNeeded();
   await btn.click();
   await expect(body).toHaveClass(/is-folded/);
+  await expect.poll(() => entry.evaluate((e) => Math.round(e.getBoundingClientRect().top))).toBeLessThanOrEqual(10);
+  expect(await entry.evaluate((e) => e.getBoundingClientRect().top)).toBeGreaterThanOrEqual(-1);
+  await context.close();
+});
+
+// 短文多图分组的版面在 768px 切换（custom.css）：767 宽时逐张排列，768 起按行等高排列
+test("短文图组的断点正好在 768px", async ({ browser }, info) => {
+  const { context, page } = await open(browser, info, SITE + "/notes/");
+  const display = async (width) => {
+    await page.setViewportSize({ width, height: 900 });
+    return page.locator(".img-row").first().evaluate((el) => getComputedStyle(el).display);
+  };
+  expect(await display(767)).toBe("contents");
+  expect(await display(768)).toBe("flex");
   await context.close();
 });
 
