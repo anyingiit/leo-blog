@@ -10,3 +10,7 @@
   translation: 关闭
 - id: zoom_label
   translation: 查看图片
+- id: zoom_open
+  translation: "查看图片 %d / %d"
+- id: zoom_more
+  translation: "，还有 %d 张"

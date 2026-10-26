@@ -80,23 +80,6 @@ test("手机：分组是方块网格，12 张三列、2 张和 4 张两列；照
   await ctx.close();
 });
 
-test("电脑：分组是等高行，按原比例不裁切，铺满正文宽度（最后一行可以不满）", async () => {
-  const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
-  for (const slug of ["travel-photos", "two-photos", "image-test"]) {
-    const group = card(page, slug).locator(".img-group");
-    await group.scrollIntoViewIfNeeded();
-    const r = await rows(group);
-    r.forEach((row, i) => {
-      assert.ok(row.heightSpread <= 1, `${slug} 第 ${i + 1} 行高度不一致：${row.heightSpread}px`);
-      assert.ok(row.ratioError < 0.02, `${slug} 第 ${i + 1} 行有图片被拉伸或裁切：${row.ratioError}`);
-      if (i < r.length - 1 || slug !== "travel-photos") assert.ok(row.fill > 0.99, `${slug} 第 ${i + 1} 行没铺满：${row.fill}`);
-    });
-    if (slug === "two-photos") assert.deepEqual(r.map((x) => x.n), [2], "两张图要并排在一行");
-    if (slug === "image-test") assert.deepEqual(r.map((x) => x.n), [2, 2], "4 张截图排成两行");
-  }
-  await ctx.close();
-});
-
 test("图集：点击打开，翻页、图注、计数，Esc 关闭后焦点回到原图", async () => {
   const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
   const first = card(page, "travel-photos").locator(".img-group img").nth(1);
@@ -199,50 +182,8 @@ test("关闭 JavaScript 时内容完整，分组照常显示", async () => {
   await ctx.close();
 });
 
-// 电脑端排版候选（预览站 ?desk=，选定后连同这条测试一起删掉）：每种都不能溢出、不能重叠，前 9 张都看得见，+N 落在第 9 张上
-for (const desk of ["rows", "rows2", "grid", "wide", "mosaic", "masonry"]) {
-  test(`电脑候选 ${desk}：图片不溢出、不重叠，前 9 张可见，+N 在第 9 张上`, async () => {
-    const { page, ctx, errors } = await open(`/notes/?desk=${desk}`, { viewport: { width: 1280, height: 900 } });
-    assert.equal(await page.evaluate(() => document.documentElement.dataset.desk), desk);
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    for (const slug of ["image-test", "travel-photos", "two-photos", "three-photos", "four-photos", "seven-photos"]) {
-      const bad = await card(page, slug).locator(".img-group").evaluate((g) => {
-        const gb = g.getBoundingClientRect();
-        const boxes = [...g.querySelectorAll("img")].filter((e) => getComputedStyle(e).display !== "none").map((e) => e.getBoundingClientRect());
-        const out = [];
-        if (boxes.length !== Math.min(9, g.querySelectorAll("img").length)) out.push(`可见 ${boxes.length} 张`);
-        boxes.forEach((b, i) => {
-          if (b.width < 60 || b.height < 60) out.push(`第 ${i + 1} 张太小 ${b.width}×${b.height}`);
-          if (b.left < gb.left - 1 || b.right > gb.right + 1) out.push(`第 ${i + 1} 张超出分组`);
-          boxes.slice(i + 1).forEach((c, j) => {
-            const w = Math.min(b.right, c.right) - Math.max(b.left, c.left), h = Math.min(b.bottom, c.bottom) - Math.max(b.top, c.top);
-            if (w > 1 && h > 1) out.push(`第 ${i + 1} 和 ${i + j + 2} 张重叠`);
-          });
-        });
-        const more = g.querySelector(".note-more");
-        if (more) {
-          const m = more.getBoundingClientRect(), n = g.querySelectorAll("img")[8].getBoundingClientRect();
-          if (!(m.left >= n.left && m.right <= n.right && m.top >= n.top && m.bottom <= n.bottom)) out.push("+N 不在第 9 张上");
-        }
-        return out;
-      });
-      assert.deepEqual(bad, [], `${desk} / ${slug}`);
-    }
-    assert.ok(await page.locator(".desk-switch a[aria-current]").count() === 1, "切换条");
-    assert.deepEqual(errors, []);
-    await ctx.close();
-  });
-}
-
-test("电脑候选：不带 ?desk= 时没有切换条，默认是等高行", async () => {
+test("电脑：分组按构建时分好的行排，每行铺满、等高、不裁切，整组不超过一屏；sizes 和显示宽度一致", async () => {
   const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
-  assert.equal(await page.locator(".desk-switch").count(), 0);
-  assert.equal(await card(page, "two-photos").locator(".img-group").evaluate((g) => getComputedStyle(g).display), "flex");
-  await ctx.close();
-});
-
-test("电脑候选 rows2：每行都铺满、等高、不裁切；4 张横图不再一张一行；sizes 和显示宽度一致", async () => {
-  const { page, ctx } = await open("/notes/?desk=rows2", { viewport: { width: 1280, height: 900 } });
   const plans = { "two-photos": [2], "three-photos": [3], "four-photos": [2, 2], "seven-photos": [4, 3], "image-test": [2, 2], "travel-photos": [3, 3, 3] };
   for (const [slug, plan] of Object.entries(plans)) {
     const group = card(page, slug).locator(".img-group");
@@ -264,4 +205,25 @@ test("电脑候选 rows2：每行都铺满、等高、不裁切；4 张横图不
   const gap = await card(page, "image-test").locator(".img-group").evaluate((g) => g.getBoundingClientRect().top - g.previousElementSibling.getBoundingClientRect().bottom);
   assert.ok(Math.abs(gap - 8) <= 1, `引导语到图组 ${gap}px`);
   await ctx.close();
+});
+
+test("图集：点第 9 张上的「+3」从第 10 张看起", async () => {
+  const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
+  const ninth = card(page, "travel-photos").locator(".img-more img");
+  await ninth.scrollIntoViewIfNeeded();
+  await ninth.click();
+  assert.equal(await page.locator("dialog.img-zoom .zoom-count").textContent(), "10 / 12");
+  await ctx.close();
+});
+
+test("读屏：没写说明的图片念「查看图片 3 / 12」，第 9 张加上「还有 3 张」，写了说明的念说明", async () => {
+  for (const [path, third, ninth] of [["/notes/", "查看图片 3 / 12", "查看图片 9 / 12，还有 3 张"], ["/en/notes/", "View image 3 of 12", "View image 9 of 12, 3 more"]]) {
+    const { page, ctx } = await open(path, { viewport: { width: 1280, height: 900 } });
+    const imgs = card(page, "travel-photos").locator(".img-group img");
+    assert.equal(await imgs.nth(2).getAttribute("aria-label"), third);
+    assert.equal(await imgs.nth(8).getAttribute("aria-label"), ninth);
+    assert.equal(await card(page, "travel-photos").locator(".note-more").getAttribute("aria-hidden"), "true");
+    assert.equal(await card(page, "image-test").locator("img.photo").first().getAttribute("aria-label"), null, "有 alt 就不另加名字");
+    await ctx.close();
+  }
 });

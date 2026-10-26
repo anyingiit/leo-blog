@@ -126,11 +126,6 @@ test("测试短文只在 tests/fixtures 里，正式内容目录不包含它们"
   for (const slug of readdirSync(`${root}/tests/fixtures/content/notes`)) assert.ok(!notes.includes(slug), slug);
 });
 
-test("电脑端排版候选的切换只在预览站和测试里打开，正式配置不打开", () => {
-  assert.ok(!readFileSync(`${root}/hugo.yaml`, "utf8").includes("deskPreview"));
-  assert.match(readFileSync(`${root}/tests/hugo.test.yaml`, "utf8"), /deskPreview: true/);
-});
-
 test("构建时按张数分行：2→2，3→3，4→2+2，7→4+3；sizes 按每张图在电脑上的宽度（同一行加起来等于正文宽减去缝）", async () => {
   for (const [slug, plan] of [["two-photos", [2]], ["three-photos", [3]], ["four-photos", [2, 2]], ["seven-photos", [4, 3]], ["travel-photos", [3, 3, 6]]]) {
     const { groups } = await inspect("/notes/", slug);

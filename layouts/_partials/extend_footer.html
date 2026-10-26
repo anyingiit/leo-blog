@@ -8,6 +8,7 @@
 (() => {
   const t = {
     prev: {{ i18n "zoom_prev" }}, next: {{ i18n "zoom_next" }}, close: {{ i18n "zoom_close" }}, label: {{ i18n "zoom_label" }},
+    open: {{ i18n "zoom_open" }}, more: {{ i18n "zoom_more" }},
   };
   const zoomable = (img) => !img.closest("a") && !img.classList.contains("in-text");
   const selector = ".md-content img";
@@ -59,19 +60,28 @@
     }, true);
     document.body.append(box);
   };
+  const gallery = (img) => [...(img.closest(".note-entry") || img.closest(".md-content")).querySelectorAll(selector)].filter(zoomable);
   const open = (img) => {
-    const scope = img.closest(".note-entry") || img.closest(".md-content");
-    list = [...scope.querySelectorAll(selector)].filter(zoomable);
+    list = gallery(img);
     if (!box) build();
     opener = img;
-    show(list.indexOf(img));
+    // 第 9 张上标着「+N」，点它从第 10 张（没显示出来的第一张）看起
+    show(list.indexOf(img) + (img.closest(".img-more") ? 1 : 0));
     box.showModal();
     box.focus();
   };
+  // 图片能用键盘打开；没写说明（alt）的图片，读屏念「查看图片 3 / 12」，而不是只念「按钮」
+  const fmt = (s, ...n) => n.reduce((r, x) => r.replace("%d", x), s);
   for (const img of document.querySelectorAll(selector)) {
     if (!zoomable(img)) continue;
     img.tabIndex = 0;
     img.setAttribute("role", "button");
+    const all = gallery(img), more = img.closest(".img-more")?.querySelector(".note-more");
+    const label = img.alt || fmt(t.open, all.indexOf(img) + 1, all.length);
+    if (more) {
+      more.setAttribute("aria-hidden", "true");
+      img.setAttribute("aria-label", label + fmt(t.more, all.length - all.indexOf(img) - 1));
+    } else if (!img.alt) img.setAttribute("aria-label", label);
   }
   document.addEventListener("click", (e) => {
     const img = e.target.closest(selector);
