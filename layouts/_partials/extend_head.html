@@ -1,13 +1,24 @@
+{{- /* 单篇页看自己；短文列表页会展开全文，所以要看列表里每一篇 */ -}}
+{{- $pages := slice }}
 {{- if .IsPage }}
+  {{- $pages = slice . }}
+{{- else if and .IsSection (eq .Section "notes") }}
+  {{- $pages = .RegularPages }}
+{{- end }}
+{{- $hasMath := false }}
+{{- $hasMermaid := false }}
+{{- range $pages }}
   {{- $_ := .Content }}
-  {{- if .Store.Get "hasMath" }}
+  {{- if .Store.Get "hasMath" }}{{ $hasMath = true }}{{ end }}
+  {{- if .Store.Get "hasMermaid" }}{{ $hasMermaid = true }}{{ end }}
+{{- end }}
+{{- if $hasMath }}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
-  {{- end }}
-  {{- if .Store.Get "hasMermaid" }}
+{{- end }}
+{{- if $hasMermaid }}
 <script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
   const dark = document.documentElement.dataset.theme === "dark";
   mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "default" });
 </script>
-  {{- end }}
 {{- end }}
