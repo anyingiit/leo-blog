@@ -86,8 +86,8 @@ jobs:
       - name: Install test dependencies
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium webkit
 
-      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠和图集（见 tests/README.md）
+      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠、图集和页头语言切换（见 tests/README.md）
       - name: Run regression tests
         run: npm test
