@@ -8,7 +8,7 @@
  {
   "content": "一张竖图：\n",
   "permalink": "http://blog.test/notes/photo-note/",
-  "summary": "<p>一张竖图：</p>\n<p><img alt=\"山和太阳\" loading=\"lazy\" src=\"/notes/photo-note/photo.jpg\"></p>",
+  "summary": "<p>一张竖图：</p>\n<p><img alt=\"山和太阳\" class=\"photo\" data-zoom=\"/notes/photo-note/photo_hu_1df156f354e68a29.webp\" decoding=\"async\" height=\"1000\" loading=\"lazy\" sizes=\"(min-width: 768px) 720px, 100vw\" src=\"/notes/photo-note/photo_hu_1df156f354e68a29.webp\" srcset=\"/notes/photo-note/photo_hu_990f97c2a37299b2.webp 480w, /notes/photo-note/photo_hu_1df156f354e68a29.webp 800w\" style=\"--ar:0.8000\" width=\"800\"></p>",
   "title": "带图的短文"
  },
  {

@@ -22,7 +22,7 @@
 <pubDate>Wed, 04 Mar 2026 09:00:00 +0000</pubDate>
 <guid>http://blog.test/en/notes/photo-note/</guid>
 <description>&lt;p&gt;A portrait photo:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Mountain and sun" loading="lazy" src="http://blog.test/notes/photo-note/photo.jpg"&gt;&lt;/p&gt;</description>
+&lt;p&gt;&lt;img alt="Mountain and sun" class="photo" data-zoom="/notes/photo-note/photo_hu_1df156f354e68a29.webp" decoding="async" height="1000" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/photo-note/photo_hu_1df156f354e68a29.webp" srcset="http://blog.test/notes/photo-note/photo_hu_990f97c2a37299b2.webp 480w, http://blog.test/notes/photo-note/photo_hu_1df156f354e68a29.webp 800w" style="--ar:0.8000" width="800"&gt;&lt;/p&gt;</description>
 </item>
 <item>
 <title>Visual regression sample post</title>

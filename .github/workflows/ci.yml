@@ -61,14 +61,6 @@ jobs:
       - name: Build site
         run: bash build.sh
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 22
-
-      # 站点回归测试：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、预览地址；只用 Node 内置模块（docs/testing.md）
-      - name: Test site
-        run: node --test tests/site.test.mjs tests/ci-coverage.test.mjs
-
       # 英文配图脚本的回归测试，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）
       - name: Test image-i18n
         run: |
@@ -76,9 +68,34 @@ jobs:
           /tmp/venv/bin/pip install --quiet -r tools/image-i18n/requirements.txt
           /tmp/venv/bin/python -m unittest discover -s tools/image-i18n -v
 
+  # 两个浏览器测试任务都在 Playwright 官方镜像里运行（按 digest 锁定）：浏览器和系统依赖已装好，不用每次下载安装，
+  # 截图基准也在同一镜像里生成，换机器不会因字体渲染不同而误报。
+
+  # 站点回归测试：tests/ 下所有 *.test.mjs（node --test 自动发现），包括图片处理和短文栏目（tests/README.md）、
+  # 站点整体检查 site.test.mjs、CI 覆盖检查 ci-coverage.test.mjs
+  regression:
+    name: Regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Install test dependencies
+        run: npm ci
+
+      - name: Run regression tests
+        run: npm test
+
   # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）两个任务并行，
   # 各自在电脑/平板/手机三种尺寸、浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
-  # 固定在 Playwright 官方镜像里运行（按 digest 锁定），基准图也在同一镜像里生成，换机器不会因字体渲染不同而误报。
   visual:
     name: Visual (${{ matrix.browser }})
     runs-on: ubuntu-latest
@@ -125,4 +142,3 @@ jobs:
             tests/theme/playwright-report/
             tests/theme/__snapshots__/
           retention-days: 14
-

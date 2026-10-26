@@ -6,8 +6,9 @@
 
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
-| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址（详见下文） | Test → Test site |
-| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Test → Test site |
+| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Regression tests |
+| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests |
+| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Regression tests |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Test → Test image-i18n |
 | `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态 | Visual (chromium) / Visual (webkit) |
 | `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、语言切换、返回顶部、菜单、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Visual (chromium) / Visual (webkit) |
@@ -48,7 +49,7 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 ## 本地运行
 
 ```bash
-node --test tests/site.test.mjs tests/ci-coverage.test.mjs   # 需要 Node 18+，首次会由 build.sh 下载 Hugo
+cd tests && npm ci && npm test && cd ..   # tests/ 下全部 *.test.mjs；site/ci-coverage 两个文件也可单独用 node --test 运行
 node tests/ci-coverage.mjs                                    # 检查每个测试文件都在 CI 里执行
 
 cd tests/theme && npm ci && npx playwright test   # 主题测试；本地截图和 CI 基准可能有像素差异，以 CI 为准

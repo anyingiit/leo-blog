@@ -13,3 +13,41 @@
 .note-title a { box-shadow: none; }
 .note-meta { color: var(--secondary); font-size: 0.875rem; margin-top: 0.25rem; }
 .note-entry .post-content { margin: 0; }
+.md-content img { height: auto; cursor: zoom-in; }
+.md-content a img { cursor: pointer; }
+/* 短文时间线里的图片最高 24rem（按宽高比算出宽度，图片加载前就能确定占位） */
+.note-entry .post-content img[style*="--ar"] { width: min(100%, calc(24rem * var(--ar))); }
+.note-body.is-folded { max-height: 40rem; overflow: hidden; -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent); }
+.note-expand { display: block; margin: 0.75rem auto 0; padding: 0.25rem 1rem; color: var(--primary); background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
+.md-content img[role="button"]:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.img-zoom { max-width: 100vw; max-height: 100vh; padding: 0; border: 0; background: none; cursor: zoom-out; overflow: visible; touch-action: none; outline: none; }
+.img-zoom::backdrop { background: rgb(0 0 0 / 0.88); }
+.img-zoom figure { margin: 0; text-align: center; }
+.img-zoom img { max-width: 95vw; max-height: 85vh; margin: auto; user-select: none; -webkit-user-drag: none; }
+.img-zoom figcaption { margin-top: 0.5rem; color: #ddd; font-size: 0.875rem; }
+.img-zoom figcaption:empty { display: none; }
+.img-zoom button { position: fixed; top: 50%; transform: translateY(-50%); width: 3rem; height: 3rem; font-size: 2rem; line-height: 1; color: #fff; background: rgb(0 0 0 / 0.4); border: 0; border-radius: 50%; cursor: pointer; }
+.img-zoom .zoom-prev { left: 1rem; }
+.img-zoom .zoom-next { right: 1rem; }
+.img-zoom .zoom-close { top: 1rem; right: 1rem; transform: none; font-size: 1.75rem; }
+.img-zoom.single .zoom-prev, .img-zoom.single .zoom-next { display: none; }
+.img-zoom .zoom-count { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); color: #fff; font-size: 0.875rem; }
+/* 原位分组（notes/list.html）。手机：方块网格，照片裁成方块，截图完整显示；第 10 张起只在图集里看 */
+.img-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: min(100%, 30rem); margin: 1rem 0; }
+.img-group.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.note-entry .post-content .img-group img { display: block; width: 100%; height: auto; aspect-ratio: 1; margin: 0; object-fit: cover; border-radius: 4px; }
+.note-entry .post-content .img-group img.shot { object-fit: contain; background: var(--code-bg); }
+.img-row { display: contents; }
+.img-more { position: relative; }
+.img-more ~ img { display: none !important; }
+.note-more { position: absolute; right: 0.4rem; bottom: 0.4rem; padding: 0 0.5rem; color: #fff; font-size: 0.875rem; background: rgb(0 0 0 / 0.6); border-radius: 999px; pointer-events: none; }
+/* 电脑：等高行。构建时已按张数分好行（notes/list.html），每行按宽高比（--ar）分宽度，同一行等高、铺满正文宽度，不裁切；引导语和下面的图组靠近 */
+@media (min-width: 768px) {
+  .img-group { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  .img-row { display: flex; gap: 4px; }
+  .img-row > :is(img, .img-more) { flex: var(--ar, 1) 1 0; min-width: 0; }
+  .note-entry .post-content .img-group img { aspect-ratio: var(--ar, 1); object-fit: cover; }
+  .note-entry .post-content .img-group img.shot { object-fit: cover; background: none; }
+  .note-entry .post-content p:has(+ .img-group) { margin-bottom: 0.5rem; }
+  .note-entry .post-content p + .img-group { margin-top: 0.5rem; }
+}

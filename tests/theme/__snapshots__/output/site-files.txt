@@ -1,6 +1,6 @@
 404.html
 archives/index.html
-assets/css/stylesheet.de56a660f306e886e67df6a5009affc4bd37d0aa872249c3d3d25ee9c37a1b8a.css
+assets/css/stylesheet.36aef43fb6312b2c873a6161b6cf681ae4ec5665b00d44d16bdefad1dba52d29.css
 assets/js/search.d927ddc6fe6819318b41a2c272a17c088ffbe88c92526876e6226270c20173eb.js
 categories/index.html
 categories/index.xml
@@ -42,13 +42,16 @@ notes/index.html
 notes/index.xml
 notes/page/1/index.html
 notes/photo-note/index.html
-notes/photo-note/photo.jpg
+notes/photo-note/photo_hu_1df156f354e68a29.webp
+notes/photo-note/photo_hu_990f97c2a37299b2.webp
 notes/sample-note/index.html
 page/1/index.html
 posts/index.html
 posts/index.xml
 posts/page/1/index.html
-posts/sample-post/diagram.png
+posts/sample-post/diagram_hu_339f7bde1076ace5.webp
+posts/sample-post/diagram_hu_f034322db8ce545f.webp
+posts/sample-post/diagram_hu_f3cd9e2826f16f4c.webp
 posts/sample-post/index.html
 posts/second-post/index.html
 robots.txt
