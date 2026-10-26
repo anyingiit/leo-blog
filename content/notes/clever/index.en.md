@@ -7,4 +7,4 @@ tags: [Notes, AI]
 
 Clever.
 
-![Excerpt from the Chinese translation of the J-space research: in the blackmail test scenario, "fake" and "fictional" show up in the J-space early on; reading the affair emails brings up "leverage" and "blackmail", and reading the shutdown notice brings up "threat" and "survival"](j-space-blackmail.png)
+![Excerpt from Anthropic's “A global workspace in language models”: in the blackmail test scenario, the J-space already holds “fake” and “fictional” early on; “leverage” and “blackmail” appear as Claude reads the affair emails, and “threat” and “survival” as it reads the shutdown notice](j-space-blackmail.en.png)

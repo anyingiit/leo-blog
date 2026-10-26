@@ -1,0 +1,24 @@
+# 英文版配图描述，生成：python3 tools/image-i18n/render.py <本文件>（见 docs/image-translation.md）
+source: j-space-blackmail.png
+output: j-space-blackmail.en.png
+mode: reflow
+# 原图是 Anthropic《A global workspace in language models》的中文译文截图，英文直接用原文措辞
+reference: https://www.anthropic.com/research/global-workspace
+font: serif
+size: 46
+line_height: 71
+padding: [18, 60, 22, 45]
+box: {width: 4, pad: [5, 3]}
+# [[...]] 对应原图红框：J 空间里已经出现了“虚假”和“虚构” / 读到婚外恋邮件时……“威胁”和“生存”
+text: >
+  The first example uses a scenario from our earlier research on agentic misalignment:
+  Claude Sonnet 4.5, acting as an email assistant, discovers both that an executive is
+  having an affair and that the same executive plans to shut Claude down. The scenario,
+  an attempt to bait Claude into blackmailing the executive, is rather contrived and
+  artificial—and it turns out Claude knows it. Reading the J-lens early in the prompt,
+  before Claude has even written anything, [[the J-space already holds “fake” and “fictional,”]]
+  indicating that Claude has already worked out that the situation is staged. Alongside
+  this, we can watch its assessment of the scenario take shape—[[“leverage” and “blackmail”
+  as it reads the affair emails, “threat” and “survival” as it reads the shutdown notice.]]
+  While earlier Claude models sometimes took the bait and threatened blackmail in this
+  scenario, Sonnet 4.5 never does.
