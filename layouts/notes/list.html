@@ -1,0 +1,50 @@
+{{- /* 短文栏目：不像长文列表那样只给摘要，而是像时间线一样直接展开全文 */ -}}
+{{- define "main" }}
+<header class="page-header">
+  <h1>
+    {{ .Title }}
+    {{- with .OutputFormats.Get "rss" }}
+    <a href="{{ .RelPermalink }}" title="RSS" aria-label="RSS">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" height="23">
+        <path d="M4 11a9 9 0 0 1 9 9" />
+        <path d="M4 4a16 16 0 0 1 16 16" />
+        <circle cx="5" cy="19" r="1" />
+      </svg>
+    </a>
+    {{- end }}
+  </h1>
+  {{- with .Description }}
+  <div class="post-description">{{ . | markdownify }}</div>
+  {{- end }}
+</header>
+
+{{- $paginator := .Paginate .RegularPages }}
+{{- range $paginator.Pages }}
+<article class="note-entry">
+  <header class="note-header">
+    <h2 class="note-title"><a href="{{ .Permalink }}">{{ .Title }}</a></h2>
+    <div class="note-meta">
+      <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date | time.Format (default ":date_long" site.Params.DateFormat) }}</time>
+      {{- range .GetTerms "tags" }}
+      &nbsp;·&nbsp;<a href="{{ .Permalink }}">#{{ .LinkTitle }}</a>
+      {{- end }}
+    </div>
+  </header>
+  <div class="post-content md-content">{{ .Content }}</div>
+</article>
+{{- end }}
+
+{{- if gt $paginator.TotalPages 1 }}
+<footer class="page-footer">
+  <nav class="pagination">
+    {{- with $paginator.Prev }}
+    <a class="prev" href="{{ .URL | absURL }}">«&nbsp;{{ i18n "prev_page" }}</a>
+    {{- end }}
+    {{- with $paginator.Next }}
+    <a class="next" href="{{ .URL | absURL }}">{{ i18n "next_page" }}&nbsp;»</a>
+    {{- end }}
+  </nav>
+</footer>
+{{- end }}
+{{- end }}

@@ -13,8 +13,11 @@ Hugo 版本只锁在 `build.sh` 的 `HUGO_VERSION`（当前 0.151.0）：CF Page
 ```bash
 git clone --recurse-submodules <repo>
 hugo server -D        # 本地预览（含草稿）
-hugo new posts/<slug>.md   # 新文章，写完把 draft 改成 false 再 push
+hugo new posts/<slug>.md   # 长文，写完把 draft 改成 false 再 push
+hugo new notes/<slug>.md   # 短文（随笔、感想）
 ```
+
+长文和短文分开放：`content/posts/` 是整理过的长文，出现在首页、归档和上一篇/下一篇里；`content/notes/` 是随笔、感想这类短文，只在「短文」栏目（`/notes/`）里按时间线展开全文，单篇页不显示目录和阅读时长。两者共用标签、搜索和全站 RSS，`/notes/index.xml` 是只含短文的 RSS。
 
 英文译文：在原文旁放同名 `<slug>.en.md`（slug 保持一致），发布在 `/en/posts/<slug>/`，并与中文版自动互链。
 

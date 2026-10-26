@@ -7,3 +7,9 @@
 .alert-caution { --alert-color: #d1242f; }
 .post-content .katex-display { overflow-x: auto; overflow-y: hidden; }
 .post-content pre.mermaid { background: none; text-align: center; }
+.note-entry { margin-bottom: var(--gap); padding: var(--gap); background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); }
+.note-header { margin-bottom: 0.75rem; }
+.note-title { font-size: 1.2rem; line-height: 1.4; }
+.note-title a { box-shadow: none; }
+.note-meta { color: var(--secondary); font-size: 0.875rem; margin-top: 0.25rem; }
+.note-entry .post-content { margin: 0; }
