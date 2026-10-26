@@ -224,7 +224,22 @@ test("长短文折叠：展开、收起", async ({ browser }, info) => {
 test("键盘焦点：导航菜单的焦点框", async ({ browser }, info) => {
   const { context, page } = await open(browser, info, SITE + "/posts/sample-post/");
   await settle(page);
-  await page.locator("#menu a").first().focus();
-  await expect(page.locator("header.header")).toHaveScreenshot("site-focus-menu.png");
+  const link = page.locator("#menu a").first();
+  await link.focus();
+  // 焦点框画在元素外面，截图范围在链接四周各留 8px，不被页头裁掉
+  const box = await link.boundingBox();
+  await expect(page).toHaveScreenshot("site-focus-menu.png", { clip: { x: box.x - 8, y: Math.max(0, box.y - 8), width: box.width + 16, height: box.height + 16 } });
+  await context.close();
+});
+
+// 本站给可点开的正文图片加的焦点框（assets/css/extended/custom.css）
+test("键盘焦点：短文图片的焦点框", async ({ browser }, info) => {
+  const { context, page } = await open(browser, info, SITE + "/notes/four-photos/");
+  await settle(page);
+  const img = page.locator(".md-content img").first();
+  await img.focus();
+  expect(await img.evaluate((el) => el.matches(":focus-visible"))).toBe(true);
+  const box = await img.boundingBox();
+  await expect(page).toHaveScreenshot("site-focus-image.png", { clip: { x: Math.max(0, box.x - 8), y: box.y - 8, width: Math.min(box.width + 16, page.viewportSize().width), height: 40 } });
   await context.close();
 });
