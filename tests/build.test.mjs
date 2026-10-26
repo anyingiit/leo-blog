@@ -1,7 +1,7 @@
 // 构建产物检查（关闭 JavaScript 读取生成的 HTML）：图片缩放、原位分组、文案、原图不上线、转义、警告
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { chromium } from "playwright";
 import { build, serve, root } from "./helpers.mjs";
 
@@ -122,4 +122,9 @@ test("英文站同样分组，折叠按钮文案是英文", async () => {
 test("测试短文只在 tests/fixtures 里，正式内容目录不包含它们", () => {
   const notes = readdirSync(`${root}/content/notes`);
   for (const slug of readdirSync(`${root}/tests/fixtures/content/notes`)) assert.ok(!notes.includes(slug), slug);
+});
+
+test("电脑端排版候选的切换只在预览站和测试里打开，正式配置不打开", () => {
+  assert.ok(!readFileSync(`${root}/hugo.yaml`, "utf8").includes("deskPreview"));
+  assert.match(readFileSync(`${root}/tests/hugo.test.yaml`, "utf8"), /deskPreview: true/);
 });

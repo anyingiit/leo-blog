@@ -22,3 +22,26 @@
   mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "default" });
 </script>
 {{- end }}
+{{- /* 电脑端多图排版候选，只在预览站和回归测试里（tests/hugo.test.yaml）可用：/notes/?desk=rows|grid|wide|mosaic|masonry。选定后删除 */ -}}
+{{- if site.Params.deskPreview }}
+<script>
+(() => {
+  const all = { rows: "等高行", grid: "方格（第一版）", wide: "宽网格", mosaic: "主图拼贴", masonry: "瀑布流" };
+  const desk = new URLSearchParams(location.search).get("desk");
+  if (!(desk in all)) return;
+  document.documentElement.dataset.desk = desk;
+  addEventListener("DOMContentLoaded", () => {
+    const bar = document.createElement("nav");
+    bar.className = "desk-switch";
+    bar.innerHTML = Object.entries(all).map(([k, v]) =>
+      `<a href="?desk=${k}"${k === desk ? ' aria-current="true"' : ""}>${v}</a>`).join("");
+    document.body.append(bar);
+  });
+})();
+</script>
+<style>
+.desk-switch { position: fixed; top: 0.5rem; right: 0.5rem; z-index: 99; display: flex; gap: 0.25rem; padding: 0.25rem; font-size: 0.8125rem; background: var(--entry); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.15); }
+.desk-switch a { padding: 0.125rem 0.5rem; border-radius: 6px; }
+.desk-switch a[aria-current] { color: var(--theme); background: var(--primary); }
+</style>
+{{- end }}

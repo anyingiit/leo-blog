@@ -42,12 +42,39 @@
 .note-more { position: absolute; right: 0.4rem; bottom: 0.4rem; padding: 0 0.5rem; color: #fff; font-size: 0.875rem; background: rgb(0 0 0 / 0.6); border-radius: 999px; pointer-events: none; }
 /* 电脑：等高行。每张图按宽高比（--ar）分配宽度，同一行高度一致、铺满正文宽度，不裁切；最后一行不拉伸 */
 @media (min-width: 768px) {
-  .img-group { display: flex; flex-wrap: wrap; width: 100%; }
-  .img-group::after { content: ""; flex-grow: 1000; }
-  .img-group > img, .img-more { --h: 10rem; flex: calc(var(--ar, 1) * 100) 1 calc(var(--ar, 1) * var(--h)); min-width: 0; }
-  .img-group.n-2 { flex-wrap: nowrap; }
-  .img-group.n-2::after, .img-group.n-4::after { display: none; }
-  .img-group.n-4 > img { --h: 16rem; }
-  .note-entry .post-content .img-group img { aspect-ratio: var(--ar, 1); object-fit: cover; }
-  .note-entry .post-content .img-group img.shot { object-fit: cover; background: none; }
+  :root:not([data-desk]) .img-group, [data-desk="rows"] .img-group { display: flex; flex-wrap: wrap; width: 100%; }
+  :root:not([data-desk]) .img-group::after, [data-desk="rows"] .img-group::after { content: ""; flex-grow: 1000; }
+  :root:not([data-desk]) .img-group > :is(img, .img-more), [data-desk="rows"] .img-group > :is(img, .img-more) { --h: 10rem; flex: calc(var(--ar, 1) * 100) 1 calc(var(--ar, 1) * var(--h)); min-width: 0; }
+  :root:not([data-desk]) .img-group.n-2, [data-desk="rows"] .img-group.n-2 { flex-wrap: nowrap; }
+  :root:not([data-desk]) .img-group:is(.n-2, .n-4)::after, [data-desk="rows"] .img-group:is(.n-2, .n-4)::after { display: none; }
+  :root:not([data-desk]) .img-group.n-4 > img, [data-desk="rows"] .img-group.n-4 > img { --h: 16rem; }
+  :root:not([data-desk]) .note-entry .post-content .img-group img, [data-desk="rows"] .note-entry .post-content .img-group img { aspect-ratio: var(--ar, 1); object-fit: cover; }
+  :root:not([data-desk]) .note-entry .post-content .img-group img.shot, [data-desk="rows"] .note-entry .post-content .img-group img.shot { object-fit: cover; background: none; }
+
+  /* 【候选，仅预览站 ?desk=】grid：和手机一样的方块网格（第一版） —— 不需要额外样式 */
+
+  /* 【候选】wide：铺满正文宽度的 4:3 网格；照片裁切，截图完整显示 */
+  [data-desk="wide"] .img-group { width: 100%; gap: 6px; }
+  [data-desk="wide"] .note-entry .post-content .img-group img { aspect-ratio: 4 / 3; }
+
+  /* 【候选】mosaic：首图大、其余小图拼在旁边（类似 Twitter / 微博卡片）；统一裁切，截图从顶部对齐 */
+  [data-desk="mosaic"] .img-group { width: 100%; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 7.5rem; grid-auto-flow: dense; }
+  [data-desk="mosaic"] .img-group > :first-child { grid-column: span 2; grid-row: span 2; }
+  [data-desk="mosaic"] .img-group.n-2 { grid-template-columns: 1fr 1fr; grid-auto-rows: 17rem; }
+  [data-desk="mosaic"] .img-group.n-2 > :first-child { grid-column: auto; grid-row: auto; }
+  [data-desk="mosaic"] .img-group:is(.n-3, .n-4) { grid-template-columns: 2fr 1fr; grid-auto-rows: 8.5rem; }
+  [data-desk="mosaic"] .img-group.n-3 > :first-child { grid-column: 1; grid-row: span 2; }
+  [data-desk="mosaic"] .img-group.n-4 { grid-auto-rows: 6rem; }
+  [data-desk="mosaic"] .img-group.n-4 > :first-child { grid-column: 1; grid-row: span 3; }
+  [data-desk="mosaic"] .img-group .img-more { height: 100%; }
+  [data-desk="mosaic"] .note-entry .post-content .img-group img { height: 100%; aspect-ratio: auto; object-fit: cover; }
+  [data-desk="mosaic"] .note-entry .post-content .img-group img.shot { object-position: top; background: none; }
+
+  /* 【候选】masonry：瀑布流，三列（两张时两列），每张保持原比例；阅读顺序按列从上到下 */
+  [data-desk="masonry"] .img-group { display: block; columns: 3; column-gap: 4px; width: 100%; }
+  [data-desk="masonry"] .img-group.n-2 { columns: 2; }
+  [data-desk="masonry"] .img-group > :is(img, .img-more) { display: block; margin-bottom: 4px; break-inside: avoid; }
+  [data-desk="masonry"] .note-entry .post-content .img-group img { aspect-ratio: var(--ar, 1); }
+  [data-desk="masonry"] .note-entry .post-content .img-group img.shot { background: none; }
+}
 }

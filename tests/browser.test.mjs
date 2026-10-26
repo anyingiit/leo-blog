@@ -198,3 +198,45 @@ test("关闭 JavaScript 时内容完整，分组照常显示", async () => {
   assert.equal(await page.locator(".note-expand").count(), 0);
   await ctx.close();
 });
+
+// 电脑端排版候选（预览站 ?desk=，选定后连同这条测试一起删掉）：每种都不能溢出、不能重叠，前 9 张都看得见，+N 落在第 9 张上
+for (const desk of ["rows", "grid", "wide", "mosaic", "masonry"]) {
+  test(`电脑候选 ${desk}：图片不溢出、不重叠，前 9 张可见，+N 在第 9 张上`, async () => {
+    const { page, ctx, errors } = await open(`/notes/?desk=${desk}`, { viewport: { width: 1280, height: 900 } });
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.desk), desk);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    for (const slug of ["image-test", "travel-photos", "two-photos", "three-photos"]) {
+      const bad = await card(page, slug).locator(".img-group").evaluate((g) => {
+        const gb = g.getBoundingClientRect();
+        const boxes = [...g.querySelectorAll("img")].filter((e) => getComputedStyle(e).display !== "none").map((e) => e.getBoundingClientRect());
+        const out = [];
+        if (boxes.length !== Math.min(9, g.querySelectorAll("img").length)) out.push(`可见 ${boxes.length} 张`);
+        boxes.forEach((b, i) => {
+          if (b.width < 60 || b.height < 60) out.push(`第 ${i + 1} 张太小 ${b.width}×${b.height}`);
+          if (b.left < gb.left - 1 || b.right > gb.right + 1) out.push(`第 ${i + 1} 张超出分组`);
+          boxes.slice(i + 1).forEach((c, j) => {
+            const w = Math.min(b.right, c.right) - Math.max(b.left, c.left), h = Math.min(b.bottom, c.bottom) - Math.max(b.top, c.top);
+            if (w > 1 && h > 1) out.push(`第 ${i + 1} 和 ${i + j + 2} 张重叠`);
+          });
+        });
+        const more = g.querySelector(".note-more");
+        if (more) {
+          const m = more.getBoundingClientRect(), n = g.querySelectorAll("img")[8].getBoundingClientRect();
+          if (!(m.left >= n.left && m.right <= n.right && m.top >= n.top && m.bottom <= n.bottom)) out.push("+N 不在第 9 张上");
+        }
+        return out;
+      });
+      assert.deepEqual(bad, [], `${desk} / ${slug}`);
+    }
+    assert.ok(await page.locator(".desk-switch a[aria-current]").count() === 1, "切换条");
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+}
+
+test("电脑候选：不带 ?desk= 时没有切换条，默认是等高行", async () => {
+  const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
+  assert.equal(await page.locator(".desk-switch").count(), 0);
+  assert.equal(await card(page, "two-photos").locator(".img-group").evaluate((g) => getComputedStyle(g).display), "flex");
+  await ctx.close();
+});

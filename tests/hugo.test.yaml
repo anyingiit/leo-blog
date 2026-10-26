@@ -5,3 +5,9 @@ module:
       target: content
     - source: tests/fixtures/content
       target: content
+# 电脑端多图排版候选的切换（/notes/?desk=…，见 extend_head.html），只在预览站和测试里打开
+params:
+  deskPreview: true
+# 所有测试短文都在第一页，正式短文变多也不会把它们挤到下一页
+pagination:
+  pagerSize: 100
