@@ -32,14 +32,3 @@ export function serve(dir) {
   });
   return new Promise((ok) => server.listen(0, "127.0.0.1", () => ok({ url: `http://127.0.0.1:${server.address().port}`, close: () => server.close() })));
 }
-
-// 取出 HTML 里某篇短文卡片（短文栏目）或单篇正文
-export function noteCard(html, slug) {
-  const parts = html.split('<article class="note-entry">').slice(1);
-  const card = parts.find((p) => p.includes(`/notes/${slug}/`));
-  if (!card) throw new Error(`note ${slug} not found`);
-  return card.split("</article>")[0];
-}
-
-export const imgs = (html) => html.match(/<img[^>]*>/g) || [];
-export const attr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) || [])[1];
