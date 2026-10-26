@@ -1,0 +1,18 @@
+{{- /*
+  页头语言切换的目标地址（docs/language-switch.md）。
+  PaperMod 原版直接链接到目标语言的首页（site.Home.Translations）。这里改为：
+  当前页有目标语言的版本就去那一页；没有就沿上级（栏目 → 首页，标签 → 标签总览 → 首页）
+  找最近一个有该语言版本的页面；都没有时退回目标语言首页 .fallback。
+  404 页直接去目标语言首页（它的“译文”是另一个 404 页，没用）。
+  传入：dict "page" 当前页 "lang" 目标语言 "fallback" 目标语言首页地址
+*/ -}}
+{{- $url := "" }}
+{{- $chain := cond (eq .page.Kind "404") slice (slice .page | append .page.Ancestors) }}
+{{- range $chain }}
+  {{- if not $url }}
+    {{- range .Translations }}
+      {{- if eq .Lang $.lang }}{{ $url = .Permalink }}{{ end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- return (or $url .fallback) }}
