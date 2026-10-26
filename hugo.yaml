@@ -8,6 +8,7 @@ hasCJKLanguage: true
 enableRobotsTXT: true
 enableEmoji: true
 summaryLength: 120
+ignoreFiles: ['\.i18n\.yaml$']  # 英文配图的描述文件（tools/image-i18n），不进站点
 pagination:
   pagerSize: 10
 

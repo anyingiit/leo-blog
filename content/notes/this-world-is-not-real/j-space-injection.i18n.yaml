@@ -1,0 +1,8 @@
+# 英文版配图描述，生成：python3 tools/image-i18n/render.py <本文件>（见 docs/image-translation.md）
+# 原图本身是英文（Anthropic《A global workspace in language models》的配图和图注），
+# 只是截图时带上了浏览器翻译出的中文图注；英文版裁掉这几行中文，其余保持原样
+source: j-space-injection.png
+output: j-space-injection.en.png
+reference: https://www.anthropic.com/research/global-workspace
+mode: overlay
+crop: [0, 0, 1679, 1004]
