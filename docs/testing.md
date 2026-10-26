@@ -55,10 +55,12 @@ git checkout FETCH_HEAD -- tests/theme/__snapshots__ && git commit -m "Update sc
 
 PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 
+**验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
+
 ## 本地运行
 
 ```bash
-cd tests && npm ci && npm test && cd ..   # tests/ 下全部 *.test.mjs；site/ci-coverage 两个文件也可单独用 node --test 运行
+cd tests && npm ci && npx playwright install chromium webkit && npm test && cd ..   # tests/ 下全部 *.test.mjs；site/ci-coverage 两个文件也可单独用 node --test 运行
 node tests/ci-coverage.mjs                                    # 检查每个测试文件都在 CI 里执行
 
 cd tests/theme && npm ci && npx playwright install chromium webkit && npx playwright test   # 主题测试；本地截图和 CI 基准可能有像素差异，以 CI 为准

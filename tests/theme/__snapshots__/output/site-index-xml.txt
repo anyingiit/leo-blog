@@ -32,6 +32,22 @@
 <description>这篇固定的样例文章覆盖标题层级、列表、表格、代码、提示框、公式、Mermaid 和图片，用于像素级回归测试。</description>
 </item>
 <item>
+<title>【测试】周末出游随手拍</title>
+<link>http://blog.test/notes/travel-photos/</link>
+<pubDate>Wed, 25 Feb 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/travel-photos/</guid>
+<description>&lt;p&gt;周末去郊外走了走，拍了一堆照片，挑了十二张。&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_01_hu_5e2efe1621f98947.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_5e2efe1621f98947.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_7489d74a6c458a2d.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_5032d48f7b0d4ccb.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_3fbcc6d41a2875bd.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_5e2efe1621f98947.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_02_hu_77f9ae158d1f4fea.webp" decoding="async" height="1600" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_77f9ae158d1f4fea.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_cadd28c2927717d1.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_214520d65c90f9f.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_77f9ae158d1f4fea.webp 1200w" style="--ar:0.7500" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_03_hu_8c72c9516c9abbcd.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_8c72c9516c9abbcd.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_38f25911248dd8cf.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_3cfe041660fb81a6.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_81bb5c094a4d2ff2.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_8c72c9516c9abbcd.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_04_hu_c1d66ff407d287e.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_c1d66ff407d287e.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_787cb4d68b33e581.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_5ff4e0ae0bb9a71.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_c1d66ff407d287e.webp 1200w" style="--ar:1.0000" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_05_hu_ac09f9be24d91572.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_ac09f9be24d91572.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_adb7a531645dba27.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_96058c087a44f0c6.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_dee5552be314fb59.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_ac09f9be24d91572.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_06_hu_24bf0c0c4c013c09.webp" decoding="async" height="1600" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_24bf0c0c4c013c09.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_63abdcb67f559342.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_f320bdf425fcc4a5.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_24bf0c0c4c013c09.webp 1200w" style="--ar:0.7500" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_07_hu_39339112a7a6a6a9.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_39339112a7a6a6a9.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_8c90e7c70d911cbd.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_3351ecf7013f4465.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_35798666b43e0879.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_39339112a7a6a6a9.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_08_hu_f463162255ba457e.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_f463162255ba457e.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_6e7ebb2f951e8bd.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_795712234edfa765.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_f463162255ba457e.webp 1200w" style="--ar:1.0000" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_09_hu_2762fe5b2b92e1a8.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_2762fe5b2b92e1a8.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_734c3d5fe7b74f6b.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_ec9be3ab75551802.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_949f6f069ee59818.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_2762fe5b2b92e1a8.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;</description>
+</item>
+<item>
 <title>【测试】四张横图的短文</title>
 <link>http://blog.test/notes/four-photos/</link>
 <pubDate>Fri, 20 Feb 2026 08:00:00 +0000</pubDate>
@@ -70,6 +86,55 @@
 <pubDate>Sun, 01 Feb 2026 08:00:00 +0000</pubDate>
 <guid>http://blog.test/posts/second-post/</guid>
 <description>&lt;p&gt;一篇很短的长文，用来检查首页列表、归档和上一篇/下一篇。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 7</title>
+<link>http://blog.test/notes/short-7/</link>
+<pubDate>Wed, 07 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-7/</guid>
+<description>&lt;p&gt;第 7 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 6</title>
+<link>http://blog.test/notes/short-6/</link>
+<pubDate>Tue, 06 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-6/</guid>
+<description>&lt;p&gt;第 6 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 5</title>
+<link>http://blog.test/notes/short-5/</link>
+<pubDate>Mon, 05 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-5/</guid>
+<description>&lt;p&gt;第 5 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 4</title>
+<link>http://blog.test/notes/short-4/</link>
+<pubDate>Sun, 04 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-4/</guid>
+<description>&lt;p&gt;第 4 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 3</title>
+<link>http://blog.test/notes/short-3/</link>
+<pubDate>Sat, 03 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-3/</guid>
+<description>&lt;p&gt;第 3 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 2</title>
+<link>http://blog.test/notes/short-2/</link>
+<pubDate>Fri, 02 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-2/</guid>
+<description>&lt;p&gt;第 2 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 1</title>
+<link>http://blog.test/notes/short-1/</link>
+<pubDate>Thu, 01 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-1/</guid>
+<description>&lt;p&gt;第 1 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
 </item>
 </channel>
 </rss>

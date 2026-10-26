@@ -9,7 +9,9 @@ const pages = [
   ["site", "/posts/sample-post/", "site-post", true],
   ["site", "/notes/", "site-notes", true],
   ["site", "/notes/photo-note/", "site-note-single", true],
+  ["site", "/notes/page/2/", "site-notes-page2", false], // 短文栏目翻页
   ["site", "/notes/seven-photos/", "site-note-gallery", false], // 多图原位分组（PR #16）
+  ["site", "/notes/travel-photos/", "site-note-gallery12", false], // 9 张以上：第 9 张上标「+N」
   ["site", "/tags/样式/", "site-tag", false],
   ["site", "/archives/", "site-archives", false],
   ["site", "/tags/", "site-tags", false],

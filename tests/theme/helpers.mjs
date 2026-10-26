@@ -83,7 +83,7 @@ export async function connect(context, network = "online") {
 // 截图前让页面静止：懒加载的图片全部加载完（或确认还在等待）、字体就绪、Mermaid 画完
 export async function settle(page, { images = true, mermaid = true } = {}) {
   // 样式表全部到位（images-pending 只等到 domcontentloaded，晚到的样式表会改版面）。
-  // 用轮询而不是监听 load：rel="preload stylesheet" 在 WebKit 里 load 事件可能先于 sheet 就绪触发，监听会一直等下去
+  // 用轮询判断，不依赖 load 事件（事件可能在开始监听前就已触发）
   await page.waitForFunction(() => [...document.querySelectorAll("link[rel~=stylesheet]")].every((l) => l.sheet), null, { polling: 50, timeout: 10000 });
   await page.evaluate(async (images) => {
     if (images) {
@@ -92,7 +92,10 @@ export async function settle(page, { images = true, mermaid = true } = {}) {
       // 加载完不等于解码完：未解码时浏览器先用低质量缩放画一版，截图可能截到它
       await Promise.all([...document.images].map((img) => img.decode().catch(() => {})));
     }
-    await document.fonts.ready;
+    // 字体：等所有已开始加载的字体。document.fonts.ready 在 WebKit 里要等整页 load，图片一直不回来（images-pending）时
+    // 永远等不到，所以只在图片都加载完的情况下再用它兜底
+    await Promise.all([...document.fonts].filter((f) => f.status === "loading").map((f) => f.loaded.catch(() => {})));
+    if (images) await document.fonts.ready;
   }, images);
   // CDN 不可用时 Mermaid 不会加载，图表保持源码；否则必须画完，画不出来就让测试失败
   if (mermaid && await page.locator("pre.mermaid").count()) {

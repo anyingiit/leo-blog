@@ -207,6 +207,9 @@ test("```mermaid 代码块输出 <pre class=mermaid>，并加载 Mermaid", () =>
   const html = drafts.read("posts/markdown-test/");
   assert.match(html, /<pre class="?mermaid"?>graph LR\n\s*A\[选模板\] --&gt; B\[博客 MVP\]/);
   assert.ok(html.includes("mermaid.esm.min.mjs"));
+  // 不能等 window load 才画：Safari 里一张还在加载的图片会让图表一直不出现（主题测试 images-pending 在 WebKit 上发现）
+  assert.match(html, /startOnLoad:\s*false/);
+  assert.ok(html.includes("mermaid.run()"));
 });
 
 test("GitHub 风格提示框带中文标题，普通引用不受影响", () => {

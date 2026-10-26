@@ -19,7 +19,7 @@ async function open(browser, info, url, opts = {}) {
 
 // 两个站点里所有截图页面：没有脚本错误，也没有横向滚动条（手机上最常见的版面问题）
 const all = [
-  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/"]],
+  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/notes/travel-photos/", "/notes/page/2/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/"]],
   [EXAMPLE, ["/", "/posts/markdown-syntax/", "/posts/code_syntax/", "/posts/inner-section/cover-page/", "/posts/emoji-support/", "/archives/", "/tags/", "/search/", "/fr/", "/fa/", "/fa/posts/markdown-syntax/", "/posts/", "/page/2/"]],
 ];
 for (const [host, paths] of all) {
@@ -226,7 +226,8 @@ test("键盘焦点：导航菜单的焦点框", async ({ browser }, info) => {
   await settle(page);
   const link = page.locator("#menu a").first();
   await link.focus();
-  // 焦点框画在元素外面，截图范围在链接四周各留 8px，不被页头裁掉
+  expect(await link.evaluate((el) => el.matches(":focus-visible"))).toBe(true);
+  // 截图范围在链接四周各留 8px。浏览器默认的焦点框会被 PaperMod 菜单的 overflow-x: auto 裁掉一部分（主题本身如此），基准图记录的就是这个现状
   const box = await link.boundingBox();
   await expect(page).toHaveScreenshot("site-focus-menu.png", { clip: { x: box.x - 8, y: Math.max(0, box.y - 8), width: box.width + 16, height: box.height + 16 } });
   await context.close();

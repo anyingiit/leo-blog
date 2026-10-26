@@ -18,9 +18,10 @@ on:
 permissions:
   contents: read
 
-# 同一个 PR 连续推送时取消还在跑的旧运行（视觉测试要几分钟），main 上的运行不取消
+# 同一个 PR 连续推送时取消还在跑的旧运行（视觉测试要几分钟）。main 上每个提交各自一组，
+# 连续合并时排队中的运行也不会被挤掉
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -151,19 +152,19 @@ jobs:
       - name: Regenerate baselines for review
         if: failure() && steps.tests.outcome == 'failure'
         run: |
-          mv test-results test-results-failed || true
-          npx playwright test $PROJECTS --workers=4 --update-snapshots=changed --reporter=dot || true
+          cp -R test-results test-results-failed || true
+          npx playwright test $PROJECTS --workers=4 --last-failed --update-snapshots=changed --reporter=dot || true
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.tests.outcome == 'failure'
         with:
           name: visual-${{ matrix.browser }}-${{ matrix.device }}
-          # 只带本任务自己的基准目录，合并多个任务的产物时不会用旧图覆盖别的任务的新图
+          # 只带本任务自己生成的基准目录（output 只有 chromium-desktop 跑），合并多个任务的产物时不会用旧文件覆盖新文件
           path: |
             tests/theme/test-results-failed/
             tests/theme/playwright-report/
             tests/theme/__snapshots__/${{ matrix.browser }}-${{ matrix.device }}/
-            tests/theme/__snapshots__/output/
+            ${{ matrix.browser == 'chromium' && matrix.device == 'desktop' && 'tests/theme/__snapshots__/output/' || '' }}
           retention-days: 14
 
   # 把各视觉任务重新生成的基准图合并推到 ci-baselines/pr-<编号> 分支（只在同仓库 PR 的视觉任务失败时运行）。
