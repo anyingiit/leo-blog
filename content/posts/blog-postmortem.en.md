@@ -92,7 +92,7 @@ Beyond that, there were these problems:
 - **Afraid to interrupt.** Interrupting scrambled the context.
 - **Unreliable worktrees.** It wasn't locked into a working directory. It stayed put if it felt like listening to you, and wandered into other directories if it didn't.
 
-I was on Claude's $20 subscription at the time, and I even had it write a handoff prompt after planning, so I could execute in a new window instead of dragging the planning phase's 40% of context through every subsequent task. The trick helped a little, but it didn't fix the underlying problem.
+I was on Claude's \$20 subscription at the time, and I even had it write a handoff prompt after planning, so I could execute in a new window instead of dragging the planning phase's 40% of context through every subsequent task. The trick helped a little, but it didn't fix the underlying problem.
 
 Progress was too slow, and I had no real grasp of where development stood. I needed a tool that could schedule tasks dynamically, so I moved to Codex.
 
@@ -100,7 +100,7 @@ Progress was too slow, and I had no real grasp of where development stood. I nee
 
 Moving to Codex wasn't a rewrite; I kept building on what was there. I first used Superpowers to build the publishing pipeline. Then, to deal with concurrency and oversized task chunks, I started using Speckit: a spec with 68 tasks, tracked in Linear, with multiple subagents in parallel.
 
-In one day it finished 40 tasks — and used up 80% of the $200 plan's weekly quota.
+In one day it finished 40 tasks — and used up 80% of the \$200 plan's weekly quota.
 
 With 20% left, I started rationing: forcing every subtask to run on Terra. One night burned 10% of the quota, and not a single Linear task got done.
 
@@ -110,7 +110,7 @@ During this period I also wrote a lot of code that never really landed: backups,
 
 ### Second rewrite: Claude Code
 
-I didn't switch to Claude Code because I thought it was strong. I was forced to, because the Codex quota was gone. I remembered that a few months earlier Claude's $20 plan had lasted me a long time, and after going through community threads, the common view was that medium-to-heavy users should go with Claude Code, since it can run longer and handle more tasks.
+I didn't switch to Claude Code because I thought it was strong. I was forced to, because the Codex quota was gone. I remembered that a few months earlier Claude's \$20 plan had lasted me a long time, and after going through community threads, the common view was that medium-to-heavy users should go with Claude Code, since it can run longer and handle more tasks.
 
 Only after using it did I realize it really is strong. If OpenCode is like an MVP — a plain loop patched together — and Codex is a product, then Claude Code is the first one that feels truly production-grade to me. I'll save the details for the next post.
 
@@ -141,7 +141,7 @@ So what was it for?
 
 This was the biggest problem, and the one that cost the most time and energy.
 
-The idea was straightforward: a SOTA model's output price is more than twenty times a weak model's (GPT-5.6 Sol costs $30 per million output tokens; DeepSeek V4 Flash costs only $1.32), so let the SOTA model plan and the weak model execute, and costs come down. The weak model I mainly used was DeepSeek V4 Flash. In practice:
+The idea was straightforward: a SOTA model's output price is more than twenty times a weak model's (GPT-5.6 Sol costs \$30 per million output tokens; DeepSeek V4 Flash costs only \$1.32), so let the SOTA model plan and the weak model execute, and costs come down. The weak model I mainly used was DeepSeek V4 Flash. In practice:
 
 **It actually takes more tokens.** For a weak model to execute, you first have to slice tasks very finely, and that alone eats a lot of SOTA tokens. The finer the slicing, the more complex the plan, and the more expensive a planning mistake becomes. To verify the weak model got it right, you also end up generating lots of redundant test code, and the whole system gets harder and harder to change. When a task fails, it's back to the SOTA model to re-plan. That last 10% of Codex quota is the example: 200 million tokens, and not one task completed.
 
