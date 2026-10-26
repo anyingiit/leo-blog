@@ -1,0 +1,39 @@
+<meta name=generator content="Hugo 0.151.0">
+<meta charset=utf-8>
+<meta http-equiv=X-UA-Compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>PaperMod RTL</title>
+<meta name=description content="Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod">
+<meta name=author content="Theme PaperMod">
+<link rel=canonical href=http://example.test/fa/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.935499ff380d13bbd606995fd4035e93fb465202189389096f292d5b8e75f1a0.css integrity="sha256-k1SZ/zgNE7vWBplf1ANek/tGUgIYk4kJbyktW4518aA=" rel="preload stylesheet" as=style>
+<link rel=icon href=http://example.test/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://example.test/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=http://example.test/favicon-32x32.png>
+<link rel=apple-touch-icon href=http://example.test/apple-touch-icon.png>
+<link rel=mask-icon href=http://example.test/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<link rel=alternate type=application/rss+xml href=http://example.test/fa/index.xml title=rss>
+<link rel=alternate type=application/json href=http://example.test/fa/index.json title=json>
+<link rel=alternate hreflang=en href=http://example.test/>
+<link rel=alternate hreflang=fr href=http://example.test/fr/>
+<link rel=alternate hreflang=fa href=http://example.test/fa/>
+<noscript>
+<style>…</style>
+<style>…</style>
+</noscript>
+<script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script>
+<meta property="og:url" content="http://example.test/fa/">
+<meta property="og:site_name" content="PaperMod RTL">
+<meta property="og:title" content="PaperMod RTL">
+<meta property="og:description" content="Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod">
+<meta property="og:locale" content="fa">
+<meta property="og:type" content="website">
+<meta property="og:image" content="http://example.test/images/papermod-cover.png">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="http://example.test/images/papermod-cover.png">
+<meta name=twitter:title content="PaperMod RTL">
+<meta name=twitter:description content="Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","name":"PaperMod RTL","url":"http://example.test/fa/","description":"Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod","logo":"http://example.test/favicon.ico","sameAs":["https://github.com/adityatelange/hugo-PaperMod","https://discord.gg/ahpmTvhVmp","https://x.com/intent/tweet/?text=Checkout%20Hugo%20PaperMod%20%E2%9C%A8%0AA%20fast,%20clean,%20responsive%20Hugo%20theme.\u0026url=https://github.com/adityatelange/hugo-PaperMod\u0026hashtags=Hugo,PaperMod","https://ko-fi.com/adityatelange"]}</script>

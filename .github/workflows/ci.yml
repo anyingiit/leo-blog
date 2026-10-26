@@ -75,3 +75,54 @@ jobs:
           python3 -m venv /tmp/venv
           /tmp/venv/bin/pip install --quiet -r tools/image-i18n/requirements.txt
           /tmp/venv/bin/python -m unittest discover -s tools/image-i18n -v
+
+  # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）两个任务并行，
+  # 各自在电脑/平板/手机三种尺寸、浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
+  # 固定在 Playwright 官方镜像里运行（按 digest 锁定），基准图也在同一镜像里生成，换机器不会因字体渲染不同而误报。
+  visual:
+    name: Visual (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    defaults:
+      run:
+        working-directory: tests/theme
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Install test dependencies
+        run: npm ci
+
+      # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium 任务里跑一次
+      - name: Run visual and behavior tests
+        env:
+          PROJECTS: ${{ matrix.browser == 'chromium' && '--project=output --project=chromium-*' || '--project=webkit-*' }}
+        run: npx playwright test $PROJECTS
+
+      # 失败时给出对比图（期望/实际/差异）和在同一镜像里重新生成的基准图，确认是预期的改动后可直接替换
+      - name: Regenerate baselines for review
+        if: failure()
+        env:
+          PROJECTS: ${{ matrix.browser == 'chromium' && '--project=output --project=chromium-*' || '--project=webkit-*' }}
+        run: |
+          mv test-results test-results-failed
+          npx playwright test $PROJECTS --update-snapshots=all --reporter=dot || true
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: visual-${{ matrix.browser }}
+          path: |
+            tests/theme/test-results-failed/
+            tests/theme/playwright-report/
+            tests/theme/__snapshots__/
+          retention-days: 14
+

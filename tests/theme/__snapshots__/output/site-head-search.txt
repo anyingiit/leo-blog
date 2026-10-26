@@ -1,0 +1,38 @@
+<meta charset=utf-8>
+<meta http-equiv=X-UA-Compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>搜索 | Leoblog</title>
+<meta name=keywords content>
+<meta name=description content="search">
+<meta name=author content>
+<link rel=canonical href=http://blog.test/search/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.de56a660f306e886e67df6a5009affc4bd37d0aa872249c3d3d25ee9c37a1b8a.css integrity="sha256-3lamYPMG6IbmffalAJr/xL030KqHIknD09Je6cN6G4o=" rel="preload stylesheet" as=style>
+<link crossorigin=anonymous rel=preload as=fetch href=../index.json>
+<script defer crossorigin=anonymous src=/assets/js/search.d927ddc6fe6819318b41a2c272a17c088ffbe88c92526876e6226270c20173eb.js integrity="sha256-2Sfdxv5oGTGLQaLCcqF8CI/76IySUmh25iJicMIBc+s=">
+</script>
+<link rel=icon href=http://blog.test/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
+<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
+<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<link rel=alternate hreflang=zh href=http://blog.test/search/>
+<link rel=alternate hreflang=en href=http://blog.test/en/search/>
+<noscript>
+<style>…</style>
+<style>…</style>
+</noscript>
+<script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script>
+<meta property="og:url" content="http://blog.test/search/">
+<meta property="og:site_name" content="Leoblog">
+<meta property="og:title" content="搜索">
+<meta property="og:description" content="search">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:type" content="article">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="搜索">
+<meta name=twitter:description content="search">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"搜索","item":"http://blog.test/search/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"搜索","name":"搜索","description":"search","keywords":[],"articleBody":"","wordCount":"0","inLanguage":"zh","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/search/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico"}}}</script>

@@ -236,3 +236,16 @@ test("预览构建（非 main 分支）里的链接指向预览地址，main 分
     prod.remove();
   }
 });
+
+// ── 主题测试里的 CDN 本地副本必须和线上加载的版本一致（tests/theme/package.json）──────────
+
+test("KaTeX、Mermaid 的线上地址锁定了精确版本，并与主题测试使用的版本一致", () => {
+  const head = readFileSync(join(root, "layouts/_partials/extend_head.html"), "utf8");
+  const pkg = JSON.parse(readFileSync(join(root, "tests/theme/package.json"), "utf8")).devDependencies;
+  for (const name of ["katex", "mermaid"]) {
+    const m = head.match(new RegExp(`cdn\\.jsdelivr\\.net/npm/${name}@([^/]+)/`));
+    assert.ok(m, `extend_head.html 里没有 ${name} 的 CDN 地址`);
+    assert.match(m[1], /^\d+\.\d+\.\d+$/, `${name} 要锁定到精确版本，现在是 @${m[1]}`);
+    assert.equal(m[1], pkg[name], `${name}：线上 @${m[1]}，主题测试用 ${pkg[name]}`);
+  }
+});

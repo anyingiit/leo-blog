@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+<title>短文 on Leoblog</title>
+<link>http://blog.test/notes/</link>
+<description>Recent content in 短文 on Leoblog</description>
+<generator>Hugo</generator>
+<language>zh-CN</language>
+<lastBuildDate>Thu, 05 Mar 2026 09:00:00 +0000</lastBuildDate>
+<atom:link href="http://blog.test/notes/index.xml" rel="self" type="application/rss+xml"/>
+<item>
+<title>一条短文</title>
+<link>http://blog.test/notes/sample-note/</link>
+<pubDate>Thu, 05 Mar 2026 09:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/sample-note/</guid>
+<description>&lt;p&gt;短文直接在栏目里展开全文。这里有两段文字。&lt;/p&gt;
+&lt;p&gt;第二段，带一个 &lt;a href="https://example.com"&gt;链接&lt;/a&gt;。&lt;/p&gt;</description>
+</item>
+<item>
+<title>带图的短文</title>
+<link>http://blog.test/notes/photo-note/</link>
+<pubDate>Wed, 04 Mar 2026 09:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/photo-note/</guid>
+<description>&lt;p&gt;一张竖图：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="山和太阳" loading="lazy" src="http://blog.test/notes/photo-note/photo.jpg"&gt;&lt;/p&gt;</description>
+</item>
+</channel>
+</rss>

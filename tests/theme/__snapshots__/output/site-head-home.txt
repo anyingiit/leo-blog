@@ -1,0 +1,36 @@
+<meta name=generator content="Hugo 0.151.0">
+<meta charset=utf-8>
+<meta http-equiv=X-UA-Compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>Leoblog</title>
+<meta name=description content="记录学习、实践与思考。先写下来，再慢慢完善。">
+<meta name=author content>
+<link rel=canonical href=http://blog.test/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.de56a660f306e886e67df6a5009affc4bd37d0aa872249c3d3d25ee9c37a1b8a.css integrity="sha256-3lamYPMG6IbmffalAJr/xL030KqHIknD09Je6cN6G4o=" rel="preload stylesheet" as=style>
+<link rel=icon href=http://blog.test/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
+<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
+<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<link rel=alternate type=application/rss+xml href=http://blog.test/index.xml title=rss>
+<link rel=alternate type=application/json href=http://blog.test/index.json title=json>
+<link rel=alternate hreflang=zh href=http://blog.test/>
+<link rel=alternate hreflang=en href=http://blog.test/en/>
+<noscript>
+<style>…</style>
+<style>…</style>
+</noscript>
+<script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script>
+<meta property="og:url" content="http://blog.test/">
+<meta property="og:site_name" content="Leoblog">
+<meta property="og:title" content="Leoblog">
+<meta property="og:description" content="记录学习、实践与思考。先写下来，再慢慢完善。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:type" content="website">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Leoblog">
+<meta name=twitter:description content="记录学习、实践与思考。先写下来，再慢慢完善。">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","name":"Leoblog","url":"http://blog.test/","description":"记录学习、实践与思考。先写下来，再慢慢完善。","logo":"http://blog.test/favicon.ico","sameAs":[]}</script>

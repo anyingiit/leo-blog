@@ -1,0 +1,15 @@
+{
+  "name": "leo-blog-theme-tests",
+  "private": true,
+  "type": "module",
+  "description": "主题与样式回归测试：以 PaperMod 官方 exampleSite 和本站的固定测试文章为参照，在 Chromium/WebKit、多种设备、深浅色、多种网络状态下逐像素比对（见 docs/testing.md）",
+  "scripts": {
+    "test": "playwright test",
+    "update": "playwright test --update-snapshots=all"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "katex": "0.16.22",
+    "mermaid": "11.17.2"
+  }
+}

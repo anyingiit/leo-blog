@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+<title>Leoblog</title>
+<link>http://blog.test/en/</link>
+<description>Recent content on Leoblog</description>
+<generator>Hugo</generator>
+<language>en-US</language>
+<lastBuildDate>Thu, 05 Mar 2026 09:00:00 +0000</lastBuildDate>
+<atom:link href="http://blog.test/en/index.xml" rel="self" type="application/rss+xml"/>
+<item>
+<title>A short note</title>
+<link>http://blog.test/en/notes/sample-note/</link>
+<pubDate>Thu, 05 Mar 2026 09:00:00 +0000</pubDate>
+<guid>http://blog.test/en/notes/sample-note/</guid>
+<description>&lt;p&gt;Notes are shown in full in the notes list. Two paragraphs here.&lt;/p&gt;
+&lt;p&gt;The second one has a &lt;a href="https://example.com"&gt;link&lt;/a&gt;.&lt;/p&gt;</description>
+</item>
+<item>
+<title>A note with a photo</title>
+<link>http://blog.test/en/notes/photo-note/</link>
+<pubDate>Wed, 04 Mar 2026 09:00:00 +0000</pubDate>
+<guid>http://blog.test/en/notes/photo-note/</guid>
+<description>&lt;p&gt;A portrait photo:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Mountain and sun" loading="lazy" src="http://blog.test/notes/photo-note/photo.jpg"&gt;&lt;/p&gt;</description>
+</item>
+<item>
+<title>Visual regression sample post</title>
+<link>http://blog.test/en/posts/sample-post/</link>
+<pubDate>Sun, 01 Mar 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/en/posts/sample-post/</guid>
+<description>A fixed sample post covering headings, lists, tables, code, alerts, math, Mermaid and images, used by the pixel-level regression tests.</description>
+</item>
+<item>
+<title>Second sample post</title>
+<link>http://blog.test/en/posts/second-post/</link>
+<pubDate>Sun, 01 Feb 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/en/posts/second-post/</guid>
+<description>&lt;p&gt;A short post to check the home list, archive and previous/next links.&lt;/p&gt;</description>
+</item>
+</channel>
+</rss>
