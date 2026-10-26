@@ -31,7 +31,20 @@
       {{- end }}
     </div>
   </header>
-  <div class="post-content md-content note-body" data-expand="{{ i18n "expand_note" }}" data-layout="{{ site.Params.notesImageLayout | default "fold" }}">{{ .Content }}</div>
+  {{- /* 原位分组：正文里连续两张及以上、中间没有文字的图片，在原位排成网格（2、4 张两列，其余三列，最多显示 9 张） */ -}}
+  {{- $content := .Content }}
+  {{- range findRE `(?:<p>(?:<img[^>]*>\s*)+</p>\s*)+` $content }}
+    {{- $imgs := findRE `<img[^>]*>` . }}
+    {{- $n := len $imgs }}
+    {{- if ge $n 2 }}
+      {{- $cols := cond (in (slice 2 4) $n) 2 3 }}
+      {{- $sizes := printf "(min-width: 768px) %dpx, %dvw" (div 720 $cols) (div 100 $cols) }}
+      {{- $group := replace (delimit $imgs "") `sizes="(min-width: 768px) 720px, 100vw"` (printf `sizes="%s"` $sizes) }}
+      {{- with gt $n 9 }}{{ $group = printf `%s<span class="note-more">+%d</span>` $group (sub $n 9) }}{{ end }}
+      {{- $content = replace $content (strings.TrimRight " \n" .) (printf `<div class="img-group cols-%d">%s</div>` $cols $group) }}
+    {{- end }}
+  {{- end }}
+  <div class="post-content md-content note-body" data-expand="{{ i18n "expand_note" }}" data-collapse="{{ i18n "collapse_note" }}" data-layout="{{ site.Params.notesImageLayout | default "group" }}">{{ $content | safeHTML }}</div>
 </article>
 {{- end }}
 

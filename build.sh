@@ -60,6 +60,7 @@ fi
 hugo version
 
 if [ -n "${CF_PAGES_URL:-}" ] && [ "${CF_PAGES_BRANCH:-}" != "main" ]; then
-  exec hugo --gc --minify -b "${CF_PAGES_URL%/}/" "$@"
+  # HUGO_PARAMS_PREVIEW 让页面知道这是预览构建（短文栏目会显示多图展示方式的切换器）
+  HUGO_PARAMS_PREVIEW=true exec hugo --gc --minify -b "${CF_PAGES_URL%/}/" "$@"
 fi
 exec hugo --gc --minify "$@"

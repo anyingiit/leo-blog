@@ -1,31 +1,49 @@
 {{- /*
-  1. 图集灯箱：点击正文图片全屏查看，同一篇里的图片可左右切换（方向键、按钮、手指滑动），Esc 或点空白处关闭。
-  2. 短文栏目的多图展示方式（hugo.yaml 的 params.notesImageLayout）：
-     fold 图片限高、超长折叠；grid 九宫格；first 只显示首图并标出 +N；carousel 横向滑动；thumb 文字为主、右侧缩略图。
-     预览站和本地会显示一个切换器，方便对比；正式站不显示。
+  1. 图集灯箱：点击（或用键盘选中后回车）正文图片全屏查看，同一篇里的图片可左右切换（方向键、按钮、手指滑动），
+     图片的 alt 作为图注；Esc、关闭按钮或点空白处关闭，焦点回到原图。
+  2. 短文栏目：超过约一屏的短文先折叠，可展开、收起；图片加载后重新判断。
+  3. 多图展示方式（hugo.yaml 的 params.notesImageLayout）：group 原位分组（构建时完成，见 notes/list.html）；
+     其余几种由下面的脚本在浏览器里重排，用于对比：fold 限高+折叠；grid 九宫格；first 首图+N；carousel 横向滑动；thumb 侧边缩略图。
+     预览站和本地会显示切换器（?layout=），正式站不显示。
 */ -}}
 <script>
 (() => {
+  const t = {
+    prev: {{ i18n "zoom_prev" }}, next: {{ i18n "zoom_next" }}, close: {{ i18n "zoom_close" }}, label: {{ i18n "zoom_label" }},
+  };
+  const zoomable = (img) => !img.closest("a") && !img.classList.contains("in-text");
+  const selector = ".md-content img";
+
   // ---------- 图集灯箱 ----------
-  let box, big, counter, list = [], index = 0;
+  let box, big, caption, counter, list = [], index = 0, opener = null;
   const show = (i) => {
     index = (i + list.length) % list.length;
     const img = list[index];
     big.src = img.dataset.zoom || img.currentSrc || img.src;
     big.alt = img.alt;
+    caption.textContent = img.alt;
     counter.textContent = list.length > 1 ? `${index + 1} / ${list.length}` : "";
     box.classList.toggle("single", list.length < 2);
   };
   const build = () => {
     box = document.createElement("dialog");
     box.className = "img-zoom";
-    box.innerHTML = '<img alt=""><button type="button" class="zoom-prev" aria-label="Previous">‹</button>' +
-      '<button type="button" class="zoom-next" aria-label="Next">›</button><span class="zoom-count"></span>';
+    box.setAttribute("aria-label", t.label);
+    box.tabIndex = -1;
+    box.innerHTML = '<figure><img alt=""><figcaption></figcaption></figure>' +
+      `<button type="button" class="zoom-prev" aria-label="${t.prev}">‹</button>` +
+      `<button type="button" class="zoom-next" aria-label="${t.next}">›</button>` +
+      `<button type="button" class="zoom-close" aria-label="${t.close}">×</button>` +
+      '<span class="zoom-count" aria-live="polite"></span>';
     big = box.querySelector("img");
+    caption = box.querySelector("figcaption");
     counter = box.querySelector(".zoom-count");
-    box.querySelector(".zoom-prev").addEventListener("click", (e) => { e.stopPropagation(); show(index - 1); });
-    box.querySelector(".zoom-next").addEventListener("click", (e) => { e.stopPropagation(); show(index + 1); });
+    const on = (sel, fn) => box.querySelector(sel).addEventListener("click", (e) => { e.stopPropagation(); fn(); });
+    on(".zoom-prev", () => show(index - 1));
+    on(".zoom-next", () => show(index + 1));
+    on(".zoom-close", () => box.close());
     box.addEventListener("click", () => box.close());
+    box.addEventListener("close", () => opener && opener.focus());
     box.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft") show(index - 1);
       if (e.key === "ArrowRight") show(index + 1);
@@ -43,28 +61,44 @@
     }, true);
     document.body.append(box);
   };
-  document.addEventListener("click", (e) => {
-    const img = e.target.closest(".md-content img, .note-gallery img, .note-thumb img");
-    if (!img || img.closest("a")) return;
+  const open = (img) => {
     const scope = img.closest(".note-entry") || img.closest(".md-content");
-    list = [...scope.querySelectorAll("img")].filter((i) => !i.closest("a") && !i.classList.contains("in-text"));
+    list = [...scope.querySelectorAll(selector)].filter(zoomable);
     if (!box) build();
+    opener = img;
     show(list.indexOf(img));
     box.showModal();
+    box.focus();
+  };
+  for (const img of document.querySelectorAll(selector)) {
+    if (!zoomable(img)) continue;
+    img.tabIndex = 0;
+    img.setAttribute("role", "button");
+  }
+  document.addEventListener("click", (e) => {
+    const img = e.target.closest(selector);
+    if (img && zoomable(img)) open(img);
+  });
+  document.addEventListener("keydown", (e) => {
+    const img = e.target.closest && e.target.closest(selector);
+    if (img && zoomable(img) && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(img); }
   });
 
-  // ---------- 短文栏目的多图展示 ----------
+  // ---------- 短文栏目 ----------
   const bodies = document.querySelectorAll(".note-body");
   if (!bodies.length) return;
-  const layouts = { fold: "限高+折叠", grid: "九宫格", first: "首图+N", carousel: "横向滑动", thumb: "侧边缩略图" };
-  const fromUrl = new URLSearchParams(location.search).get("layout");
+  const layouts = { group: "原位分组", fold: "限高+折叠", grid: "九宫格", first: "首图+N", carousel: "横向滑动", thumb: "侧边缩略图" };
+  const param = new URLSearchParams(location.search).get("layout");
+  const chosen = Object.hasOwn(layouts, param) ? param : bodies[0].dataset.layout;
+  const full = "(min-width: 768px) 720px, 100vw";
   const take = (body) => {
-    const imgs = [...body.querySelectorAll("img")].filter((i) => !i.closest("a") && !i.classList.contains("in-text"));
+    const imgs = [...body.querySelectorAll("img")].filter(zoomable);
     for (const img of imgs) {
       const p = img.parentElement;
       img.remove();
-      if (p !== body && p.tagName === "P" && !p.textContent.trim() && !p.children.length) p.remove();
+      if (p !== body && !p.textContent.trim() && !p.children.length) p.remove();
     }
+    body.querySelectorAll(".img-group").forEach((g) => g.remove());
     return imgs;
   };
   const badge = (n) => {
@@ -74,51 +108,70 @@
     return b;
   };
   for (const body of bodies) {
-    const layout = layouts[fromUrl] ? fromUrl : body.dataset.layout;
-    if (layout !== "fold" && body.querySelector("img")) {
-      const imgs = take(body);
-      const wrap = document.createElement("div");
-      if (layout === "thumb") {
-        wrap.className = "note-thumb";
-        imgs.forEach((img, i) => { img.sizes = "6rem"; if (i) img.hidden = true; wrap.append(img); });
-        if (imgs.length > 1) wrap.append(badge(imgs.length - 1));
-        body.prepend(wrap);
-      } else {
-        wrap.className = `note-gallery note-${layout} count-${Math.min(imgs.length, 9)}`;
-        const shown = layout === "first" ? 1 : layout === "grid" ? 9 : imgs.length;
-        imgs.forEach((img, i) => {
-          if (i >= shown) img.hidden = true;
-          img.sizes = layout === "grid" && imgs.length > 1 ? "15rem" : "(min-width: 768px) 720px, 100vw";
-          wrap.append(img);
-        });
-        if (imgs.length > shown) imgs[shown - 1].after(badge(imgs.length - shown));
-        if (layout === "first") wrap.style.setProperty("--ar", imgs[0].style.getPropertyValue("--ar") || 1);
-        body.append(wrap);
+    if (chosen === "group" || !body.querySelector("img")) continue;
+    if (chosen === "fold") {
+      for (const g of body.querySelectorAll(".img-group")) {
+        for (const img of g.querySelectorAll("img")) {
+          const p = document.createElement("p");
+          img.sizes = full;
+          p.append(img);
+          g.before(p);
+        }
+        g.remove();
       }
+      continue;
     }
+    const imgs = take(body);
+    const wrap = document.createElement("div");
+    if (chosen === "thumb") {
+      wrap.className = "note-thumb";
+      imgs.forEach((img, i) => { img.sizes = "6rem"; if (i) img.hidden = true; wrap.append(img); });
+      if (imgs.length > 1) wrap.append(badge(imgs.length - 1));
+      body.prepend(wrap);
+      continue;
+    }
+    wrap.className = `note-gallery note-${chosen} count-${Math.min(imgs.length, 9)}`;
+    const shown = chosen === "first" ? 1 : chosen === "grid" ? 9 : imgs.length;
+    imgs.forEach((img, i) => {
+      if (i >= shown) img.hidden = true;
+      img.sizes = chosen === "grid" && imgs.length > 1 ? "(min-width: 768px) 160px, 33vw" : chosen === "carousel" ? "50vw" : full;
+      wrap.append(img);
+    });
+    if (imgs.length > shown) wrap.append(badge(imgs.length - shown));
+    if (chosen === "first") wrap.style.setProperty("--ar", imgs[0].style.getPropertyValue("--ar") || 1);
+    body.append(wrap);
   }
 
+  // 折叠：先按已知宽高判断，没写宽高的图片（gif、svg、外链）加载后再判断一次
   const limit = 640;
-  for (const body of bodies) {
-    if (body.scrollHeight <= limit * 1.25) continue;
+  const fold = (body) => {
+    if (body.dataset.folded || body.scrollHeight <= limit * 1.25) return;
+    body.dataset.folded = "1";
     body.classList.add("is-folded");
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "note-expand";
     btn.textContent = body.dataset.expand;
+    btn.setAttribute("aria-expanded", "false");
     btn.addEventListener("click", () => {
-      body.classList.remove("is-folded");
-      btn.remove();
+      const folded = body.classList.toggle("is-folded");
+      btn.textContent = folded ? body.dataset.expand : body.dataset.collapse;
+      btn.setAttribute("aria-expanded", String(!folded));
+      if (folded) body.closest(".note-entry").scrollIntoView({ block: "start" });
     });
     body.after(btn);
+  };
+  for (const body of bodies) {
+    fold(body);
+    for (const img of body.querySelectorAll("img:not([width])")) img.addEventListener("load", () => fold(body), { once: true });
   }
 
-  if (location.hostname === "douseful.eu.org") return;
-  const current = layouts[fromUrl] ? fromUrl : bodies[0].dataset.layout;
-  const bar = document.createElement("nav");
-  bar.className = "layout-switch";
-  bar.innerHTML = "<span>多图展示（仅预览）</span>" + Object.entries(layouts).map(([k, v]) =>
-    `<a href="?layout=${k}"${k === current ? ' aria-current="true"' : ""}>${v}</a>`).join("");
-  document.body.append(bar);
+  if ({{ or site.Params.preview hugo.IsServer }}) {
+    const bar = document.createElement("nav");
+    bar.className = "layout-switch";
+    bar.innerHTML = "<span>多图展示（仅预览）</span>" + Object.entries(layouts).map(([k, v]) =>
+      `<a href="?layout=${k}"${k === chosen ? ' aria-current="true"' : ""}>${v}</a>`).join("");
+    document.body.append(bar);
+  }
 })();
 </script>

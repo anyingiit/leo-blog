@@ -8,7 +8,7 @@
 */ -}}
 {{- $u := urls.Parse .Destination -}}
 {{- $src := $u.String -}}
-{{- $attrs := dict "alt" .Text "title" (.Title | transform.HTMLEscape) "loading" "lazy" "decoding" "async" -}}
+{{- $attrs := dict "alt" .Text "title" .Title "loading" "lazy" "decoding" "async" -}}
 {{- if not $u.IsAbs -}}
   {{- $path := strings.TrimPrefix "./" $u.Path -}}
   {{- $suffix := "" -}}
@@ -35,6 +35,7 @@
         "width" (string $full.Width)
         "height" (string $full.Height)
         "data-zoom" $full.RelPermalink
+        "class" (cond (eq .MediaType.SubType "png") "shot" "photo")
         "style" (printf "--ar:%.4f" (div (float $full.Width) $full.Height))) -}}
     {{- else -}}
       {{- $src = printf "%s%s" .RelPermalink $suffix -}}
@@ -49,7 +50,7 @@
 <img
   {{- range $k, $v := $attrs -}}
     {{- if $v -}}
-      {{- printf " %s=%q" $k $v | safeHTMLAttr -}}
+      {{- printf " %s=\"%s\"" $k (htmlEscape $v) | safeHTMLAttr -}}
     {{- end -}}
   {{- end -}}>
 {{- /**/ -}}
