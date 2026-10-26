@@ -8,7 +8,7 @@
 */ -}}
 {{- $u := urls.Parse .Destination -}}
 {{- $src := $u.String -}}
-{{- $attrs := dict "alt" .Text "title" .Title "loading" "lazy" "decoding" "async" -}}
+{{- $attrs := dict "alt" (.Text | htmlUnescape) "title" (.Title | replaceRE `\\(.)` "$1" | htmlUnescape) "loading" "lazy" "decoding" "async" -}}
 {{- if not $u.IsAbs -}}
   {{- $path := strings.TrimPrefix "./" $u.Path -}}
   {{- $suffix := "" -}}

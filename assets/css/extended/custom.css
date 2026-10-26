@@ -32,30 +32,22 @@
 .img-zoom .zoom-close { top: 1rem; right: 1rem; transform: none; font-size: 1.75rem; }
 .img-zoom.single .zoom-prev, .img-zoom.single .zoom-next { display: none; }
 .img-zoom .zoom-count { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); color: #fff; font-size: 0.875rem; }
-/* 原位分组：连续多张图在原位排成网格（notes/list.html）；照片裁成方块，截图完整显示 */
-.img-group { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: min(100%, 30rem); margin: 1rem 0; }
+/* 原位分组（notes/list.html）。手机：方块网格，照片裁成方块，截图完整显示；第 10 张起只在图集里看 */
+.img-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: min(100%, 30rem); margin: 1rem 0; }
 .img-group.cols-2 { grid-template-columns: repeat(2, 1fr); }
-.note-entry .post-content .img-group img { width: 100%; height: auto; aspect-ratio: 1; margin: 0; object-fit: cover; border-radius: 4px; }
+.note-entry .post-content .img-group img { display: block; width: 100%; height: auto; aspect-ratio: 1; margin: 0; object-fit: cover; border-radius: 4px; }
 .note-entry .post-content .img-group img.shot { object-fit: contain; background: var(--code-bg); }
-.img-group img:nth-of-type(n+10) { display: none; }
-/* 短文栏目的多图展示（见 extend_footer.html） */
-.note-gallery { position: relative; margin-top: 1rem; }
-.note-entry .post-content .note-gallery img { margin: 0; border-radius: 4px; }
-.note-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: min(100%, 30rem); }
-.note-grid.count-2, .note-grid.count-4 { grid-template-columns: repeat(2, 1fr); width: min(100%, 20rem); }
-.note-entry .post-content .note-grid img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
-.note-grid.count-1 { display: block; width: auto; }
-.note-entry .post-content .note-grid.count-1 img { width: min(100%, calc(24rem * var(--ar))); aspect-ratio: auto; }
-.note-first { width: min(100%, calc(24rem * var(--ar))); }
-.note-entry .post-content .note-first img { width: 100%; }
-.note-carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
-.note-entry .post-content .note-carousel img { flex: none; height: 16rem; width: calc(16rem * var(--ar)); max-width: 85%; object-fit: cover; scroll-snap-align: start; }
-.note-thumb { position: relative; float: right; margin: 0 0 0.5rem 1rem; }
-.note-entry .post-content .note-thumb img { width: 6rem; height: 6rem; margin: 0; object-fit: cover; border-radius: 6px; }
+.img-more { position: relative; }
+.img-more ~ img { display: none !important; }
 .note-more { position: absolute; right: 0.4rem; bottom: 0.4rem; padding: 0 0.5rem; color: #fff; font-size: 0.875rem; background: rgb(0 0 0 / 0.6); border-radius: 999px; pointer-events: none; }
-.note-entry::after { content: ""; display: block; clear: both; }
-.layout-switch { position: fixed; left: 50%; bottom: 1rem; z-index: 10; transform: translateX(-50%); display: flex; gap: 0.25rem; max-width: calc(100vw - 2rem); overflow-x: auto; padding: 0.35rem; font-size: 0.8rem; white-space: nowrap; background: var(--entry); border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 2px 10px rgb(0 0 0 / 0.15); }
-.layout-switch span { padding: 0.25rem 0.5rem; color: var(--secondary); }
-.layout-switch a { padding: 0.25rem 0.75rem; border-radius: 999px; }
-.layout-switch a[aria-current] { color: var(--theme); background: var(--primary); }
-.note-gallery img[hidden], .note-thumb img[hidden] { display: none; }
+/* 电脑：等高行。每张图按宽高比（--ar）分配宽度，同一行高度一致、铺满正文宽度，不裁切；最后一行不拉伸 */
+@media (min-width: 768px) {
+  .img-group { display: flex; flex-wrap: wrap; width: 100%; }
+  .img-group::after { content: ""; flex-grow: 1000; }
+  .img-group > img, .img-more { --h: 10rem; flex: calc(var(--ar, 1) * 100) 1 calc(var(--ar, 1) * var(--h)); min-width: 0; }
+  .img-group.n-2 { flex-wrap: nowrap; }
+  .img-group.n-2::after, .img-group.n-4::after { display: none; }
+  .img-group.n-4 > img { --h: 16rem; }
+  .note-entry .post-content .img-group img { aspect-ratio: var(--ar, 1); object-fit: cover; }
+  .note-entry .post-content .img-group img.shot { object-fit: cover; background: none; }
+}

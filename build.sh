@@ -4,6 +4,7 @@
 #    CF 后台的 HUGO_VERSION 环境变量因此不再起作用。升级时只改 HUGO_VERSION 和对应的 sha256。
 # 2. 生产（main）用 hugo.yaml 里的 baseURL；预览构建改用 CF 注入的预览地址，
 #    否则预览站里的绝对链接（文章、标签、RSS、canonical、语言切换）都会跳回主站。
+# 3. 预览构建还会带上 tests/fixtures 里的测试短文（见 tests/hugo.test.yaml），正式构建不带。
 set -euo pipefail
 
 HUGO_VERSION="0.151.0"
@@ -60,7 +61,7 @@ fi
 hugo version
 
 if [ -n "${CF_PAGES_URL:-}" ] && [ "${CF_PAGES_BRANCH:-}" != "main" ]; then
-  # HUGO_PARAMS_PREVIEW 让页面知道这是预览构建（短文栏目会显示多图展示方式的切换器）
-  HUGO_PARAMS_PREVIEW=true exec hugo --gc --minify -b "${CF_PAGES_URL%/}/" "$@"
+  # 预览站额外带上 tests/fixtures 里的测试短文，方便在 PR 预览里对照查看；正式站不包含它们
+  exec hugo --gc --minify -b "${CF_PAGES_URL%/}/" --config hugo.yaml,tests/hugo.test.yaml "$@"
 fi
 exec hugo --gc --minify "$@"

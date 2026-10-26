@@ -1,11 +1,11 @@
 ---
-title: "【预览用，合并前删除】两张图的短文"
+title: "[Test] A note with two photos"
 slug: two-photos
 date: 2026-10-26T20:25:00Z
-tags: [测试]
+tags: [test]
 ---
 
-新换的桌面布置，前后对比。
+My new desk setup, before and after.
 
 ![](./two-photos.assets/IMG_01.jpg)
 

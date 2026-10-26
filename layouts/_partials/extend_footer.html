@@ -2,9 +2,7 @@
   1. 图集灯箱：点击（或用键盘选中后回车）正文图片全屏查看，同一篇里的图片可左右切换（方向键、按钮、手指滑动），
      图片的 alt 作为图注；Esc、关闭按钮或点空白处关闭，焦点回到原图。
   2. 短文栏目：超过约一屏的短文先折叠，可展开、收起；图片加载后重新判断。
-  3. 多图展示方式（hugo.yaml 的 params.notesImageLayout）：group 原位分组（构建时完成，见 notes/list.html）；
-     其余几种由下面的脚本在浏览器里重排，用于对比：fold 限高+折叠；grid 九宫格；first 首图+N；carousel 横向滑动；thumb 侧边缩略图。
-     预览站和本地会显示切换器（?layout=），正式站不显示。
+     多张图片的原位分组在构建时完成，见 notes/list.html。
 */ -}}
 <script>
 (() => {
@@ -87,60 +85,6 @@
   // ---------- 短文栏目 ----------
   const bodies = document.querySelectorAll(".note-body");
   if (!bodies.length) return;
-  const layouts = { group: "原位分组", fold: "限高+折叠", grid: "九宫格", first: "首图+N", carousel: "横向滑动", thumb: "侧边缩略图" };
-  const param = new URLSearchParams(location.search).get("layout");
-  const chosen = Object.hasOwn(layouts, param) ? param : bodies[0].dataset.layout;
-  const full = "(min-width: 768px) 720px, 100vw";
-  const take = (body) => {
-    const imgs = [...body.querySelectorAll("img")].filter(zoomable);
-    for (const img of imgs) {
-      const p = img.parentElement;
-      img.remove();
-      if (p !== body && !p.textContent.trim() && !p.children.length) p.remove();
-    }
-    body.querySelectorAll(".img-group").forEach((g) => g.remove());
-    return imgs;
-  };
-  const badge = (n) => {
-    const b = document.createElement("span");
-    b.className = "note-more";
-    b.textContent = `+${n}`;
-    return b;
-  };
-  for (const body of bodies) {
-    if (chosen === "group" || !body.querySelector("img")) continue;
-    if (chosen === "fold") {
-      for (const g of body.querySelectorAll(".img-group")) {
-        for (const img of g.querySelectorAll("img")) {
-          const p = document.createElement("p");
-          img.sizes = full;
-          p.append(img);
-          g.before(p);
-        }
-        g.remove();
-      }
-      continue;
-    }
-    const imgs = take(body);
-    const wrap = document.createElement("div");
-    if (chosen === "thumb") {
-      wrap.className = "note-thumb";
-      imgs.forEach((img, i) => { img.sizes = "6rem"; if (i) img.hidden = true; wrap.append(img); });
-      if (imgs.length > 1) wrap.append(badge(imgs.length - 1));
-      body.prepend(wrap);
-      continue;
-    }
-    wrap.className = `note-gallery note-${chosen} count-${Math.min(imgs.length, 9)}`;
-    const shown = chosen === "first" ? 1 : chosen === "grid" ? 9 : imgs.length;
-    imgs.forEach((img, i) => {
-      if (i >= shown) img.hidden = true;
-      img.sizes = chosen === "grid" && imgs.length > 1 ? "(min-width: 768px) 160px, 33vw" : chosen === "carousel" ? "50vw" : full;
-      wrap.append(img);
-    });
-    if (imgs.length > shown) wrap.append(badge(imgs.length - shown));
-    if (chosen === "first") wrap.style.setProperty("--ar", imgs[0].style.getPropertyValue("--ar") || 1);
-    body.append(wrap);
-  }
 
   // 折叠：先按已知宽高判断，没写宽高的图片（gif、svg、外链）加载后再判断一次
   const limit = 640;
@@ -164,14 +108,6 @@
   for (const body of bodies) {
     fold(body);
     for (const img of body.querySelectorAll("img:not([width])")) img.addEventListener("load", () => fold(body), { once: true });
-  }
-
-  if ({{ or site.Params.preview hugo.IsServer }}) {
-    const bar = document.createElement("nav");
-    bar.className = "layout-switch";
-    bar.innerHTML = "<span>多图展示（仅预览）</span>" + Object.entries(layouts).map(([k, v]) =>
-      `<a href="?layout=${k}"${k === chosen ? ' aria-current="true"' : ""}>${v}</a>`).join("");
-    document.body.append(bar);
   }
 })();
 </script>

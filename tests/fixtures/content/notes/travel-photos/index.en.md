@@ -1,5 +1,5 @@
 ---
-title: "[Preview only, removed before merge] Weekend trip snapshots"
+title: "[Test] Weekend trip snapshots"
 slug: travel-photos
 date: 2026-10-26T20:30:00Z
 tags: [test]

@@ -1,0 +1,7 @@
+# 回归测试用的额外配置：在正式内容之外再挂上 tests/fixtures/content 里的测试短文（正式构建不会包含它们）
+module:
+  mounts:
+    - source: content
+      target: content
+    - source: tests/fixtures/content
+      target: content

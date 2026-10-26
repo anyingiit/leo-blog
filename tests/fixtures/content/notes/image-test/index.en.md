@@ -1,5 +1,5 @@
 ---
-title: "[Preview only, removed before merge] Image-heavy note test"
+title: "[Test] Image-heavy note test"
 slug: image-test
 date: 2026-10-26T20:40:00Z
 tags: [test]

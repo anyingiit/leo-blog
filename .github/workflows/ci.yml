@@ -56,3 +56,31 @@ jobs:
       # build.sh 自己安装锁定版本的 Hugo，与 Cloudflare Pages 构建完全一致
       - name: Build site
         run: bash build.sh
+
+  regression:
+    name: Regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+
+      - name: Install test dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠和图集（见 tests/README.md）
+      - name: Run regression tests
+        run: npm test

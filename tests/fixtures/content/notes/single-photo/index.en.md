@@ -1,5 +1,5 @@
 ---
-title: "[Preview only, removed before merge] A note with one photo"
+title: "[Test] A note with one photo"
 slug: single-photo
 date: 2026-10-26T20:20:00Z
 tags: [test]
