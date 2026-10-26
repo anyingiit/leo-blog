@@ -11,5 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial project structure.
+- 「短文」栏目（`content/notes/`，`/notes/`）：随笔、感想与长文分开，首页和归档只列长文。
+
+### Changed
+
+- 《博客项目取得重大进展》移入短文，旧地址 `/posts/blog-project-progress/` 自动跳转。
 
 [Unreleased]: https://github.com/anyingiit/leo-blog/commits/main

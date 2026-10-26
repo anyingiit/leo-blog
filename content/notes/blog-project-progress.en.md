@@ -3,6 +3,7 @@ title: A Major Breakthrough on the Blog Project
 slug: blog-project-progress
 date: 2026-09-17T10:55:24Z
 tags: [Blog Development]
+aliases: [/en/posts/blog-project-progress/]
 ---
 
 The blog project has made a major breakthrough. I believe I've found the right way to do concurrent development. Next, I'll finish the first phase: completing Phase A to prove that the path "edit content → new version → publish" can be carried out reliably by a Sonnet-class executor.

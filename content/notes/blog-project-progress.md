@@ -3,6 +3,7 @@ title: 博客项目取得重大进展
 slug: blog-project-progress
 date: 2026-09-17T10:55:24Z
 tags: [博客开发]
+aliases: [/posts/blog-project-progress/]
 ---
 
 博客项目取得重大进展，并发开发的正确方式我相信已经找到，接下来先完成一阶段的开发：完成阶段A 证明"改内容 → 新版本 → 公开"这条路能被 Sonnet 级执行者稳定执行。

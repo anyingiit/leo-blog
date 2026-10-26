@@ -3,6 +3,7 @@ title: "观看Translating Claude’s thoughts into language有感"
 slug: translating-claudes-thoughts
 date: 2026-10-26T20:04:43Z
 tags: [随笔, AI]
+aliases: [/posts/translating-claudes-thoughts/]
 ---
 
 观看[Translating Claude’s thoughts into language](https://www.youtube.com/watch?v=j2knrqAzYVY)有感
