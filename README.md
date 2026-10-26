@@ -21,7 +21,7 @@ hugo new notes/<slug>.md   # 短文（随笔、感想）
 
 图片：带图的文章用文件夹形式（`content/notes/<slug>/index.md`，长文同理），图片放在同一个文件夹里，正文用相对路径引用。Typora 的 `./文件名.assets/图.png` 写法可以直接用：把 `.md` 改名为 `index.md`，和 `文件名.assets/` 一起放进 `<slug>/` 文件夹即可，不用改正文。构建时 jpg/png/webp 会缩成 480–1600px 的多档 WebP（原图不上线）并写上宽高、懒加载；点击图片打开图集，可左右切换。短文栏目里单张图最高 24rem，连续两张及以上的图在原位分组（手机上是方块网格，电脑上是等高行），超过一屏的短文先折叠。引用的图片找不到时构建会给出警告。这些都是自定义开发，回归测试见 [tests/README.md](tests/README.md)。
 
-英文译文：在原文旁放同名 `<slug>.en.md`（slug 保持一致），发布在 `/en/posts/<slug>/`，并与中文版自动互链。
+英文译文：在原文旁放同名 `<slug>.en.md`（slug 保持一致），发布在 `/en/posts/<slug>/`，并与中文版自动互链。含中文文字的配图要给英文页配英文版，原则见 [docs/image-translation.md](docs/image-translation.md)。
 
 Markdown 扩展：`$...$` / `$$...$$` 数学公式（构建期 KaTeX）、` ```mermaid ` 图、`> [!NOTE]` 提示框。语法样例见 `content/posts/markdown-test/`（草稿，不发布）。
 

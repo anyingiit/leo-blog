@@ -57,6 +57,13 @@ jobs:
       - name: Build site
         run: bash build.sh
 
+      # 英文配图脚本的回归测试，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）
+      - name: Test image-i18n
+        run: |
+          python3 -m venv /tmp/venv
+          /tmp/venv/bin/pip install --quiet -r tools/image-i18n/requirements.txt
+          /tmp/venv/bin/python -m unittest discover -s tools/image-i18n -v
+
   regression:
     name: Regression tests
     runs-on: ubuntu-latest
