@@ -1,0 +1,12 @@
+{
+  "name": "leo-blog-tests",
+  "private": true,
+  "type": "module",
+  "description": "回归测试：用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠和图集",
+  "scripts": {
+    "test": "node --test --test-concurrency=1"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

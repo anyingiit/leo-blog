@@ -1,0 +1,16 @@
+- id: expand_note
+  translation: 展开全文
+- id: collapse_note
+  translation: 收起
+- id: zoom_prev
+  translation: 上一张
+- id: zoom_next
+  translation: 下一张
+- id: zoom_close
+  translation: 关闭
+- id: zoom_label
+  translation: 查看图片
+- id: zoom_open
+  translation: "查看图片 %d / %d"
+- id: zoom_more
+  translation: "，还有 %d 张"

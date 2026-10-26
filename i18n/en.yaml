@@ -1,0 +1,16 @@
+- id: expand_note
+  translation: Show more
+- id: collapse_note
+  translation: Show less
+- id: zoom_prev
+  translation: Previous image
+- id: zoom_next
+  translation: Next image
+- id: zoom_close
+  translation: Close
+- id: zoom_label
+  translation: Image viewer
+- id: zoom_open
+  translation: "View image %d of %d"
+- id: zoom_more
+  translation: ", %d more"
