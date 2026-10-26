@@ -39,6 +39,8 @@ params:
   ShowShareButtons: false
   ShowRssButtonInSectionTermList: true
   disableSpecial1stPost: true
+  # 短文栏目里多图的展示方式：fold（限高+折叠）、grid（九宫格）、first（首图+N）、carousel（横滑）、thumb（侧边缩略图）
+  notesImageLayout: fold
   assets:
     disableHLJS: true  # 用 Hugo 自带的 Chroma 高亮
   fuseOpts:

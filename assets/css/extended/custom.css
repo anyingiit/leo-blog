@@ -19,6 +19,32 @@
 .note-entry .post-content img[style*="--ar"] { width: min(100%, calc(24rem * var(--ar))); }
 .note-body.is-folded { max-height: 40rem; overflow: hidden; -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent); }
 .note-expand { display: block; margin: 0.75rem auto 0; padding: 0.25rem 1rem; color: var(--primary); background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
-.img-zoom { max-width: 100vw; max-height: 100vh; padding: 0; border: 0; background: none; cursor: zoom-out; }
+.img-zoom { max-width: 100vw; max-height: 100vh; padding: 0; border: 0; background: none; cursor: zoom-out; overflow: visible; }
 .img-zoom::backdrop { background: rgb(0 0 0 / 0.85); }
-.img-zoom img { max-width: 95vw; max-height: 95vh; margin: auto; }
+.img-zoom img { max-width: 95vw; max-height: 90vh; margin: auto; user-select: none; -webkit-user-drag: none; }
+.img-zoom button { position: fixed; top: 50%; transform: translateY(-50%); width: 3rem; height: 3rem; font-size: 2rem; line-height: 1; color: #fff; background: rgb(0 0 0 / 0.4); border: 0; border-radius: 50%; cursor: pointer; }
+.img-zoom .zoom-prev { left: 1rem; }
+.img-zoom .zoom-next { right: 1rem; }
+.img-zoom.single button { display: none; }
+.img-zoom .zoom-count { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); color: #fff; font-size: 0.875rem; }
+/* 短文栏目的多图展示（见 extend_footer.html） */
+.note-gallery { position: relative; margin-top: 1rem; }
+.note-entry .post-content .note-gallery img { margin: 0; border-radius: 4px; }
+.note-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: min(100%, 30rem); }
+.note-grid.count-2, .note-grid.count-4 { grid-template-columns: repeat(2, 1fr); width: min(100%, 20rem); }
+.note-entry .post-content .note-grid img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
+.note-grid.count-1 { display: block; width: auto; }
+.note-entry .post-content .note-grid.count-1 img { width: min(100%, calc(24rem * var(--ar))); aspect-ratio: auto; }
+.note-first { width: min(100%, calc(24rem * var(--ar))); }
+.note-entry .post-content .note-first img { width: 100%; }
+.note-carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+.note-entry .post-content .note-carousel img { flex: none; height: 16rem; width: calc(16rem * var(--ar)); max-width: 85%; object-fit: cover; scroll-snap-align: start; }
+.note-thumb { position: relative; float: right; margin: 0 0 0.5rem 1rem; }
+.note-entry .post-content .note-thumb img { width: 6rem; height: 6rem; margin: 0; object-fit: cover; border-radius: 6px; }
+.note-more { position: absolute; right: 0.4rem; bottom: 0.4rem; padding: 0 0.5rem; color: #fff; font-size: 0.875rem; background: rgb(0 0 0 / 0.6); border-radius: 999px; pointer-events: none; }
+.note-entry::after { content: ""; display: block; clear: both; }
+.layout-switch { position: fixed; left: 50%; bottom: 1rem; z-index: 10; transform: translateX(-50%); display: flex; gap: 0.25rem; max-width: calc(100vw - 2rem); overflow-x: auto; padding: 0.35rem; font-size: 0.8rem; white-space: nowrap; background: var(--entry); border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 2px 10px rgb(0 0 0 / 0.15); }
+.layout-switch span { padding: 0.25rem 0.5rem; color: var(--secondary); }
+.layout-switch a { padding: 0.25rem 0.75rem; border-radius: 999px; }
+.layout-switch a[aria-current] { color: var(--theme); background: var(--primary); }
+.note-gallery img[hidden], .note-thumb img[hidden] { display: none; }

@@ -31,7 +31,7 @@
       {{- end }}
     </div>
   </header>
-  <div class="post-content md-content note-body" data-expand="{{ i18n "expand_note" }}">{{ .Content }}</div>
+  <div class="post-content md-content note-body" data-expand="{{ i18n "expand_note" }}" data-layout="{{ site.Params.notesImageLayout | default "fold" }}">{{ .Content }}</div>
 </article>
 {{- end }}
 

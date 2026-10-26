@@ -1,25 +1,105 @@
-{{- /* 点击正文图片放大查看；短文栏目里过长的一篇先折叠，点“展开全文”再看完 */ -}}
+{{- /*
+  1. 图集灯箱：点击正文图片全屏查看，同一篇里的图片可左右切换（方向键、按钮、手指滑动），Esc 或点空白处关闭。
+  2. 短文栏目的多图展示方式（hugo.yaml 的 params.notesImageLayout）：
+     fold 图片限高、超长折叠；grid 九宫格；first 只显示首图并标出 +N；carousel 横向滑动；thumb 文字为主、右侧缩略图。
+     预览站和本地会显示一个切换器，方便对比；正式站不显示。
+*/ -}}
 <script>
 (() => {
-  let box;
-  document.addEventListener("click", (e) => {
-    const img = e.target.closest(".md-content img");
-    if (!img || img.closest("a")) return;
-    if (!box) {
-      box = document.createElement("dialog");
-      box.className = "img-zoom";
-      box.append(document.createElement("img"));
-      box.addEventListener("click", () => box.close());
-      document.body.append(box);
-    }
-    const big = box.firstChild;
+  // ---------- 图集灯箱 ----------
+  let box, big, counter, list = [], index = 0;
+  const show = (i) => {
+    index = (i + list.length) % list.length;
+    const img = list[index];
     big.src = img.dataset.zoom || img.currentSrc || img.src;
     big.alt = img.alt;
+    counter.textContent = list.length > 1 ? `${index + 1} / ${list.length}` : "";
+    box.classList.toggle("single", list.length < 2);
+  };
+  const build = () => {
+    box = document.createElement("dialog");
+    box.className = "img-zoom";
+    box.innerHTML = '<img alt=""><button type="button" class="zoom-prev" aria-label="Previous">‹</button>' +
+      '<button type="button" class="zoom-next" aria-label="Next">›</button><span class="zoom-count"></span>';
+    big = box.querySelector("img");
+    counter = box.querySelector(".zoom-count");
+    box.querySelector(".zoom-prev").addEventListener("click", (e) => { e.stopPropagation(); show(index - 1); });
+    box.querySelector(".zoom-next").addEventListener("click", (e) => { e.stopPropagation(); show(index + 1); });
+    box.addEventListener("click", () => box.close());
+    box.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") show(index - 1);
+      if (e.key === "ArrowRight") show(index + 1);
+    });
+    let x0 = null;
+    box.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
+    box.addEventListener("pointerup", (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 50) { show(index + (dx < 0 ? 1 : -1)); box.dataset.swiped = "1"; }
+    });
+    box.addEventListener("click", (e) => {
+      if (box.dataset.swiped) { delete box.dataset.swiped; e.stopImmediatePropagation(); }
+    }, true);
+    document.body.append(box);
+  };
+  document.addEventListener("click", (e) => {
+    const img = e.target.closest(".md-content img, .note-gallery img, .note-thumb img");
+    if (!img || img.closest("a")) return;
+    const scope = img.closest(".note-entry") || img.closest(".md-content");
+    list = [...scope.querySelectorAll("img")].filter((i) => !i.closest("a") && !i.classList.contains("in-text"));
+    if (!box) build();
+    show(list.indexOf(img));
     box.showModal();
   });
 
+  // ---------- 短文栏目的多图展示 ----------
+  const bodies = document.querySelectorAll(".note-body");
+  if (!bodies.length) return;
+  const layouts = { fold: "限高+折叠", grid: "九宫格", first: "首图+N", carousel: "横向滑动", thumb: "侧边缩略图" };
+  const fromUrl = new URLSearchParams(location.search).get("layout");
+  const take = (body) => {
+    const imgs = [...body.querySelectorAll("img")].filter((i) => !i.closest("a") && !i.classList.contains("in-text"));
+    for (const img of imgs) {
+      const p = img.parentElement;
+      img.remove();
+      if (p !== body && p.tagName === "P" && !p.textContent.trim() && !p.children.length) p.remove();
+    }
+    return imgs;
+  };
+  const badge = (n) => {
+    const b = document.createElement("span");
+    b.className = "note-more";
+    b.textContent = `+${n}`;
+    return b;
+  };
+  for (const body of bodies) {
+    const layout = layouts[fromUrl] ? fromUrl : body.dataset.layout;
+    if (layout !== "fold" && body.querySelector("img")) {
+      const imgs = take(body);
+      const wrap = document.createElement("div");
+      if (layout === "thumb") {
+        wrap.className = "note-thumb";
+        imgs.forEach((img, i) => { img.sizes = "6rem"; if (i) img.hidden = true; wrap.append(img); });
+        if (imgs.length > 1) wrap.append(badge(imgs.length - 1));
+        body.prepend(wrap);
+      } else {
+        wrap.className = `note-gallery note-${layout} count-${Math.min(imgs.length, 9)}`;
+        const shown = layout === "first" ? 1 : layout === "grid" ? 9 : imgs.length;
+        imgs.forEach((img, i) => {
+          if (i >= shown) img.hidden = true;
+          img.sizes = layout === "grid" && imgs.length > 1 ? "15rem" : "(min-width: 768px) 720px, 100vw";
+          wrap.append(img);
+        });
+        if (imgs.length > shown) imgs[shown - 1].after(badge(imgs.length - shown));
+        if (layout === "first") wrap.style.setProperty("--ar", imgs[0].style.getPropertyValue("--ar") || 1);
+        body.append(wrap);
+      }
+    }
+  }
+
   const limit = 640;
-  for (const body of document.querySelectorAll(".note-body")) {
+  for (const body of bodies) {
     if (body.scrollHeight <= limit * 1.25) continue;
     body.classList.add("is-folded");
     const btn = document.createElement("button");
@@ -32,5 +112,13 @@
     });
     body.after(btn);
   }
+
+  if (location.hostname === "douseful.eu.org") return;
+  const current = layouts[fromUrl] ? fromUrl : bodies[0].dataset.layout;
+  const bar = document.createElement("nav");
+  bar.className = "layout-switch";
+  bar.innerHTML = "<span>多图展示（仅预览）</span>" + Object.entries(layouts).map(([k, v]) =>
+    `<a href="?layout=${k}"${k === current ? ' aria-current="true"' : ""}>${v}</a>`).join("");
+  document.body.append(bar);
 })();
 </script>
