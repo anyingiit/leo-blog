@@ -33,6 +33,12 @@ function build(args = [], env = {}) {
 const hrefs = (html) => [...html.matchAll(/href="?([^"\s>]+)/g)].map((m) => m[1]);
 const main = (html) => html.split(/<main[^>]*>/)[1].split("</main>")[0];
 const noteEntries = (html) => main(html).split(/<article class="?note-entry"?>/).slice(1).map((a) => a.split("</article>")[0]);
+// 首页和短文栏目每页 10 篇（hugo.yaml 的 pagination.pagerSize），把 <列表>/page/2/、/page/3/… 的正文都拼起来
+function allPagesOf(s, list) {
+  const parts = [main(s.read(list))];
+  for (let n = 2; s.exists(`${list}page/${n}/index.html`); n++) parts.push(main(s.read(`${list}page/${n}/`)));
+  return parts.join("\n");
+}
 
 // 读 content 里的文章：路径、语言、front matter
 function frontMatter(file) {
@@ -72,7 +78,7 @@ test("测试的前提：content 里至少有一篇短文和一篇长文", () => 
 
 for (const [lang, prefix] of [["中文", ""], ["英文", "en/"]]) {
   test(`${lang}首页只列长文，不列短文`, () => {
-    const links = hrefs(main(site.read(prefix)));
+    const links = hrefs(allPagesOf(site, prefix));
     for (const p of posts) assert.ok(links.includes(`${PROD}${prefix}posts/${p.slug}/`), `首页缺少长文 ${p.slug}`);
     for (const n of notes) assert.ok(!links.includes(`${PROD}${prefix}notes/${n.slug}/`), `首页不该出现短文 ${n.slug}`);
   });
@@ -84,7 +90,7 @@ for (const [lang, prefix] of [["中文", ""], ["英文", "en/"]]) {
   });
 
   test(`${lang}短文栏目按时间线列出全部短文，并展开全文`, () => {
-    const entries = noteEntries(site.read(`${prefix}notes/`));
+    const entries = noteEntries(`<main>${allPagesOf(site, `${prefix}notes/`)}</main>`);
     assert.equal(entries.length, notes.length);
     for (const n of notes) {
       const entry = entries.find((e) => e.includes(`${PROD}${prefix}notes/${n.slug}/`));
