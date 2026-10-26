@@ -56,3 +56,10 @@ jobs:
       # build.sh 自己安装锁定版本的 Hugo，与 Cloudflare Pages 构建完全一致
       - name: Build site
         run: bash build.sh
+
+      # 英文配图脚本的回归测试，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）
+      - name: Test image-i18n
+        run: |
+          python3 -m venv /tmp/venv
+          /tmp/venv/bin/pip install --quiet -r tools/image-i18n/requirements.txt
+          /tmp/venv/bin/python -m unittest discover -s tools/image-i18n -v

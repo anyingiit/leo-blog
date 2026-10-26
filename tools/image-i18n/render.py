@@ -126,14 +126,30 @@ def reflow(spec, src, auto):
     return out
 
 
+def patch_background(src, box, ring=3):
+    """补丁的底色：取区域外一圈像素里最常见的颜色，跳过红框这类高饱和的标注色；
+    一圈都是标注色时退回区域内最常见的颜色。"""
+    x0, y0, x1, y1 = box
+    outer = src.crop((max(x0 - ring, 0), max(y0 - ring, 0),
+                      min(x1 + ring + 1, src.width), min(y1 + ring + 1, src.height)))
+    ox, oy = max(x0 - ring, 0), max(y0 - ring, 0)
+    counts = Counter(
+        outer.getpixel((x, y)) for y in range(outer.height) for x in range(outer.width)
+        if not (x0 <= x + ox <= x1 and y0 <= y + oy <= y1))
+    plain = [(n, c) for c, n in counts.items() if max(c) - min(c) <= 120]
+    if plain:
+        return max(plain)[1]
+    return Counter(pixels(src.crop((x0, y0, x1 + 1, y1 + 1)))).most_common(1)[0][0]
+
+
 def overlay(spec, src, auto):
     out = src.copy()
     draw = ImageDraw.Draw(out)
     for p in spec.get("patches", []):
         x0, y0, x1, y1 = p["box"]
         fill = p.get("fill", "auto")
-        if fill == "auto":  # 区域里最常见的颜色就是文字背后的底色；标注框要留在区域外，不会被盖掉
-            fill = Counter(pixels(src.crop((x0, y0, x1, y1)))).most_common(1)[0][0]
+        if fill == "auto":
+            fill = patch_background(src, (x0, y0, x1, y1))
         else:
             fill = rgb(fill)
         draw.rectangle((x0, y0, x1, y1), fill=fill)
@@ -154,18 +170,27 @@ def overlay(spec, src, auto):
     return out
 
 
-def render(spec_path):
-    spec_path = Path(spec_path).resolve()
-    spec = yaml.safe_load(spec_path.read_text(encoding="utf-8"))
-    src = Image.open(spec_path.parent / spec["source"]).convert("RGB")
+def load(spec_path):
+    return yaml.safe_load(Path(spec_path).read_text(encoding="utf-8"))
+
+
+def build(spec, base_dir):
+    """按描述生成英文图并返回（不写文件），测试也直接调用它。"""
+    src = Image.open(Path(base_dir) / spec["source"]).convert("RGB")
     auto = sample_colors(src)
     if "crop" in spec:
         src = src.crop(tuple(spec["crop"]))
-    mode = spec.get("mode", "overlay")
-    out = {"reflow": reflow, "overlay": overlay}[mode](spec, src, auto)
+    return {"reflow": reflow, "overlay": overlay}[spec.get("mode", "overlay")](spec, src, auto)
+
+
+def render(spec_path):
+    spec_path = Path(spec_path).resolve()
+    spec = load(spec_path)
+    out = build(spec, spec_path.parent)
     target = spec_path.parent / spec["output"]
     out.save(target, optimize=True)
-    print(f"{target.relative_to(ROOT)}  {out.width}x{out.height}  ({mode})")
+    shown = target.relative_to(ROOT) if target.is_relative_to(ROOT) else target
+    print(f"{shown}  {out.width}x{out.height}  ({spec.get('mode', 'overlay')})")
 
 
 def main():
