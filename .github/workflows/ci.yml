@@ -105,6 +105,7 @@ jobs:
       - name: Install test dependencies
         run: npm ci
 
+      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠、图集和页头语言切换（见 tests/README.md）
       - name: Run regression tests
         run: npm test
 

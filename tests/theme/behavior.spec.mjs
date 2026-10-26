@@ -99,6 +99,16 @@ test("目录：展开后点击条目跳到对应标题", async ({ browser }, inf
   await context.close();
 });
 
+// 页头的语言切换（PR #22，docs/language-switch.md）：跳到当前页的译文，没有译文的页面才回首页
+for (const [from, to] of [["/posts/sample-post/", "/en/posts/sample-post/"], ["/notes/", "/en/notes/"], ["/en/notes/sample-note/", "/notes/sample-note/"]]) {
+  test(`页头语言切换：${from} → ${to}`, async ({ browser }, info) => {
+    const { context, page } = await open(browser, info, SITE + from);
+    await page.locator(".header .lang-menu a").first().click();
+    await expect(page).toHaveURL(SITE + to);
+    await context.close();
+  });
+}
+
 test("语言切换：中文文章跳到对应的英文文章，再切回来", async ({ browser }, info) => {
   const { context, page } = await open(browser, info, SITE + "/posts/sample-post/");
   await page.locator(".lang-switch a, .i18n_list a").first().click();
