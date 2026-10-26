@@ -82,9 +82,10 @@ export async function connect(context, network = "online") {
 
 // 截图前让页面静止：懒加载的图片全部加载完（或确认还在等待）、字体就绪、Mermaid 画完
 export async function settle(page, { images = true, mermaid = true } = {}) {
+  // 样式表全部到位（images-pending 只等到 domcontentloaded，晚到的样式表会改版面）。
+  // 用轮询而不是监听 load：rel="preload stylesheet" 在 WebKit 里 load 事件可能先于 sheet 就绪触发，监听会一直等下去
+  await page.waitForFunction(() => [...document.querySelectorAll("link[rel~=stylesheet]")].every((l) => l.sheet), null, { polling: 50, timeout: 10000 });
   await page.evaluate(async (images) => {
-    // 样式表全部到位（images-pending 只等到 domcontentloaded，晚到的样式表会改版面）
-    await Promise.all([...document.querySelectorAll("link[rel~=stylesheet]")].map((l) => l.sheet ? null : new Promise((ok) => { l.onload = l.onerror = ok; })));
     if (images) {
       for (const img of document.images) img.loading = "eager";
       await Promise.all([...document.images].map((img) => img.complete ? null : new Promise((ok) => { img.onload = img.onerror = ok; })));
