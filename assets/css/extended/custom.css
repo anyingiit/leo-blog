@@ -13,3 +13,12 @@
 .note-title a { box-shadow: none; }
 .note-meta { color: var(--secondary); font-size: 0.875rem; margin-top: 0.25rem; }
 .note-entry .post-content { margin: 0; }
+.md-content img { height: auto; cursor: zoom-in; }
+.md-content a img { cursor: pointer; }
+/* 短文时间线里的图片最高 24rem（按宽高比算出宽度，图片加载前就能确定占位） */
+.note-entry .post-content img[style*="--ar"] { width: min(100%, calc(24rem * var(--ar))); }
+.note-body.is-folded { max-height: 40rem; overflow: hidden; -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent); }
+.note-expand { display: block; margin: 0.75rem auto 0; padding: 0.25rem 1rem; color: var(--primary); background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
+.img-zoom { max-width: 100vw; max-height: 100vh; padding: 0; border: 0; background: none; cursor: zoom-out; }
+.img-zoom::backdrop { background: rgb(0 0 0 / 0.85); }
+.img-zoom img { max-width: 95vw; max-height: 95vh; margin: auto; }

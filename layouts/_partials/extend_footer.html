@@ -1,0 +1,36 @@
+{{- /* 点击正文图片放大查看；短文栏目里过长的一篇先折叠，点“展开全文”再看完 */ -}}
+<script>
+(() => {
+  let box;
+  document.addEventListener("click", (e) => {
+    const img = e.target.closest(".md-content img");
+    if (!img || img.closest("a")) return;
+    if (!box) {
+      box = document.createElement("dialog");
+      box.className = "img-zoom";
+      box.append(document.createElement("img"));
+      box.addEventListener("click", () => box.close());
+      document.body.append(box);
+    }
+    const big = box.firstChild;
+    big.src = img.dataset.zoom || img.currentSrc || img.src;
+    big.alt = img.alt;
+    box.showModal();
+  });
+
+  const limit = 640;
+  for (const body of document.querySelectorAll(".note-body")) {
+    if (body.scrollHeight <= limit * 1.25) continue;
+    body.classList.add("is-folded");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "note-expand";
+    btn.textContent = body.dataset.expand;
+    btn.addEventListener("click", () => {
+      body.classList.remove("is-folded");
+      btn.remove();
+    });
+    body.after(btn);
+  }
+})();
+</script>

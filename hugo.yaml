@@ -14,6 +14,11 @@ pagination:
 outputs:
   home: [HTML, RSS, JSON]  # JSON 供 PaperMod 站内搜索
 
+# 文章文件夹里的原图只在被引用原文件时才发布；正文里的 jpg/png/webp 会缩成 WebP（见 render-image.html），原图不用上线
+cascade:
+  - build:
+      publishResources: false
+
 permalinks:
   page:
     posts: /posts/:slug/

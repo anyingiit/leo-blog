@@ -1,0 +1,55 @@
+{{- /*
+  覆盖 PaperMod 的图片渲染：
+  - 和文章放在同一文件夹（page bundle）的 jpg/png/webp 在构建时缩成多档 WebP（srcset），
+    原图再大也不会原样发给读者；最大一档 1600px，点击图片时放大看的就是它。
+  - 写上 width/height，懒加载的图片在加载前就占好位置，页面不会边看边跳。
+  - Typora 的 ./文件名.assets/图.png 写法原样可用，只要把 .assets 文件夹一起放进文章文件夹。
+  - gif/svg 与外链图片保持原样；相对路径找不到图片时构建会给出警告。
+*/ -}}
+{{- $u := urls.Parse .Destination -}}
+{{- $src := $u.String -}}
+{{- $attrs := dict "alt" .Text "title" (.Title | transform.HTMLEscape) "loading" "lazy" "decoding" "async" -}}
+{{- if not $u.IsAbs -}}
+  {{- $path := strings.TrimPrefix "./" $u.Path -}}
+  {{- $suffix := "" -}}
+  {{- with $u.RawQuery }}{{ $suffix = printf "?%s" . }}{{ end -}}
+  {{- with $u.Fragment }}{{ $suffix = printf "%s#%s" $suffix . }}{{ end -}}
+  {{- with or (.PageInner.Resources.Get $path) (resources.Get $path) -}}
+    {{- if and (eq .ResourceType "image") (in (slice "jpeg" "png" "webp") .MediaType.SubType) -}}
+      {{- $img := .Filter images.AutoOrient -}}
+      {{- $max := cond (gt $img.Width 1600) 1600 $img.Width -}}
+      {{- $full := $img.Process (printf "resize %dx webp q85" $max) -}}
+      {{- $srcset := slice -}}
+      {{- range slice 480 800 1200 -}}
+        {{- if lt . $max -}}
+          {{- with $img.Process (printf "resize %dx webp q85" .) -}}
+            {{- $srcset = $srcset | append (printf "%s %dw" .RelPermalink .Width) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+      {{- $srcset = $srcset | append (printf "%s %dw" $full.RelPermalink $full.Width) -}}
+      {{- $src = printf "%s%s" $full.RelPermalink $suffix -}}
+      {{- $attrs = merge $attrs (dict
+        "srcset" (delimit $srcset ", ")
+        "sizes" "(min-width: 768px) 720px, 100vw"
+        "width" (string $full.Width)
+        "height" (string $full.Height)
+        "data-zoom" $full.RelPermalink
+        "style" (printf "--ar:%.4f" (div (float $full.Width) $full.Height))) -}}
+    {{- else -}}
+      {{- $src = printf "%s%s" .RelPermalink $suffix -}}
+    {{- end -}}
+  {{- else -}}
+    {{- if not (hasPrefix $u.Path "/") -}}
+      {{- warnf "%s: 找不到图片 %q，图片要放在文章所在的文件夹里" .PageInner.File.Path .Destination -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $attrs = merge .Attributes $attrs (dict "src" $src) -}}
+<img
+  {{- range $k, $v := $attrs -}}
+    {{- if $v -}}
+      {{- printf " %s=%q" $k $v | safeHTMLAttr -}}
+    {{- end -}}
+  {{- end -}}>
+{{- /**/ -}}
