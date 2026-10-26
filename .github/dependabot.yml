@@ -10,3 +10,16 @@ updates:
     directory: "/tests"
     schedule:
       interval: "weekly"
+    # Playwright 必须和 CI 镜像（ci.yml 里按 digest 锁定的 mcr.microsoft.com/playwright）同版本，手动一起升级
+    ignore:
+      - dependency-name: "playwright*"
+      - dependency-name: "@playwright/*"
+  - package-ecosystem: "npm"
+    directory: "/tests/theme"
+    schedule:
+      interval: "weekly"
+    # Playwright 同上；katex、mermaid 必须和站点引用的 CDN 版本一致（site.test.mjs 检查），改 CDN 版本时手动一起升级
+    ignore:
+      - dependency-name: "@playwright/*"
+      - dependency-name: "katex"
+      - dependency-name: "mermaid"

@@ -36,8 +36,17 @@ func main() {
 > [!NOTE]
 > 这是注意。
 
+> [!TIP]
+> 这是提示。
+
+> [!IMPORTANT]
+> 这是重要。
+
 > [!WARNING]
 > 这是警告。
+
+> [!CAUTION]
+> 这是小心。
 
 > 普通引用。
 

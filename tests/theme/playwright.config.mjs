@@ -33,7 +33,8 @@ export default defineConfig({
     { name: "output", testMatch: "output.spec.mjs" },
     ...Object.entries(browsers).flatMap(([b, dev]) => Object.entries(viewports).map(([v, vp]) => ({
       name: `${b}-${v}`,
-      testMatch: /(visual|behavior)\.spec\.mjs/,
+      // 除 output 外的所有 spec 都在每个浏览器×设备里跑，新加的 spec 不会因为没登记而漏跑
+      testMatch: "*.spec.mjs", testIgnore: "output.spec.mjs",
       use: { ...dev, ...vp, deviceScaleFactor: 1, browserName: b },
     }))),
   ],

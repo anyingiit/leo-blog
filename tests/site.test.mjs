@@ -42,7 +42,7 @@ function allPagesOf(s, list) {
 
 // 读 content 里的文章：路径、语言、front matter
 function frontMatter(file) {
-  const m = readFileSync(file, "utf8").match(/^---\n([\s\S]*?)\n---/);
+  const m = readFileSync(file, "utf8").replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---/);
   return m ? m[1] : "";
 }
 const field = (fm, key) => (fm.match(new RegExp(`^${key}:\\s*(.*)$`, "m")) || [])[1]?.trim().replace(/^["']|["']$/g, "");
@@ -192,9 +192,8 @@ test("文中的美元金额不会被当成公式（$30 … $1.32 这样成对出
       assert.doesNotMatch(tex, /(?<!\\)\b[a-zA-Z]{3,}\s+[a-zA-Z]{3,}\s+[a-zA-Z]{3,}\b/, `${path} 把正文渲染成了公式：${tex.slice(0, 80)}`);
     }
   }
-  const html = site.read("en/posts/blog-postmortem/");
-  assert.ok(html.includes("costs $30 per million output tokens"), "英文复盘文里的 $30 应原样显示");
-  assert.ok(html.includes("costs only $1.32)"), "英文复盘文里的 $1.32 应原样显示");
+  // 草稿测试文章里固定放了一句同段两个金额（content/posts/markdown-test），写法同 README：\$30
+  assert.ok(drafts.read("posts/markdown-test/").includes("输出每百万 token 收费 $30，整篇只花了 $1.32。"), "\\$30、\\$1.32 应原样显示");
 });
 
 test("$…$ 和 $$…$$ 渲染成 KaTeX（行内和块级）", () => {
@@ -247,5 +246,15 @@ test("KaTeX、Mermaid 的线上地址锁定了精确版本，并与主题测试�
     assert.ok(m, `extend_head.html 里没有 ${name} 的 CDN 地址`);
     assert.match(m[1], /^\d+\.\d+\.\d+$/, `${name} 要锁定到精确版本，现在是 @${m[1]}`);
     assert.equal(m[1], pkg[name], `${name}：线上 @${m[1]}，主题测试用 ${pkg[name]}`);
+  }
+});
+
+test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，版本不同会找不到浏览器）", () => {
+  const ci = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
+  const images = [...ci.matchAll(/mcr\.microsoft\.com\/playwright:v([\d.]+)-/g)].map((m) => m[1]);
+  assert.ok(images.length >= 2, "ci.yml 里应有两个任务使用 Playwright 镜像");
+  for (const [file, name] of [["tests/package.json", "playwright"], ["tests/theme/package.json", "@playwright/test"]]) {
+    const v = JSON.parse(readFileSync(join(root, file), "utf8")).devDependencies[name];
+    for (const img of images) assert.equal(v, img, `${file} 的 ${name} 是 ${v}，CI 镜像是 v${img}`);
   }
 });

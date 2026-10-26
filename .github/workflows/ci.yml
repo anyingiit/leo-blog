@@ -7,11 +7,21 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      repeat_each:
+        description: "视觉测试每个用例重复次数（验证截图稳定性，docs/testing.md）"
+        type: number
+        default: 1
 
 # The workflow token is read-only by default.
 # Grant extra permissions to a single job only when that job needs them.
 permissions:
   contents: read
+
+# 同一个 PR 连续推送时取消还在跑的旧运行（视觉测试要几分钟），main 上的运行不取消
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -98,10 +108,10 @@ jobs:
       - name: Run regression tests
         run: npm test
 
-  # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）两个任务并行，
-  # 各自在电脑/平板/手机三种尺寸、浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
+  # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）× 电脑/平板/手机，6 个任务并行，
+  # 各自在浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
   visual:
-    name: Visual (${{ matrix.browser }})
+    name: Visual (${{ matrix.browser }}-${{ matrix.device }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
     container:
@@ -110,6 +120,10 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, webkit]
+        device: [desktop, tablet, phone]
+    env:
+      # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium-desktop 里跑一次
+      PROJECTS: --project=${{ matrix.browser }}-${{ matrix.device }}${{ matrix.browser == 'chromium' && matrix.device == 'desktop' && ' --project=output' || '' }}
     defaults:
       run:
         working-directory: tests/theme
@@ -122,27 +136,69 @@ jobs:
       - name: Install test dependencies
         run: npm ci
 
-      # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium 任务里跑一次
+      # 记录 CPU 型号：零容差截图如果在不同型号的机器上出现差异，可以据此排查
       - name: Run visual and behavior tests
+        id: tests
         env:
-          PROJECTS: ${{ matrix.browser == 'chromium' && '--project=output --project=chromium-*' || '--project=webkit-*' }}
-        run: npx playwright test $PROJECTS
-
-      # 失败时给出对比图（期望/实际/差异）和在同一镜像里重新生成的基准图，确认是预期的改动后可直接替换
-      - name: Regenerate baselines for review
-        if: failure()
-        env:
-          PROJECTS: ${{ matrix.browser == 'chromium' && '--project=output --project=chromium-*' || '--project=webkit-*' }}
+          REPEAT: ${{ inputs.repeat_each || 1 }}
         run: |
-          mv test-results test-results-failed
-          npx playwright test $PROJECTS --update-snapshots=all --reporter=dot || true
+          grep -m1 "model name" /proc/cpuinfo || true
+          npx playwright test $PROJECTS --workers=4 --repeat-each="$REPEAT"
+
+      # 失败时在同一镜像里重新生成有变化（或缺失）的基准图，连同对比图（期望/实际/差异）一起上传；
+      # 同仓库的 PR 还会由下面的 baselines 任务把新基准推到 ci-baselines/pr-<编号> 分支，确认是预期改动后取回提交
+      - name: Regenerate baselines for review
+        if: failure() && steps.tests.outcome == 'failure'
+        run: |
+          mv test-results test-results-failed || true
+          npx playwright test $PROJECTS --workers=4 --update-snapshots=changed --reporter=dot || true
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: failure()
+        if: failure() && steps.tests.outcome == 'failure'
         with:
-          name: visual-${{ matrix.browser }}
+          name: visual-${{ matrix.browser }}-${{ matrix.device }}
+          # 只带本任务自己的基准目录，合并多个任务的产物时不会用旧图覆盖别的任务的新图
           path: |
             tests/theme/test-results-failed/
             tests/theme/playwright-report/
-            tests/theme/__snapshots__/
+            tests/theme/__snapshots__/${{ matrix.browser }}-${{ matrix.device }}/
+            tests/theme/__snapshots__/output/
           retention-days: 14
+
+  # 把各视觉任务重新生成的基准图合并推到 ci-baselines/pr-<编号> 分支（只在同仓库 PR 的视觉任务失败时运行）。
+  # 写权限只给这个任务，它不执行仓库里的任何代码，只下载上面的产物、提交并推送。
+  baselines:
+    name: Publish regenerated baselines
+    needs: visual
+    if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: visual-*
+          path: ${{ runner.temp }}/visual
+
+      - name: Push baselines branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ci-baselines/pr-${{ github.event.pull_request.number }}
+          VISUAL: ${{ runner.temp }}/visual
+        run: |
+          set -euo pipefail
+          for d in "$VISUAL"/visual-*/; do
+            [ -d "$d/__snapshots__" ] && cp -R "$d/__snapshots__/." tests/theme/__snapshots__/
+          done
+          git add -A tests/theme/__snapshots__
+          if git diff --cached --quiet; then echo "基准图没有变化"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Regenerated screenshot baselines for ${{ github.event.pull_request.head.sha }}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/$BRANCH"
+          echo "::notice::新基准图已推到 $BRANCH，核对后取回：git fetch origin $BRANCH && git checkout FETCH_HEAD -- tests/theme/__snapshots__"

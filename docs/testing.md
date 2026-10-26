@@ -38,13 +38,21 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 
 **像素级比对**：`toHaveScreenshot` 容差为 0（`maxDiffPixels: 0, threshold: 0`），整页截图，关闭动画、隐藏光标。为了让同一页每次截图完全一致，截图前会等图片加载完、字体就绪、Mermaid 画完、版面连续 10 帧不变，并把视口拉到整页高度再截（`helpers.mjs` 的 `settle`、`fullPage`）。浏览器的所有请求都由测试直接返回本地文件，不访问外网；页面用到的 KaTeX、Mermaid 由 `tests/theme/package.json` 锁定的本地副本提供，版本与线上一致（`tests/site.test.mjs` 会检查这一点）。
 
-**设备与浏览器**：Chromium（对应 Chrome）和 WebKit（Safari 的引擎；它不等于真正的 Safari 应用，后者只能在 macOS 上运行），各自在电脑 1280×800、平板 820×1180、手机 390×844 三种视口下运行，平板和手机开启触屏和移动端模式。截图按 CSS 像素 1:1 保存。
+**设备与浏览器**：Chromium（对应 Chrome）和 WebKit（Safari 的引擎；它不等于真正的 Safari 应用，后者只能在 macOS 上运行），各自在电脑 1280×800、平板 820×1180、手机 390×844 三种视口下运行，平板和手机开启触屏；不开 Playwright 的 isMobile（移动端视口缩放），因为它会让 srcset 选图取决于时序、基准无法固定（原因见 `playwright.config.mjs`），响应式布局仍按视口宽度生效。截图按 CSS 像素 1:1 保存。
 
 **网络状态**：正常；图片一直没有响应（检查加载前的版面）；CDN 不可用（KaTeX 样式、Mermaid 加载失败时的降级显示）；Slow 3G（400ms 延迟、约 50KB/s，检查布局偏移 CLS ≤ 0.1，且最终渲染与正常网络逐像素一致）。CLS 只有 Chromium 能测。
 
-**运行环境**：CI 的 Visual 任务固定在 Playwright 官方镜像 `mcr.microsoft.com/playwright:v1.63.0-noble`（按 digest 锁定）里运行，基准图 `tests/theme/__snapshots__/` 也是在这个镜像里生成的。不同机器的字体和渲染不同，本地截图和基准不一致是正常的，以 CI 为准。Chromium 和 WebKit 两个任务并行。
+**运行环境**：CI 的 Visual 任务固定在 Playwright 官方镜像 `mcr.microsoft.com/playwright:v1.63.0-noble`（按 digest 锁定）里运行，基准图 `tests/theme/__snapshots__/` 也是在这个镜像里生成的。不同机器的字体和渲染不同，本地截图和基准不一致是正常的，以 CI 为准。浏览器 × 设备共 6 个任务并行，非视觉的输出快照只在 chromium-desktop 任务里跑。
 
-**改了样式、需要更新基准图时**：推送后 CI 的 Visual 任务会失败，失败的任务会上传名为 `visual-<浏览器>` 的产物，里面有每张图的期望/实际/差异对比（`test-results-failed/`、`playwright-report/`），以及在同一镜像里重新生成的整套基准（`__snapshots__/`）。逐张确认差异都是预期的改动后，用产物里的 `__snapshots__/` 替换仓库里的同名目录再提交。
+**改了样式、需要更新基准图时**：推送后 CI 的 Visual 任务会失败，失败的任务在同一镜像里重新生成有变化或缺失的基准图，并上传名为 `visual-<浏览器>-<设备>` 的产物，里面有每张图的期望/实际/差异对比（`test-results-failed/`、`playwright-report/`）和新基准（`__snapshots__/`）。同仓库的 PR 还会由 `Publish regenerated baselines` 任务把所有新基准合并推到 `ci-baselines/pr-<编号>` 分支（这个任务只有它有写权限，不执行仓库代码）。逐张确认差异都是预期的改动后取回提交：
+
+```bash
+git fetch origin ci-baselines/pr-<编号>
+git diff HEAD FETCH_HEAD --stat -- tests/theme/__snapshots__   # 看哪些图变了
+git checkout FETCH_HEAD -- tests/theme/__snapshots__ && git commit -m "Update screenshot baselines"
+```
+
+PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 
 ## 本地运行
 
@@ -52,7 +60,7 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 cd tests && npm ci && npm test && cd ..   # tests/ 下全部 *.test.mjs；site/ci-coverage 两个文件也可单独用 node --test 运行
 node tests/ci-coverage.mjs                                    # 检查每个测试文件都在 CI 里执行
 
-cd tests/theme && npm ci && npx playwright test   # 主题测试；本地截图和 CI 基准可能有像素差异，以 CI 为准
+cd tests/theme && npm ci && npx playwright install chromium webkit && npx playwright test   # 主题测试；本地截图和 CI 基准可能有像素差异，以 CI 为准
 cd ../..
 
 python3 -m venv /tmp/venv

@@ -4,6 +4,9 @@ import { connect, settle, fullPage } from "./helpers.mjs";
 
 const SITE = "http://blog.test", EXAMPLE = "http://example.test";
 
+// 测试失败时也关掉本测试开的浏览器上下文（每个 worker 一次只跑一个测试）
+test.afterEach(async ({ browser }) => { for (const c of browser.contexts()) await c.close(); });
+
 async function open(browser, info, url, opts = {}) {
   const context = await browser.newContext({ ...info.project.use, colorScheme: "light", ...opts });
   await connect(context);
@@ -16,8 +19,8 @@ async function open(browser, info, url, opts = {}) {
 
 // 两个站点里所有截图页面：没有脚本错误，也没有横向滚动条（手机上最常见的版面问题）
 const all = [
-  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/"]],
-  [EXAMPLE, ["/", "/posts/markdown-syntax/", "/posts/code_syntax/", "/posts/inner-section/cover-page/", "/posts/emoji-support/", "/archives/", "/tags/", "/search/", "/fr/", "/fa/"]],
+  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/"]],
+  [EXAMPLE, ["/", "/posts/markdown-syntax/", "/posts/code_syntax/", "/posts/inner-section/cover-page/", "/posts/emoji-support/", "/archives/", "/tags/", "/search/", "/fr/", "/fa/", "/fa/posts/markdown-syntax/", "/posts/", "/page/2/"]],
 ];
 for (const [host, paths] of all) {
   test(`${host.split("//")[1]}：页面没有脚本错误，也没有横向滚动`, async ({ browser }, info) => {
@@ -147,15 +150,71 @@ test("慢网下加载时布局不跳动（CLS）", async ({ browser, browserName
   await context.close();
 });
 
-// 慢网下页面最终也要完整：和正常网络下的截图逐像素一致
+// 慢网下页面最终也要完整：和正常网络下的截图逐像素一致（在内存里比，不共用基准图，重新生成基准时不会互相覆盖）
 test("慢网下最终渲染与正常网络一致", async ({ browser }, info) => {
   test.setTimeout(120000);
-  const context = await browser.newContext({ ...info.project.use, colorScheme: "light" });
-  await connect(context, "slow-3g");
-  const page = await context.newPage();
-  await page.goto(SITE + "/posts/sample-post/", { waitUntil: "load", timeout: 60000 });
+  const shot = async (network) => {
+    const context = await browser.newContext({ ...info.project.use, colorScheme: "light" });
+    await connect(context, network);
+    const page = await context.newPage();
+    await page.goto(SITE + "/posts/sample-post/", { waitUntil: "load", timeout: 60000 });
+    await settle(page);
+    await fullPage(page);
+    const png = await page.screenshot({ animations: "disabled", caret: "hide", scale: "css" });
+    await context.close();
+    return png;
+  };
+  const [normal, slow] = [await shot("online"), await shot("slow-3g")];
+  if (!normal.equals(slow)) {
+    await info.attach("online.png", { body: normal, contentType: "image/png" });
+    await info.attach("slow-3g.png", { body: slow, contentType: "image/png" });
+  }
+  expect(normal.equals(slow), "慢网下的最终截图和正常网络不同（两张图见附件）").toBe(true);
+});
+
+// 短文图集灯箱（PR #16）：点图片打开，截取打开后的整个视口；方向键切换，Esc 关闭后焦点回到原图
+test("短文图集灯箱：打开、切换、关闭", async ({ browser }, info) => {
+  const { context, page, errors } = await open(browser, info, SITE + "/notes/four-photos/");
   await settle(page);
-  await fullPage(page);
-  await expect(page).toHaveScreenshot("site-post-light.png");
+  const first = page.locator(".md-content img").first();
+  await first.click();
+  const box = page.locator("dialog.img-zoom");
+  await expect(box).toBeVisible();
+  await expect(box.locator(".zoom-count")).toHaveText("1 / 4");
+  await box.locator("img").evaluate((img) => img.complete ? img.decode() : new Promise((ok) => { img.onload = () => img.decode().then(ok); }));
+  await settle(page);
+  await expect(page).toHaveScreenshot("site-lightbox.png");
+  await page.keyboard.press("ArrowRight");
+  await expect(box.locator(".zoom-count")).toHaveText("2 / 4");
+  await page.keyboard.press("Escape");
+  await expect(box).toBeHidden();
+  expect(await first.evaluate((img) => img === document.activeElement)).toBe(true);
+  expect(errors).toEqual([]);
+  await context.close();
+});
+
+// 长短文折叠（PR #16）：超过一屏先折叠，展开后完整显示，再收起
+test("长短文折叠：展开、收起", async ({ browser }, info) => {
+  const { context, page } = await open(browser, info, SITE + "/notes/");
+  await settle(page);
+  const entry = page.locator(".note-entry", { has: page.locator('a[href$="/notes/long-text/"]') });
+  const body = entry.locator(".note-body"), btn = entry.locator(".note-expand");
+  await expect(body).toHaveClass(/is-folded/);
+  await expect(btn).toHaveAttribute("aria-expanded", "false");
+  const folded = await body.evaluate((b) => b.getBoundingClientRect().height);
+  await btn.click();
+  await expect(btn).toHaveAttribute("aria-expanded", "true");
+  expect(await body.evaluate((b) => b.getBoundingClientRect().height)).toBeGreaterThan(folded + 100);
+  await btn.click();
+  await expect(body).toHaveClass(/is-folded/);
+  await context.close();
+});
+
+// 键盘焦点样式：Tab 到导航菜单第一项时的焦点框（逐像素）
+test("键盘焦点：导航菜单的焦点框", async ({ browser }, info) => {
+  const { context, page } = await open(browser, info, SITE + "/posts/sample-post/");
+  await settle(page);
+  await page.locator("#menu a").first().focus();
+  await expect(page.locator("header.header")).toHaveScreenshot("site-focus-menu.png");
   await context.close();
 });

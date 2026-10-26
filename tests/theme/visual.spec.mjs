@@ -1,4 +1,4 @@
-// 像素级视觉回归：每个页面在每个项目（浏览器 × 设备）下整页截图，与 __screenshots__ 里的基准逐像素比对（容差 0）
+// 像素级视觉回归：每个页面在每个项目（浏览器 × 设备）下整页截图，与 __snapshots__ 里的基准逐像素比对（容差 0）
 import { test, expect } from "@playwright/test";
 import { connect, settle, fullPage } from "./helpers.mjs";
 
@@ -8,15 +8,20 @@ const pages = [
   ["site", "/", "site-home", true],
   ["site", "/posts/sample-post/", "site-post", true],
   ["site", "/notes/", "site-notes", true],
-  ["site", "/notes/photo-note/", "site-note-single", false],
+  ["site", "/notes/photo-note/", "site-note-single", true],
+  ["site", "/notes/seven-photos/", "site-note-gallery", false], // 多图原位分组（PR #16）
+  ["site", "/tags/样式/", "site-tag", false],
   ["site", "/archives/", "site-archives", false],
   ["site", "/tags/", "site-tags", false],
   ["site", "/404.html", "site-404", false],
   ["site", "/en/", "site-en-home", false],
   ["site", "/en/posts/sample-post/", "site-en-post", false],
+  ["site", "/en/notes/", "site-en-notes", false],
   // PaperMod 官方示例站：主题自身的参照
   ["example", "/", "example-home", true],
   ["example", "/posts/markdown-syntax/", "example-markdown", true],
+  ["example", "/page/2/", "example-home-page2", false],
+  ["example", "/posts/", "example-posts", false],
   ["example", "/posts/code_syntax/", "example-code", false],
   ["example", "/posts/inner-section/cover-page/", "example-cover", false],
   ["example", "/posts/emoji-support/", "example-emoji", false],
@@ -24,8 +29,12 @@ const pages = [
   ["example", "/tags/", "example-tags", false],
   ["example", "/fr/", "example-fr-profile", false],
   ["example", "/fa/", "example-fa-rtl", false],
+  ["example", "/fa/posts/markdown-syntax/", "example-fa-post", false],
 ];
 const hosts = { site: "http://blog.test", example: "http://example.test" };
+
+// 测试失败时也关掉本测试开的浏览器上下文（每个 worker 一次只跑一个测试）
+test.afterEach(async ({ browser }) => { for (const c of browser.contexts()) await c.close(); });
 
 for (const [site, path, name, dark] of pages) {
   for (const scheme of dark ? ["light", "dark"] : ["light"]) {
@@ -54,5 +63,23 @@ for (const network of ["images-pending", "cdn-down"]) {
     await fullPage(page);
     await expect(page).toHaveScreenshot(`site-post-${network}.png`);
     await context.close();
+  });
+}
+
+// 不执行 JavaScript 时（阅读器、禁用脚本的浏览器）首页和文章也要完整可读
+for (const [path, name] of [["/", "site-home"], ["/posts/sample-post/", "site-post"]]) {
+  test(`${name} · no-js`, async ({ browser }, info) => {
+    const context = await browser.newContext({ ...info.project.use, colorScheme: "light", javaScriptEnabled: false });
+    await connect(context);
+    const page = await context.newPage();
+    expect((await page.goto(hosts.site + path, { waitUntil: "load" })).status()).toBe(200);
+    // 禁用脚本时页面里的 requestAnimationFrame 不运行，settle/fullPage 用不了：从测试端拉高视口、轮询到图片全部加载完
+    const height = () => page.evaluate(() => Math.ceil(document.documentElement.scrollHeight));
+    await page.setViewportSize({ width: page.viewportSize().width, height: await height() });
+    await page.setViewportSize({ width: page.viewportSize().width, height: await height() });
+    await expect.poll(() => page.evaluate(() => [...document.images].every((i) => i.complete))).toBe(true);
+    await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
+    await page.evaluate(() => document.fonts.ready.then(() => {}));
+    await expect(page).toHaveScreenshot(`${name}-no-js.png`);
   });
 }

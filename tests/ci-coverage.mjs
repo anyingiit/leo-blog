@@ -15,8 +15,10 @@ const IGNORED = /(^|\/)(node_modules|themes|fixtures)\//;
 
 export const isTestFile = (path) => TEST_FILE.test(path) && !IGNORED.test(path);
 
-// ci.yml 里是否以完整路径的形式提到了 path（前后不能紧跟路径字符，避免 "tests" 命中 "tests/site.test.mjs" 这类前缀）
+// ci.yml 里是否以完整路径的形式提到了 path（前后不能紧跟路径字符，避免 "tests" 命中 "tests/site.test.mjs" 这类前缀）。
+// 整行注释不算：注释里提到的路径并不会被执行
 export function mentions(ci, path) {
+  ci = ci.replace(/^\s*#.*$/gm, "");
   const esc = path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`(^|[\\s"'=:,\\[])(\\./)?${esc}/?($|[\\s"',\\]])`, "m").test(ci);
 }

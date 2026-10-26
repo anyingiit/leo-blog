@@ -24,6 +24,7 @@ test("路径要完整出现在 ci.yml 里，前缀不算", () => {
   assert.ok(!mentions(ci, "tests/site"));
   assert.ok(mentions("working-directory: tests\n", "tests"));
   assert.ok(mentions('working-directory: "./tests/"\n', "tests"));
+  assert.ok(!mentions("  # 以后在这里跑 tests/new.test.mjs\nrun: true\n", "tests/new.test.mjs"), "注释里的路径不算执行");
 });
 
 test("没被执行的测试文件会被报出来", () => {
