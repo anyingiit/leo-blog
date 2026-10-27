@@ -34,7 +34,7 @@ test("播放器原样发布到 /films/<名字>/play/，只在 <head> 开头插�
   const html = read("films/test-film/play/index.html");
   const m = html.match(/^<!doctype html>\s*<html lang="zh">\s*<head>(<meta name="robots" content="noindex"><link rel="canonical" href="([^"]+)"><script>.+?<\/script>)/s);
   assert.ok(m, "head 开头应该依次是 noindex、canonical、桥接脚本");
-  assert.equal(m[2], "https://douseful.eu.org/films/test-film/", "canonical 指向默认语言的短片页");
+  assert.equal(m[2], "https://douseful.eu.org/notes/film-note/", "canonical 指向默认语言的短片文章");
   assert.match(m[1], /film:ready/);
   assert.equal(html.replace(m[1], ""), source, "除了插入的部分，短片文件一字不改");
 });
@@ -46,64 +46,78 @@ test("短片引用的文件按原来的相对路径发布，poster 只以 WebP �
   assert.equal(webp.length, 1);
 });
 
-for (const [lang, prefix, title, play] of [["中文", "", "测试短片", "/films/test-film/play/"], ["英文", "/en", "Test Film", "/films/test-film/play/?lang=en"]]) {
-  test(`${lang}正文里的封面卡片是指向短片页的链接，带封面、标题和时长`, async () => {
+for (const [lang, prefix, title, play] of [["中文", "", "【测试】短片", "/films/test-film/play/"], ["英文", "/en", "[Test] Film", "/films/test-film/play/?lang=en"]]) {
+  test(`${lang}别的文章里引用短片：封面卡片是指向短片文章的链接，带封面、标题和时长`, async () => {
     const ctx = await browser.newContext({ javaScriptEnabled: false });
     const page = await ctx.newPage();
-    await page.goto(server.url + `${prefix}/notes/film-note/`);
+    await page.goto(server.url + `${prefix}/notes/film-ref/`);
     const a = page.locator(".post-content a.film-open");
-    assert.equal(await a.getAttribute("href"), `${prefix}/films/test-film/`);
+    assert.equal(await a.getAttribute("href"), `${prefix}/notes/film-note/`);
     assert.equal(await a.getAttribute("data-play"), play, "播放地址：英文页在语言不同时带 ?lang=en");
     assert.match(await a.locator("img").getAttribute("src"), /^\/films\/test-film\/poster_hu_[0-9a-f]+\.webp$/);
-    assert.equal(await page.locator(".film-cover figcaption strong").textContent(), title, "标题取自对应语言的短片页");
-    assert.match(await page.locator(".film-cover figcaption span").textContent(), lang === "中文" ? /约 2 分钟/ : /about 2 min/);
+    assert.equal(await page.locator(".film-cover figcaption strong").textContent(), title, "标题取自对应语言的短片文章");
+    assert.match(await page.locator(".film-cover figcaption span").textContent(), lang === "中文" ? /^约 2 分钟$/ : /^about 2 min/);
     assert.equal(await a.getAttribute("tabindex"), "-1", "封面和「播放短片」做同一件事，封面不进 Tab 顺序");
-    // 封面下面一排按钮：播放短片（和封面同一个链接）、阅读文字稿（短片页的 #transcript）
+    // 封面下面一排按钮：播放短片（和封面同一个链接）、阅读文字稿（短片文章的 #transcript）
     const btns = page.locator(".film-acts a");
     assert.deepEqual(await btns.allTextContents(), lang === "中文" ? ["播放短片", "阅读文字稿"] : ["Play the film", "Read the transcript"]);
-    assert.equal(await btns.nth(0).getAttribute("href"), `${prefix}/films/test-film/`);
+    assert.equal(await btns.nth(0).getAttribute("href"), `${prefix}/notes/film-note/`);
     assert.equal(await btns.nth(0).getAttribute("data-play"), play);
-    assert.equal(await btns.nth(1).getAttribute("href"), `${prefix}/films/test-film/#transcript`);
-    // 没有脚本时点「阅读文字稿」打开短片页并停在文字稿；点封面就是打开短片页
+    assert.equal(await btns.nth(1).getAttribute("href"), `${prefix}/notes/film-note/#transcript`);
+    // 没有脚本时点「阅读文字稿」打开短片文章并停在文字稿；点封面就是打开短片文章
     await btns.nth(1).click();
-    await page.waitForURL(`**${prefix}/films/test-film/#transcript`);
+    await page.waitForURL(`**${prefix}/notes/film-note/#transcript`);
     assert.equal((await page.locator("#transcript").textContent()).replace(/#$/, "").trim(), lang === "中文" ? "文字稿" : "Transcript");
     await page.goBack();
     await a.click();
-    await page.waitForURL(`**${prefix}/films/test-film/`);
+    await page.waitForURL(`**${prefix}/notes/film-note/`);
     await ctx.close();
   });
 
-  test(`${lang}短片页：博客页头页尾，沙箱播放器，下面是 Markdown 文字稿`, async () => {
+  test(`${lang}短片文章：导语、原地的沙箱播放器、章节目录、文字稿都在一页；没有脚本时显示封面`, async () => {
     const ctx = await browser.newContext({ javaScriptEnabled: false });
     const page = await ctx.newPage();
-    await page.goto(server.url + `${prefix}/films/test-film/`);
-    const frame = page.locator(".film-stage iframe.film-frame");
+    await page.goto(server.url + `${prefix}/notes/film-note/`);
+    const frame = page.locator(".post-content .film-stage iframe.film-frame");
     assert.equal(await frame.getAttribute("src"), play.includes("?") ? `${play}&embed=page` : `${play}?embed=page`);
     const sandbox = await frame.getAttribute("sandbox");
     assert.ok(!sandbox.includes("allow-same-origin"), "短片和博客不同源，碰不到博客的页面和存储");
     assert.match(sandbox, /allow-scripts/);
-    assert.equal(await page.locator("#menu").count(), 1, "有博客导航");
-    assert.equal(await page.locator("footer.footer").count(), 1, "有博客页脚");
-    assert.equal((await page.locator(".post-content h3").first().textContent()).replace(/#$/, ""), lang === "中文" ? "01 第一段" : "01 Part one", "文字稿是正文里的标题和段落");
-    assert.doesNotMatch(await page.locator(".post-meta").textContent(), /字|words/, "不显示字数（容易和片长混淆）");
-    assert.equal(await page.locator(".film-jump a").getAttribute("href"), "#transcript", "播放器下面有跳到文字稿的链接");
+    assert.equal(await frame.isVisible(), false, "没有脚本时短片放不了，不显示空的播放器");
+    assert.equal(await page.locator(".film-still").isVisible(), true, "没有脚本时显示封面");
+    assert.equal(await page.locator(".post-content .film-cover").count(), 0, "短片自己的文章里不放封面卡片");
+    // 顺序：导语 → 播放器 → 章节目录 → 文字稿
+    const order = await page.evaluate(() => [".post-content > p", ".film-stage", ".film-chapters", "#transcript"].map((s) => document.querySelector(s).getBoundingClientRect().top));
+    assert.deepEqual([...order].sort((x, y) => x - y), order);
+    assert.equal(await page.locator(".film-chapters").getAttribute("open"), null, "章节目录默认折叠");
+    assert.deepEqual(await page.locator(".film-chapters li a").allTextContents(), lang === "中文" ? ["01 第一段", "02 第二段"] : ["01 Part one", "02 Part two"]);
+    assert.equal(decodeURIComponent(await page.locator(".film-chapters li a").first().getAttribute("href")), "#" + (await page.locator(".post-content h3").first().getAttribute("id")));
+    assert.equal(await page.locator(".film-seek").first().isHidden(), true, "「从这里播放」要靠脚本，没有脚本时不显示");
     await ctx.close();
+  });
+
+  test(`${lang}以前的短片页地址跳到短片文章`, async () => {
+    assert.match(read(`${prefix.slice(1)}${prefix ? "/" : ""}films/test-film/index.html`), new RegExp(`url=https://douseful\\.eu\\.org${prefix}/notes/film-note/`));
   });
 }
 
-test("短片页不进全站 RSS（订阅里已有引用它的文章），站点地图照常收录", () => {
-  for (const [rss, map] of [["index.xml", "zh/sitemap.xml"], ["en/index.xml", "en/sitemap.xml"]]) {
-    assert.doesNotMatch(read(rss), /<link>[^<]*\/films\/test-film\/<\/link>/, `${rss} 里不应有短片页`);
-    assert.match(read(rss), /<link>[^<]*\/notes\/film-note\/<\/link>/, `${rss} 里有引用短片的文章`);
-    assert.match(read(map), /<loc>[^<]*\/films\/test-film\/<\/loc>/, `${map} 收录短片页`);
-  }
+test("短片的文章在短文列表里只显示导语和封面卡片，播放器和文字稿在文章页", async () => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto(server.url + "/notes/");
+  const entry = page.locator(".note-entry", { has: page.locator('a[href$="/notes/film-note/"]') }).first();
+  assert.match(await entry.locator(".note-body").textContent(), /短片文章的导语/);
+  assert.equal(await entry.locator(".film-cover").count(), 1);
+  assert.equal(await entry.locator("iframe, #transcript, .film-chapters").count(), 0);
+  assert.equal(await entry.locator(".film-cover figcaption strong").count(), 0, "标题就在条目上面，卡片里不重复");
+  assert.equal(await entry.locator(".film-acts a").nth(1).getAttribute("href"), "/notes/film-note/#transcript");
+  await ctx.close();
 });
 
 // ---------- 交互 ----------
 
 test("点封面在全窗口对话框里放映：沙箱 iframe、embed=fit、深浅色跟随博客", async () => {
-  const { page, ctx, errors } = await open("/notes/film-note/");
+  const { page, ctx, errors } = await open("/notes/film-ref/");
   await page.click(".film-open");
   assert.equal(await dialogOpen(page), true);
   const frame = page.locator(".film-dialog iframe");
@@ -123,7 +137,7 @@ test("点封面在全窗口对话框里放映：沙箱 iframe、embed=fit、深�
 });
 
 test("返回键先关掉短片，留在原文原处", async () => {
-  const { page, ctx } = await open("/notes/film-note/", { viewport: { width: 1280, height: 500 } });
+  const { page, ctx } = await open("/notes/film-ref/", { viewport: { width: 1280, height: 500 } });
   await page.evaluate(() => scrollTo(0, 200));
   const url = page.url();
   await page.click(".film-open");
@@ -136,7 +150,7 @@ test("返回键先关掉短片，留在原文原处", async () => {
 });
 
 test("关掉再打开，返回键按一下就关（每次放映换新的 iframe，不多记历史）", async () => {
-  const { page, ctx } = await open("/notes/film-note/");
+  const { page, ctx } = await open("/notes/film-ref/");
   const url = page.url();
   for (let i = 0; i < 2; i++) {
     await page.click(".film-play-btn");
@@ -150,7 +164,7 @@ test("关掉再打开，返回键按一下就关（每次放映换新的 iframe�
 });
 
 test("记住看到第几句，再打开接着放；放完显示「重看」「文字稿」，重看从头开始", async () => {
-  const { page, ctx } = await open("/notes/film-note/");
+  const { page, ctx } = await open("/notes/film-ref/");
   await page.click(".film-play-btn");
   await film(page).locator("#next").click();
   await film(page).locator("#next").click();
@@ -162,7 +176,7 @@ test("记住看到第几句，再打开接着放；放完显示「重看」「�
   await film(page).locator("#end").click();
   await page.locator(".film-end").waitFor();
   await page.waitForFunction(() => document.activeElement?.matches(".film-again"));
-  assert.equal(await page.locator(".film-end .film-tab").getAttribute("href"), "/films/test-film/#transcript");
+  assert.equal(await page.locator(".film-end .film-tab").getAttribute("href"), "/notes/film-note/#transcript");
   await page.click(".film-again");
   await film(page).locator("#at").filter({ hasText: "第 0 句" }).waitFor();
   assert.doesNotMatch(await page.locator(".film-dialog iframe").getAttribute("src"), /at=/);
@@ -171,7 +185,7 @@ test("记住看到第几句，再打开接着放；放完显示「重看」「�
 });
 
 test("关闭按钮、短片里按 Esc 都能关闭，焦点回到「播放短片」按钮，历史记录不多出一条", async () => {
-  const { page, ctx } = await open("/notes/film-note/");
+  const { page, ctx } = await open("/notes/film-ref/");
   const depth = await page.evaluate(() => history.length);
   const onPlayButton = () => page.waitForFunction(() => document.activeElement.classList.contains("film-play-btn"), null, { timeout: 2000 });
   await page.click(".film-play-btn");
@@ -190,7 +204,7 @@ test("关闭按钮、短片里按 Esc 都能关闭，焦点回到「播放短片
 });
 
 test("键盘：Tab 在卡片上只停「播放短片」和「阅读文字稿」两处，回车放映", async () => {
-  const { page, ctx } = await open("/notes/film-note/");
+  const { page, ctx } = await open("/notes/film-ref/");
   await page.evaluate(() => document.querySelector(".film-cover").insertAdjacentHTML("beforebegin", '<a id="before" href="#">x</a>'));
   await page.focus("#before");
   const stops = [];
@@ -203,11 +217,11 @@ test("键盘：Tab 在卡片上只停「播放短片」和「阅读文字稿」�
 });
 
 test("从对话框去短片页后按返回，直接回到原文（不多出一条历史记录）", async () => {
-  const { page, ctx } = await open("/notes/film-note/");
+  const { page, ctx } = await open("/notes/film-ref/");
   const note = page.url();
   await page.click(".film-play-btn");
   await page.click(".film-bar .film-tab");
-  await page.waitForURL("**/films/test-film/#transcript");
+  await page.waitForURL("**/notes/film-note/#transcript");
   await page.goBack();
   await page.waitForURL(note);
   assert.equal(await page.evaluate(() => !!document.querySelector(".film-dialog")?.open), false);
@@ -215,7 +229,7 @@ test("从对话框去短片页后按返回，直接回到原文（不多出一�
 });
 
 test("Ctrl/⌘/Shift 点击、中键不拦截，照常在新标签打开短片页", async () => {
-  const { page, ctx } = await open("/notes/film-note/");
+  const { page, ctx } = await open("/notes/film-ref/");
   const prevented = await page.evaluate(() => {
     const a = document.querySelector(".film-open"), out = [];
     document.addEventListener("click", (e) => { out.push(e.defaultPrevented); e.preventDefault(); });
@@ -229,8 +243,8 @@ test("Ctrl/⌘/Shift 点击、中键不拦截，照常在新标签打开短片�
 });
 
 for (const [name, viewport] of [["电脑", { width: 1280, height: 800 }], ["手机", { width: 390, height: 844 }]]) {
-  test(`${name}：短片页的播放器按短片报来的高度撑开，比正文宽，没有横向滚动`, async () => {
-    const { page, ctx, errors } = await open("/films/test-film/", { viewport });
+  test(`${name}：短片文章里的播放器按短片报来的高度撑开，比正文宽，整个放得进一屏，没有横向滚动`, async () => {
+    const { page, ctx, errors } = await open("/notes/film-note/", { viewport });
     const frame = page.frameLocator("iframe.film-frame");
     await frame.locator("html[data-embed=page]").waitFor({ state: "attached" });
     // 测试短片嵌入时只剩播放器：16:9 的画面加 56px 的控制条
@@ -239,16 +253,45 @@ for (const [name, viewport] of [["电脑", { width: 1280, height: 800 }], ["手�
     await page.waitForFunction((h) => document.querySelector("iframe.film-frame").getBoundingClientRect().height === h, want);
     const [stage, text] = await page.evaluate(() => [".film-stage", ".post-content"].map((s) => document.querySelector(s).getBoundingClientRect().width));
     if (viewport.width > 1000) assert.ok(stage > text + 200, `播放器 ${stage}px 应明显宽于正文 ${text}px`);
+    assert.ok(want <= viewport.height, `播放器高 ${want}px，超过窗口 ${viewport.height}px`);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
 }
 
+test("短片文章里，章节目录的「从这里播放」让播放器从那一章开播", async () => {
+  const { page, ctx, errors } = await open("/notes/film-note/", { viewport: { width: 1280, height: 600 } });
+  const frame = page.frameLocator(".film-stage iframe");
+  await frame.locator("html[data-embed=page]").waitFor({ state: "attached" });
+  await page.locator(".film-chapters summary").click();
+  const seek = page.locator(".film-seek").nth(1);
+  assert.equal(await seek.getAttribute("aria-label"), "从这里播放：02 第二段");
+  await seek.click();
+  await frame.locator("#at").filter({ hasText: "第 1 章" }).waitFor();
+  await frame.locator("#play").filter({ hasText: "暂停" }).waitFor();
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("真实短片：文章里的「从这里播放」跳到对应章节", async () => {
+  for (const [slug] of filmNotes()) {
+    const { page, ctx, errors } = await open(`/notes/${slug}/`);
+    const frame = page.frameLocator(".film-stage iframe");
+    await frame.locator("svg").first().waitFor();
+    await page.locator(".film-chapters summary").click();
+    const n = await page.locator(".film-seek").count();
+    await page.locator(".film-seek").nth(n - 1).click();
+    await frame.locator("#chap").filter({ hasText: new RegExp("^" + String(n).padStart(2, "0")) }).waitFor();
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+});
+
 test("真实短片在手机横屏全窗口放映时，画面占屏幕一半以上，控制条在屏幕内", async () => {
   for (const [slug] of filmNotes()) {
-    const { page, ctx } = await open(`/notes/${slug}/`, { viewport: { width: 844, height: 390 } });
-    await page.click(".film-open");
+    const { page, ctx } = await open("/notes/", { viewport: { width: 844, height: 390 } });
+    await card(page, slug).locator(".film-open").click();
     const frame = page.frameLocator(".film-dialog iframe");
     await frame.locator("svg").first().waitFor();
     const r = await frame.locator("body").evaluate(() => {
@@ -266,16 +309,18 @@ test("真实短片在手机横屏全窗口放映时，画面占屏幕一半以�
 const filmNotes = () => readdirSync(join(root, "content/notes")).flatMap((d) => {
   const f = join(root, "content/notes", d, "index.md");
   const md = existsSync(f) ? readFileSync(f, "utf8") : "";
-  const name = md.match(/\{\{<\s*film\s+name="([^"]+)"/)?.[1];
-  return name ? [[md.match(/^slug:\s*(\S+)/m)?.[1] ?? d, name]] : [];
+  const name = md.match(/^film:\s*(\S+)/m)?.[1];
+  return name ? [[md.match(/^slug:\s*(\S+)/m)?.[1] ?? d, name, d]] : [];
 });
+// 短文列表里这部短片的封面卡片（短片自己的文章里是原地播放器，卡片在列表里）
+const card = (page, slug) => page.locator(".note-entry", { has: page.locator(`a[href$="/notes/${slug}/"]`) }).first();
 
 test("真实短片：播放器滚出视线、标签页在后台（没有动画帧）时，配音和画面照样往下走", async () => {
   for (const [slug] of filmNotes()) {
-    const { page, ctx, errors } = await open(`/notes/${slug}/`);
+    const { page, ctx, errors } = await open("/notes/");
     // 浏览器不给看不见的 iframe 动画帧：在短片里把 requestAnimationFrame 换成什么都不做
     await ctx.addInitScript(() => { if (window !== top) window.requestAnimationFrame = () => 0; });
-    await page.click(".film-play-btn");
+    await card(page, slug).locator(".film-play-btn").click();
     const frame = film(page);
     const cap = await frame.locator("#cap").textContent();
     await frame.locator("#cap").filter({ hasNotText: cap }).waitFor({ timeout: 30000 });
@@ -286,13 +331,13 @@ test("真实短片：播放器滚出视线、标签页在后台（没有动画�
 });
 
 test("真实短片在英文页里放英文版：地址带 lang=en，画面、字幕、按钮都没有中文，配音按英文文件加载", async () => {
-  for (const [slug, name] of filmNotes()) {
-    const filmLang = readFileSync(join(root, "content/films", name, "index.en.md"), "utf8").match(/^filmLang:\s*(\S+)/m)?.[1];
+  for (const [slug, name, dir] of filmNotes()) {
+    const filmLang = readFileSync(join(root, "content/notes", dir, "index.en.md"), "utf8").match(/^filmLang:\s*(\S+)/m)?.[1];
     if (filmLang === "en") continue;
-    const { page, ctx, errors } = await open(`/en/notes/${slug}/`, { viewport: { width: 1280, height: 800 } });
+    const { page, ctx, errors } = await open("/en/notes/", { viewport: { width: 1280, height: 800 } });
     const audio = [];
     page.on("response", (r) => { if (/\.(mp3|m4a|mp4|ogg|opus|wav)$/.test(new URL(r.url()).pathname)) audio.push([new URL(r.url()).pathname, r.status()]); });
-    await page.click(".film-open");
+    await card(page, slug).locator(".film-open").click();
     assert.match(await page.locator(".film-dialog iframe").getAttribute("src"), /[?&]lang=en\b/);
     const frame = film(page);
     await frame.locator("svg").first().waitFor();
@@ -331,16 +376,21 @@ test("短片有 poster.en.png/jpg 时，英文页的封面卡片用英文封面�
 // ---------- assets/films/ 里每部真实短片的约定 ----------
 
 const films = readdirSync(join(root, "assets/films"));
-test("每部短片都有 index.html、poster 和中英文短片页，文字稿标题的锚点是 #transcript", () => {
+test("每部短片都有 index.html、poster 和中英文的短片文章，文字稿标题的锚点是 #transcript", () => {
   assert.ok(films.length > 0);
   for (const f of films) {
+    const home = filmNotes().find(([, name]) => name === f);
+    assert.ok(home, `${f} 没有短片文章（front matter 写 film: ${f} 的短文）`);
     const dir = join(root, "assets/films", f);
     assert.ok(existsSync(join(dir, "index.html")), `${f} 缺 index.html`);
     assert.ok(["png", "jpg"].some((e) => existsSync(join(dir, `poster.${e}`))), `${f} 缺 poster.png/jpg`);
     for (const p of ["index.md", "index.en.md"]) {
-      const md = join(root, "content/films", f, p);
-      assert.ok(existsSync(md), `${f} 缺 content/films/${f}/${p}`);
-      assert.match(readFileSync(md, "utf8"), /^## .+ \{#transcript\}$/m, `${f}/${p} 的文字稿标题要写成「## 文字稿 {#transcript}」，正文里的「阅读文字稿」按钮链到这里`);
+      const md = join(root, "content/notes", home[2], p);
+      assert.ok(existsSync(md), `${f} 缺 content/notes/${home[2]}/${p}`);
+      const text = readFileSync(md, "utf8");
+      assert.match(text, /^## .+ \{#transcript\}$/m, `${home[2]}/${p} 的文字稿标题要写成「## 文字稿 {#transcript}」，「阅读文字稿」按钮链到这里`);
+      assert.match(text, new RegExp(`^film: ${f}$`, "m"), `${home[2]}/${p} 的 front matter 要写 film: ${f}`);
+      assert.match(text, /^<!--more-->$/m, `${home[2]}/${p} 要用 <!--more--> 隔开导语（短文列表里只显示导语和卡片）`);
     }
   }
 });

@@ -41,6 +41,11 @@ if (q.get("autoplay") === "1") play.click();
 const tell = (m) => { if (parent !== window) parent.postMessage(m, "*"); };
 document.getElementById("next").onclick = () => { cue++; document.getElementById("at").textContent = "第 " + cue + " 句"; tell({ type: "film:progress", cue }); };
 document.getElementById("end").onclick = () => tell({ type: "film:ended" });
+addEventListener("message", (e) => {
+  if (e.source !== parent || e.data?.type !== "film:seek") return;
+  document.getElementById("at").textContent = "第 " + e.data.chapter + " 章";
+  play.click();
+});
 </script>
 </body>
 </html>

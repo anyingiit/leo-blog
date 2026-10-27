@@ -1,23 +1,14 @@
 {{- /*
-  短片封面卡片（docs/films.md）：{{< film name="短片名" >}}。
-  封面、标题和时长下面是一排按钮：「播放短片」和「阅读文字稿」（短片页的 #transcript）。
-  封面和「播放短片」都是指向短片页的普通链接，没有脚本、在 RSS 里也能点开；有脚本时点它们在全窗口对话框里放映（extend_footer.html）。
-  封面和「播放短片」做同一件事，所以封面不进 Tab 顺序，键盘只停在两个按钮上。
+  短片（docs/films.md）：{{< film name="短片名" >}}。
+  - 在短片自己的文章里（front matter 写了 film: 短片名）：原地放宽幅播放器，下面是可折叠的章节目录，
+    每章可以从这里开始放（章节取自文章里「文字稿」下的三级标题，按顺序对应短片的章节）。
+  - 在别的文章里：封面卡片，「播放短片」在全窗口对话框里放映，「阅读文字稿」到短片文章的 #transcript。
+    封面和「播放短片」都是指向短片文章的普通链接，没有脚本、在 RSS 里也能点开；封面不进 Tab 顺序，键盘只停在两个按钮上。
 */ -}}
-{{- $f := partial "film.html" (dict "name" (.Get "name") "page" .Page) -}}
-{{- $minutes := or (.Get "minutes") $f.minutes -}}
-{{- $play := $f.play -}}
-{{- if and $f.lang (ne $f.lang .Page.Lang) }}{{ $play = printf "%s?lang=%s" $play .Page.Lang }}{{ end -}}
-<figure class="film film-cover">
-<a class="film-open" href="{{ or $f.page $f.play }}" data-play="{{ $play }}" data-title="{{ $f.title }}"{{ with $f.page }} data-transcript="{{ . }}#transcript"{{ end }} tabindex="-1" aria-hidden="true">
-{{- with $f.poster }}<img src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="" loading="lazy" decoding="async" class="in-text">{{ end -}}
-<span class="film-play"></span>
-</a>
-<figcaption><strong>{{ $f.title }}</strong>{{ with $minutes }}<span>{{ printf (i18n "film_minutes") (int .) }}</span>{{ end }}</figcaption>
-<div class="film-acts">
-<a class="btn btn-primary film-play-btn" href="{{ or $f.page $f.play }}" data-play="{{ $play }}" data-title="{{ $f.title }}"{{ with $f.page }} data-transcript="{{ . }}#transcript"{{ end }} aria-haspopup="dialog">{{ i18n "film_play" }}</a>
-{{- with $f.page }}
-<a class="btn btn-outline" href="{{ . }}#transcript">{{ i18n "film_read_transcript" }}</a>
-{{- end }}
-</div>
-</figure>
+{{- $name := .Get "name" -}}
+{{- $f := partial "film.html" (dict "name" $name "page" .Page) -}}
+{{- if eq .Page.Params.film $name -}}
+{{- partial "film_stage.html" (dict "f" $f "page" .Page) -}}
+{{- else -}}
+{{- partial "film_card.html" (dict "f" $f "page" .Page "minutes" (.Get "minutes")) -}}
+{{- end -}}

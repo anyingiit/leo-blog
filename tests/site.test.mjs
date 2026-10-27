@@ -58,7 +58,7 @@ const isDraft = (f) => field(frontMatter(join(root, "content", f)), "draft") ===
 // 短文：content/notes 下除 _index 以外的 .md（文件夹形式取 index.md）
 const notes = contentFiles
   .filter((f) => f.startsWith("notes/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
-  .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^notes\/|(\/index)?\.md$/g, "") }));
+  .map((f) => ({ file: f, film: field(frontMatter(join(root, "content", f)), "film"), slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^notes\/|(\/index)?\.md$/g, "") }));
 const posts = contentFiles
   .filter((f) => f.startsWith("posts/") && !f.endsWith(".en.md") && !isDraft(f))
   .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^posts\/|(\/index)?\.md$/g, "") }));
@@ -95,6 +95,8 @@ for (const [lang, prefix] of [["中文", ""], ["英文", "en/"]]) {
     for (const n of notes) {
       const entry = entries.find((e) => e.includes(`${PROD}${prefix}notes/${n.slug}/`));
       assert.ok(entry, `短文栏目缺少 ${n.slug}`);
+      // 短片的文章（front matter 有 film）例外：栏目里只放导语和封面卡片，播放器和文字稿在单篇页（film.test.mjs 检查）
+      if (n.film) continue;
       // 展开全文：栏目里的正文和单篇页的正文一致，而不是摘要
       const single = site.read(`${prefix}notes/${n.slug}/`).split(/<div class="?post-content[^>]*>/)[1].split(/<\/div>\s*<footer/)[0];
       assert.ok(entry.includes(single.trim()), `${n.slug} 在栏目里不是全文`);

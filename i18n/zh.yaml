@@ -20,6 +20,10 @@
   translation: "约 %d 分钟"
 - id: film_again
   translation: 重看
+- id: film_chapters
+  translation: 章节
+- id: film_from_here
+  translation: 从这里播放
 - id: film_transcript
   translation: 文字稿
 - id: film_read_transcript

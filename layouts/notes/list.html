@@ -31,6 +31,12 @@
       {{- end }}
     </div>
   </header>
+  {{- /* 短片的文章（front matter 有 film）：列表里只放导语（<!--more--> 之前）和封面卡片，播放器和文字稿在文章页 */}}
+  {{- if .Params.film }}
+  <div class="post-content md-content note-body">{{ .Summary }}{{ partial "film_card.html" (dict "f" (partial "film.html" (dict "name" .Params.film "page" .)) "page" .) }}</div>
+</article>
+  {{- continue }}
+  {{- end }}
   {{- /*
     原位分组：正文里连续两张及以上、中间没有文字的图片，在原位排成一组，最多显示 9 张，其余的进图集（第 9 张上标 +N）。
     构建时按张数分行（2→2，3→3，4→2+2，5→3+2，6→3+3，7→4+3，8→3+3+2，9 张及以上→3+3+3，多出的图放在最后一行并隐藏），

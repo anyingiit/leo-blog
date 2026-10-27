@@ -54,7 +54,7 @@
 /* 视频（render-image.html 输出的 <video>）：按封面宽高比占位；单篇页最高 80vh，短文时间线里和图片一样最高 24rem */
 .md-content video { display: block; width: min(100%, calc(80vh * var(--ar, 1.7778))); height: auto; margin: 1rem 0; background: #000; border-radius: 4px; }
 .note-entry .post-content video { width: min(100%, calc(24rem * var(--ar, 1.7778))); }
-/* 短片（docs/films.md）：正文里的封面卡片（链接到短片页）+ 全窗口放映 + 短片页的宽幅播放器 */
+/* 短片（docs/films.md）：封面卡片（链接到短片文章）+ 全窗口放映 + 短片文章里的宽幅播放器 */
 .film { margin: 1.5rem 0; }
 .film-open { position: relative; display: block; border-radius: var(--radius); overflow: hidden; background: #0f1522; box-shadow: none !important; }
 .film-open img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; margin: 0 !important; transition: opacity .2s; }
@@ -68,7 +68,17 @@
 .film-acts { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .9rem; }
 .film-acts .btn { flex: 1 1 0; max-width: 14rem; }
 .film-play-btn::before { content: ""; width: .6rem; height: .7rem; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
-.film-jump { margin: 0 0 var(--gap); font-size: .95rem; }
+/* 短片文章里，播放器下面的章节目录：折叠，每章一行，右边是「从这里播放」 */
+.film-chapters { margin: 0 0 var(--gap); border: 1px solid var(--border); border-radius: var(--radius); }
+.film-chapters summary { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: 0 1rem; cursor: pointer; font-weight: 600; }
+.film-chapters summary span { font-weight: 400; color: var(--secondary); font-size: .875rem; }
+.film-chapters ol { margin: 0 !important; padding: 0 0 .25rem !important; list-style: none; border-top: 1px solid var(--border); }
+.film-chapters li { display: flex; align-items: center; margin: 0 !important; padding: 0 .25rem 0 1rem; }
+.film-chapters li a { flex: 1; padding: .55rem 0; box-shadow: none !important; text-decoration: none !important; color: var(--primary); }
+.film-chapters li a:hover { color: var(--secondary); }
+.film-seek { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--secondary); font-size: .8rem; cursor: pointer; }
+.film-seek:hover { background: var(--code-bg); color: var(--primary); }
+.film-seek:focus-visible, .film-chapters summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .film-dialog { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0f1522; display: none; flex-direction: column; }
 .film-dialog[open] { display: flex; }
 .film-dialog::backdrop { background: rgb(0 0 0 / .7); }

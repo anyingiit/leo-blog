@@ -19,8 +19,8 @@ const pages = [
   ["site", "/en/", "site-en-home", false],
   ["site", "/en/posts/sample-post/", "site-en-post", false],
   ["site", "/en/notes/", "site-en-notes", false],
-  ["site", "/notes/film-note/", "site-note-film", true], // 正文里的短片封面卡片（docs/films.md）
-  ["site", "/films/test-film/", "site-film-page", true], // 短片页：宽幅播放器 + 文字稿
+  ["site", "/notes/film-ref/", "site-note-film", true], // 别的文章里的短片封面卡片（docs/films.md）
+  ["site", "/notes/film-note/", "site-film-page", true], // 短片的文章：宽幅播放器 + 章节目录 + 文字稿
   // PaperMod 官方示例站：主题自身的参照
   ["example", "/", "example-home", true],
   ["example", "/posts/markdown-syntax/", "example-markdown", true],
@@ -62,7 +62,7 @@ for (const scheme of ["light", "dark"]) {
     const context = await browser.newContext({ ...info.project.use, colorScheme: scheme });
     await connect(context);
     const page = await context.newPage();
-    await page.goto(hosts.site + "/notes/film-note/", { waitUntil: "load" });
+    await page.goto(hosts.site + "/notes/film-ref/", { waitUntil: "load" });
     await settle(page);
     await page.click(".film-open");
     const film = page.frameLocator(".film-dialog iframe");

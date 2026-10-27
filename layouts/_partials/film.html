@@ -2,15 +2,17 @@
   短片（docs/films.md）：assets/films/<名字>/ 是一部自包含的 HTML 短片（index.html 和它引用的配音、图片），
   原样发布到 /films/<名字>/play/，只在 index.html 里插入两样东西：
   - 桥接脚本 assets/js/film-bridge.js（深浅色、Esc、高度，经 postMessage 传给博客）；
-  - noindex 和指向短片页的 canonical（搜索引擎收录短片页，不收录裸播放器）。
-  poster.png/jpg 不发布，缩成 WebP 当封面；有 poster.en.png/jpg 时英文页用它（封面上有中文字时，见 docs/films.md）。content/films/<名字>/ 是短片页（博客页头页尾、导语、文字稿），可选。
-  参数：dict "name" 短片名 "page" 当前页面。返回 dict：play、page（短片页，没有时为空）、poster、width、height、title、minutes、lang。
+  - noindex 和指向短片文章的 canonical（搜索引擎收录文章，不收录裸播放器）。
+  poster.png/jpg 不发布，缩成 WebP 当封面；有 poster.en.png/jpg 时英文页用它（封面上有中文字时，见 docs/films.md）。
+  短片的文章：front matter 写了 film: <名字> 的那篇（博客页头页尾、导语、播放器、文字稿），可选；minutes、filmLang 也写在那里。
+  参数：dict "name" 短片名 "page" 当前页面。返回 dict：play、page（短片文章，没有时为空）、poster、width、height、title、minutes、lang。
 */ -}}
 {{- $name := .name -}}
 {{- $ctx := .page -}}
 {{- $files := resources.Match (printf "films/%s/**" $name) -}}
 {{- if not $files }}{{ errorf "找不到短片 assets/films/%s/" $name }}{{ end -}}
-{{- $filmPage := site.GetPage (printf "/films/%s" $name) -}}
+{{- $filmPage := false -}}
+{{- range first 1 (where site.AllPages "Params.film" $name) }}{{ $filmPage = index .AllTranslations 0 }}{{ end -}}
 {{- $base := printf "films/%s/play/" $name -}}
 {{- $title := $name -}}
 {{- range $files -}}
@@ -21,7 +23,7 @@
     {{- with findRESubmatch `<title>([^<]+)</title>` $html 1 }}{{ $title = index (index . 0) 1 }}{{ end -}}
     {{- $bridge := resources.Get "js/film-bridge.js" | minify -}}
     {{- $head := `<meta name="robots" content="noindex">` -}}
-    {{- /* 中英两种语言的页面发布的是同一份播放器，canonical 固定指向默认语言的短片页 */ -}}
+    {{- /* 中英两种语言的页面发布的是同一份播放器，canonical 固定指向默认语言的短片文章 */ -}}
     {{- with $filmPage }}{{ $head = printf `%s<link rel="canonical" href="%s">` $head (index .AllTranslations 0).Permalink }}{{ end -}}
     {{- $head = printf `%s<script>%s</script>` $head $bridge.Content -}}
     {{- $html = replaceRE `(?i)(<head[^>]*>)` (printf "${1}%s" $head) $html 1 -}}

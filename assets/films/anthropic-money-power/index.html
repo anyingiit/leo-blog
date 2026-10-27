@@ -492,6 +492,8 @@ if(LANG==='en'){
 /* open on the first scene, fully drawn, so the still frame already says what this is */
 cur=0;render();
 $('mins').textContent=Math.round(TOTAL/60000);
+/* the blog's chapter list asks to play from a chapter */
+addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.type!=='film:seek')return;const s=segs[e.data.chapter|0];if(s){go(s.first);if(!playing)play()}});
 /* ?at=<line> opens on that line (resume); ?autoplay=1 starts at once when the reader already pressed Play on the blog */
 {const q=new URLSearchParams(location.search),at=parseInt(q.get('at'),10);
   if(at>0&&at<CUES.length)go(at);

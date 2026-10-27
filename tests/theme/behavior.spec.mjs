@@ -19,7 +19,7 @@ async function open(browser, info, url, opts = {}) {
 
 // 两个站点里所有截图页面：没有脚本错误，也没有横向滚动条（手机上最常见的版面问题）
 const all = [
-  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/notes/travel-photos/", "/notes/page/2/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/", "/notes/film-note/", "/films/test-film/", "/en/films/test-film/"]],
+  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/notes/travel-photos/", "/notes/page/2/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/", "/notes/film-note/", "/notes/film-ref/", "/en/notes/film-note/"]],
   [EXAMPLE, ["/", "/posts/markdown-syntax/", "/posts/code_syntax/", "/posts/inner-section/cover-page/", "/posts/emoji-support/", "/archives/", "/tags/", "/search/", "/fr/", "/fa/", "/fa/posts/markdown-syntax/", "/posts/", "/page/2/"]],
 ];
 for (const [host, paths] of all) {
@@ -262,7 +262,7 @@ test("键盘焦点：短文图片的焦点框", async ({ browser }, info) => {
 });
 
 test("短片：点封面或「播放短片」全窗口放映，返回键、Esc、关闭按钮都回到原文", async ({ browser }, info) => {
-  const { page, errors } = await open(browser, info, SITE + "/notes/film-note/");
+  const { page, errors } = await open(browser, info, SITE + "/notes/film-ref/");
   const url = page.url();
   const dialog = page.locator(".film-dialog");
   const film = page.frameLocator(".film-dialog iframe");
@@ -282,12 +282,12 @@ test("短片：点封面或「播放短片」全窗口放映，返回键、Esc�
   await page.click(".film-play-btn");
   await page.click(".film-close");
   await expect(dialog).toBeHidden();
-  await expect(page.locator(".film-dialog iframe")).toHaveAttribute("src", "about:blank");
+  await expect(page.locator(".film-dialog iframe")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test("短片页：播放器按短片高度撑开", async ({ browser }, info) => {
-  const { page, errors } = await open(browser, info, SITE + "/films/test-film/");
+test("短片文章：播放器按短片高度撑开", async ({ browser }, info) => {
+  const { page, errors } = await open(browser, info, SITE + "/notes/film-note/");
   const film = page.frameLocator("iframe.film-frame");
   await film.locator("html[data-embed=page]").waitFor({ state: "attached" });
   // 测试短片嵌入时只剩播放器，iframe 正好包住它（不多出空白，也不出现滚动条）

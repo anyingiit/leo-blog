@@ -123,11 +123,11 @@
 </script>
 {{- /*
   3. 短片（docs/films.md）：
-     - 正文里的封面和「播放短片」按钮（_shortcodes/film.html）是指向短片页的链接；有脚本时普通点击改为在全窗口对话框里放映，
+     - 正文里的封面和「播放短片」按钮（_shortcodes/film.html）是指向短片文章的链接；有脚本时普通点击改为在全窗口对话框里放映，
        返回键、Esc、关闭按钮都关掉对话框、留在原文原处；关闭时移除播放器，声音随之停止。
      - 读者已经点过播放，所以打开时带 ?autoplay=1，焦点交给画面（空格、方向键直接可用）；短片加载完之前先显示封面。
      - 记住看到第几句（sessionStorage），再打开时带 ?at= 接着放；放完显示「重看」「文字稿」。
-     - 短片页（films/single.html）里的播放器按短片报来的高度撑开。
+     - 短片自己的文章里（_partials/film_stage.html）播放器原地放，高度按短片报来的撑开；章节目录的「从这里播放」发 film:seek。
      短片放在沙箱 iframe 里（和博客不同源），双方只通过 postMessage 交换深浅色、高度、Esc、进度（assets/js/film-bridge.js）。
 */ -}}
 <script>
@@ -155,6 +155,17 @@
     if (e.data.type === "film:ended") { saved(key, null); box.classList.add("ended"); box.querySelector(".film-again").focus(); }
   });
   for (const f of frames) f.addEventListener("load", () => tell(f));
+  // 章节目录里的「从这里播放」：把章节号发给同一篇里的播放器，并把播放器滚到眼前
+  for (const b of document.querySelectorAll(".film-seek")) {
+    const f = document.querySelector(".film-stage iframe");
+    if (!f) continue;
+    b.hidden = false;
+    b.addEventListener("click", () => {
+      f.contentWindow?.postMessage({ type: "film:seek", chapter: +b.dataset.chapter }, "*");
+      f.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+      f.focus({ preventScroll: true });
+    });
+  }
   if (!openers.length) return;
   const build = () => {
     box = document.createElement("dialog");
@@ -164,7 +175,7 @@
     link = box.querySelectorAll(".film-tab");
     box.querySelector(".film-close").onclick = () => box.close();
     box.querySelector(".film-again").onclick = () => { saved(key, null); load(film, true); };
-    // 从对话框去文字稿：用短片页顶替打开对话框时多出的那条历史记录，返回时直接回到原文
+    // 从对话框去文字稿：用短片文章顶替打开对话框时多出的那条历史记录，返回时直接回到原文
     for (const a of link) a.addEventListener("click", (e) => {
       if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || !history.state?.film) return;
       e.preventDefault();
@@ -206,7 +217,7 @@
     film = a; key = "film:" + a.dataset.play;
     box.querySelector(".film-name").textContent = a.dataset.title;
     box.setAttribute("aria-label", a.dataset.title);
-    // 没有短片页（也就没有文字稿）时不显示「文字稿」
+    // 没有短片文章（也就没有文字稿）时不显示「文字稿」
     for (const l of link) { l.hidden = !a.dataset.transcript; l.href = a.dataset.transcript || ""; }
     history.pushState({ film: a.dataset.title }, "");
     box.showModal();

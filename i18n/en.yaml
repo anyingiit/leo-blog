@@ -20,6 +20,10 @@
   translation: "about %d min"
 - id: film_again
   translation: Watch again
+- id: film_chapters
+  translation: Chapters
+- id: film_from_here
+  translation: Play from here
 - id: film_transcript
   translation: Transcript
 - id: film_read_transcript
