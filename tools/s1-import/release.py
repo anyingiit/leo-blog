@@ -12,7 +12,7 @@
      写入标题、作者、主题、关键词，打开时显示书签栏；逐页检查都有「非官方」标记
   4. 把两个文件的大小和 sha256 写进版本页 front matter 的 downloads，去掉 outputs 里的 s1full
      （之后网站只发布冻结的文件，模板改动不会再改变已发布版本的下载内容）
-需要 Playwright（tests/ 里 npm ci）和 pypdf（pip install -r tools/s1-import/requirements.txt）。
+需要 Playwright（tests/ 里 npm ci）和 pypdf、pikepdf（pip install -r tools/s1-import/requirements.txt）。
 默认要求：full.html 里的网址是 hugo.yaml 的正式域名、hugo.yaml 设置了下架联系方式 params.s1Contact；
 预览演示用 --preview 跳过这两项检查。
 """
@@ -73,6 +73,8 @@ def check_pdf(path, pages):
         fail("PDF 元数据缺少「非官方」标题或作者")
     if r.trailer["/Root"].get("/PageMode") != "/UseOutlines":
         fail("PDF 打开时不显示书签栏")
+    if "/StructTreeRoot" not in r.trailer["/Root"]:
+        fail("PDF 没有标签结构（屏幕阅读器读不了）")
 
 
 def fail(msg):
@@ -106,6 +108,11 @@ def fix_pdf(path, title, version, pages):
     })
     w._root_object[NameObject("/PageMode")] = NameObject("/UseOutlines")
     w.write(path)
+
+    # Chrome 输出的带标签 PDF 有几万个未压缩的结构对象（全文约 10 MB），收进对象流里压缩，内容不变
+    import pikepdf
+    with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        pdf.save(path, object_stream_mode=pikepdf.ObjectStreamMode.generate, compress_streams=True)
 
     check_pdf(path, pages)
     return fixed

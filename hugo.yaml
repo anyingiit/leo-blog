@@ -70,6 +70,7 @@ languages:
     menu:
       main:
         - { name: 短文, url: /notes/, weight: 5 }
+        - { name: 译文, url: /translations/, weight: 7 }
         - { name: 归档, url: /archives/, weight: 10 }
         - { name: 标签, url: /tags/, weight: 20 }
         - { name: 搜索, url: /search/, weight: 30 }
@@ -85,6 +86,7 @@ languages:
     menu:
       main:
         - { name: Notes, url: /en/notes/, weight: 5 }
+        - { name: Translations, url: /en/translations/, weight: 7 }
         - { name: Archive, url: /en/archives/, weight: 10 }
         - { name: Tags, url: /en/tags/, weight: 20 }
         - { name: Search, url: /en/search/, weight: 30 }
