@@ -80,6 +80,14 @@ for (const [lang, prefix, title, play] of [["中文", "", "测试短片", "/film
   });
 }
 
+test("短片页不进全站 RSS（订阅里已有引用它的文章），站点地图照常收录", () => {
+  for (const [rss, map] of [["index.xml", "zh/sitemap.xml"], ["en/index.xml", "en/sitemap.xml"]]) {
+    assert.doesNotMatch(read(rss), /<link>[^<]*\/films\/test-film\/<\/link>/, `${rss} 里不应有短片页`);
+    assert.match(read(rss), /<link>[^<]*\/notes\/film-note\/<\/link>/, `${rss} 里有引用短片的文章`);
+    assert.match(read(map), /<loc>[^<]*\/films\/test-film\/<\/loc>/, `${map} 收录短片页`);
+  }
+});
+
 // ---------- 交互 ----------
 
 test("点封面在全窗口对话框里放映：沙箱 iframe、embed=fit、深浅色跟随博客", async () => {

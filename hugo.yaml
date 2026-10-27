@@ -17,6 +17,14 @@ outputs:
 
 # 文章文件夹里的原图只在被引用原文件时才发布；正文里的 jpg/png/webp 会缩成 WebP（见 render-image.html），原图不用上线
 cascade:
+  # 短片页（docs/films.md）不进全站 RSS（PaperMod 的 hiddenInRss）：订阅里已经有引用它的文章，避免同一部短片出现两次；
+  # 站内搜索和站点地图照常收录，文字稿可以搜到
+  - target:
+      path: "/films/**"
+    params:
+      hiddenInRss: true
+    build:
+      publishResources: false
   - build:
       publishResources: false
 

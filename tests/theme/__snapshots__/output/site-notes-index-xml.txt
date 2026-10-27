@@ -6,8 +6,21 @@
 <description>Recent content in 短文 on Leoblog</description>
 <generator>Hugo</generator>
 <language>zh-CN</language>
-<lastBuildDate>Thu, 05 Mar 2026 09:00:00 +0000</lastBuildDate>
+<lastBuildDate>Sun, 25 Oct 2026 08:00:00 +0000</lastBuildDate>
 <atom:link href="http://blog.test/notes/index.xml" rel="self" type="application/rss+xml"/>
+<item>
+<title>【测试】短片</title>
+<link>http://blog.test/notes/film-note/</link>
+<pubDate>Sun, 25 Oct 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/film-note/</guid>
+<description>&lt;p&gt;正文里的短片封面：&lt;/p&gt;
+&lt;figure class="film film-cover"&gt;
+&lt;a class="film-open" href="http://blog.test/films/test-film/" data-play="/films/test-film/play/" data-title="测试短片" aria-label="播放短片：测试短片"&gt;&lt;img src="http://blog.test/films/test-film/poster_hu_80a0afd65939a82.webp" width="1280" height="720" alt="" loading="lazy" decoding="async" class="in-text"&gt;&lt;span class="film-play" aria-hidden="true"&gt;播放短片&lt;/span&gt;
+&lt;/a&gt;
+&lt;figcaption&gt;&lt;strong&gt;测试短片&lt;/strong&gt;&lt;span&gt;动画短片 · 约 2 分钟 · 有配音&lt;/span&gt;&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;p&gt;短片后面的一段文字。&lt;/p&gt;</description>
+</item>
 <item>
 <title>一条短文</title>
 <link>http://blog.test/notes/sample-note/</link>
