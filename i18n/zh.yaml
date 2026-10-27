@@ -24,3 +24,9 @@
   translation: 有配音
 - id: film_newtab
   translation: 在新标签页打开
+- id: film_listen
+  translation: 听旁白
+- id: film_pause
+  translation: 暂停旁白
+- id: film_hint
+  translation: 往下读，画面跟着文字走

@@ -24,3 +24,9 @@
   translation: narrated
 - id: film_newtab
   translation: Open in a new tab
+- id: film_listen
+  translation: Play narration
+- id: film_pause
+  translation: Pause narration
+- id: film_hint
+  translation: Scroll to read; the picture follows the text

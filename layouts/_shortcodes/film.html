@@ -1,12 +1,25 @@
-{{- /* 方案 B：正文里是和博客一致的封面卡片，点开后短片铺满整个窗口放映，关闭回到原处继续读 */ -}}
+{{- /*
+  方案 D：滚动叙事。短片的文字稿就是正文（写在 {{< film >}} 和 {{< /film >}} 之间，每段对应短片的一句），
+  画面固定在上方，读到哪一段就切到哪一句；也可以点“听旁白”让它自动播放、文字跟着滚。
+  短文栏目里只显示封面卡片，点进单篇再读。
+*/ -}}
 {{- $f := partial "film.html" (.Get "name") -}}
 {{- $meta := slice (i18n "film_kind") -}}
 {{- with .Get "minutes" }}{{ $meta = $meta | append (printf (i18n "film_minutes") (int .)) }}{{ end -}}
 {{- $meta = $meta | append (i18n "film_voice") -}}
-<figure class="film film-cover">
-<button type="button" class="film-open" data-src="{{ $f.url }}" data-title="{{ $f.title }}" aria-label="{{ i18n "film_play" }}：{{ $f.title }}">
+<div class="film film-story">
+<figure class="film-cover">
+<a class="film-open" href="{{ .Page.RelPermalink }}#film">
 {{- with $f.poster }}<img src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="" loading="lazy" decoding="async" class="in-text">{{ end -}}
 <span class="film-play" aria-hidden="true">{{ i18n "film_play" }}</span>
-</button>
+</a>
 <figcaption><strong>{{ $f.title }}</strong><span>{{ delimit $meta " · " }}</span></figcaption>
 </figure>
+<div class="film-sticky" id="film">
+<iframe class="film-stage" src="{{ $f.url }}" title="{{ $f.title }}" allow="autoplay" tabindex="-1"></iframe>
+<div class="film-ctl"><button type="button" class="film-listen" data-play="{{ i18n "film_listen" }}" data-pause="{{ i18n "film_pause" }}">{{ i18n "film_listen" }}</button><span>{{ i18n "film_hint" }}</span></div>
+</div>
+<div class="film-text">
+{{ .Inner | .Page.RenderString (dict "display" "block") }}
+</div>
+</div>
