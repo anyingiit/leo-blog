@@ -1,6 +1,6 @@
 // 像素级视觉回归：每个页面在每个项目（浏览器 × 设备）下整页截图，与 __snapshots__ 里的基准逐像素比对（容差 0）
 import { test, expect } from "@playwright/test";
-import { connect, settle, fullPage } from "./helpers.mjs";
+import { connect, settle, fullPage, repaint } from "./helpers.mjs";
 
 // [站点, 路径, 截图名, 是否也拍深色]
 const pages = [
@@ -85,6 +85,7 @@ for (const [path, name] of [["/", "site-home"], ["/posts/sample-post/", "site-po
     await expect.poll(() => page.evaluate(() => [...document.images].every((i) => i.complete))).toBe(true);
     await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
     await page.evaluate(() => document.fonts.ready.then(() => {}));
+    await repaint(page);
     await expect(page).toHaveScreenshot(`${name}-no-js.png`);
   });
 }
