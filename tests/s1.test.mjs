@@ -114,6 +114,27 @@ test("全屏阅读：目录面板底部有下载链接，不另加按钮", async
   await ctx.close();
 });
 
+test("s1.css 没有游离的声明（括号外的残行会让后面的规则整条失效）", () => {
+  const css = readFileSync(join(root, "assets/css/extended/s1.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  let depth = 0, outside = "";
+  for (const ch of css) {
+    if (ch === "{") { depth++; outside = ""; } else if (ch === "}") { depth--; assert.ok(depth >= 0, "多余的 }"); outside = ""; }
+    else if (depth === 0) { outside += ch; assert.doesNotMatch(outside, /;/, `括号外有声明：${outside.trim().slice(0, 80)}`); }
+  }
+  assert.equal(depth, 0, "括号没有闭合");
+});
+
+test("宽屏上重排版的宽表格跳出正文栏", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(server.url + "/s1-test/v1.0/cover/", { waitUntil: "load" });
+  await page.click('button[data-view="reflow"]');
+  const t = await page.evaluate(() => { const s = getComputedStyle(document.querySelector(".s1-reflow table")); return [s.width, s.maxWidth, s.transform]; });
+  assert.notEqual(t[1], "none", `重排版表格没有放宽：${t}`);
+  assert.notEqual(t[2], "none", `重排版表格没有居中：${t}`);
+  await ctx.close();
+});
+
 // 和 PaperMod 的「契约」：译本页的自定义样式只依赖主题的这些 CSS 变量和类名（tests 之外的说明见 docs/testing.md）。
 // 升级主题后这里失败，说明译本页的样式要跟着改；构建本身不会因此失败，所以要靠测试发现
 test("PaperMod 契约：译本样式用到的 CSS 变量和页面结构都还在", async () => {

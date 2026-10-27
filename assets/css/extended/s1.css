@@ -149,7 +149,6 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-dl-line a, .s1-dl-acts a { min-height: 44px; }
   .s1-versions .s1-dl-col { display: none; }  /* 窄屏表格放不下；版本页和首页有下载卡片 */
 }
-  background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 18px rgb(0 0 0 / .15); white-space: nowrap; }
 
 /* 重排版里的宽表格（财务报表）在宽屏上跳出正文栏，最多 1100px，居中；窄屏仍在栏内横向滚动 */
 @media (min-width: 1000px) {
