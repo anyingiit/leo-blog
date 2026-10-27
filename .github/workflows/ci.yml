@@ -148,8 +148,10 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # Hugo 处理过的图片（resources/_gen）跨运行复用：整站冷构建约 55 秒，其中几乎都是把文章配图转成 WebP，有缓存只要 2 秒。
-      # Hugo 按源文件和处理参数给缓存文件命名，内容变了就重新生成；Hugo 版本（build.sh）或图片渲染钩子变了则整份缓存作废
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      # Hugo 按源文件和处理参数给缓存文件命名，内容变了就重新生成；Hugo 版本（build.sh）或图片渲染钩子变了则整份缓存作废。
+      # 回归测试一结束就保存：之后的主题测试只用固定文章构建，--gc 会把正式文章的图片从 resources/_gen 清掉
+      - uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        id: hugo-cache
         if: matrix.browser == 'chromium' && needs.lint.outputs.regression != 'false'
         with:
           path: resources/_gen
@@ -178,6 +180,12 @@ jobs:
         run: |
           npm ci
           npm test
+
+      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        if: matrix.browser == 'chromium' && needs.lint.outputs.regression != 'false' && steps.hugo-cache.outputs.cache-hit != 'true'
+        with:
+          path: resources/_gen
+          key: ${{ steps.hugo-cache.outputs.cache-primary-key }}
 
       - name: Install test dependencies
         if: ${{ !cancelled() && needs.lint.outputs.visual != 'false' }}
