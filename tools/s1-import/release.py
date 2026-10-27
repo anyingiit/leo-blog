@@ -103,7 +103,7 @@ def fix_pdf(path, title, version, pages):
     w.add_metadata({
         "/Title": title,
         "/Author": "非官方译本（译者与 Anthropic, PBC 无关）",
-        "/Subject": f"Anthropic, PBC Form S-1 的非官方中文译本 {version}。AI 翻译，未经人工核对，以 SEC 英文原文为准；仅供参考，不构成投资建议，后果自负。原文权利归 Anthropic, PBC 及相应权利人所有。",
+        "/Subject": f"Anthropic, PBC Form S-1 的非官方中文译本 {version}。AI 翻译，译文一致性未经人工核对，以 SEC 英文原文为准；仅供参考，不构成投资建议，后果自负。原文权利归 Anthropic, PBC 及相应权利人所有。",
         "/Keywords": "非官方译本, AI 翻译, Anthropic, S-1",
     })
     w._root_object[NameObject("/PageMode")] = NameObject("/UseOutlines")

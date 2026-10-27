@@ -47,7 +47,7 @@ a { color: #0b57d0; }
 /* 打印（含 tools/s1-import/pdf.cjs 生成的 PDF）：原文每页 612×792pt 原样一页，下面另加 18pt 页边写「非官方」标记和页码，
    不压到原文内容；读者自己用浏览器打印也一样带标记 */
 @page { size: 612pt 810pt; margin: 0 0 18pt 0;
-  @bottom-center { content: "非官方 AI 译本 {{ $p.version }} · 与 Anthropic 无关，未经人工核对，以 SEC 英文原文为准 · 第 " counter(page) " / " counter(pages) " 页";
+  @bottom-center { content: "非官方 AI 译本 {{ $p.version }} · 与 Anthropic 无关，译文一致性未经人工核对，以 SEC 英文原文为准 · 第 " counter(page) " / " counter(pages) " 页";
     font: 7pt/1 "Noto Sans CJK SC", "PingFang SC", sans-serif; color: #555; vertical-align: middle; } }
 @media print {
   body { background: #fff; }
@@ -66,7 +66,7 @@ a { color: #0b57d0; }
 </style>
 </head>
 <body>
-<div class="dl-banner" role="note"><strong>非官方 AI 译本 {{ $p.version }}</strong><span class="dl-long">，与 Anthropic 无关，未经人工核对</span> · 不是 SEC 原文<span class="dl-long"> · 以 <a href="{{ $p.source }}">英文原文</a>为准</span> · 后果自负</div>
+<div class="dl-banner" role="note"><strong>非官方 AI 译本 {{ $p.version }}</strong><span class="dl-long">，与 Anthropic 无关，译文一致性未经人工核对</span> · 不是 SEC 原文<span class="dl-long"> · 以 <a href="{{ $p.source }}">英文原文</a>为准</span> · 后果自负</div>
 <header class="dl-cover">
   <h1>{{ $root.Title }}</h1>
   <p class="dl-meta">译本 {{ $p.version }}（{{ .Date.Format "2006-01-02" }} 定稿）· 对应 {{ $p.form }}，{{ $p.filed }} 提交 · 原文采集于 {{ $cap.UTC.Format "2006-01-02 15:04" }} UTC · 在线版 <a href="{{ .Permalink }}">{{ .Permalink }}</a></p>

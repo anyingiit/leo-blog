@@ -1,8 +1,8 @@
 ---
-title: "独立注册会计师事务所报告"
+title: "独立注册会计师事务所报告（2025 年度）"
 weight: 27
 pages: [348, 349]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 独立注册会计师事务所报告"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 独立注册会计师事务所报告（2025 年度）"
 ---
 
 致Anthropic, PBC股东及董事会

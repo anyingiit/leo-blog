@@ -2,7 +2,7 @@
 title: "承销"
 weight: 23
 pages: [327, 344]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 承销"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 承销"
 ---
 
 我们、出售股东与下列承销商将就所发售的A类普通股股份订立承销协议。在满足若干条件的前提下，每家承销商将各自（而非连带）同意购买下表所示数量的A类普通股股份。Goldman Sachs & Co. LLC和Morgan Stanley & Co. LLC为承销商的代表（“承销商代表”）。

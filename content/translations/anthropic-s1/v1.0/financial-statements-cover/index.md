@@ -1,8 +1,8 @@
 ---
-title: "Anthropic, PBC"
+title: "合并财务报表索引"
 weight: 26
 pages: [347, 347]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · Anthropic, PBC"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 合并财务报表索引"
 ---
 
 合并财务报表索引

@@ -2,7 +2,7 @@
 title: "法律事项 · 独立会计师变更 · 专家"
 weight: 24
 pages: [345, 345]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 法律事项 · 独立会计师变更 · 专家"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 法律事项 · 独立会计师变更 · 专家"
 ---
 
 就本次发行担任我们法律顾问的Wilson Sonsini Goodrich & Rosati, P.C.（加利福尼亚州Palo Alto）将就本招股说明书所发售的我们A类普通股股份的有效性出具意见。Wilson Sonsini Goodrich & Rosati, P.C.的若干成员、由其成员组成的投资合伙企业以及与其有关联的人士直接或间接持有我们已发行股本不足0.01%。与本次发行有关的若干法律事项将由Freshfields US LLP（加利福尼亚州Redwood City）代表承销商出具意见。Orrick, Herrington & Sutcliffe LLP曾就若干高管薪酬及股权事项担任我们的法律顾问。长期利益信托的首席法律顾问John Morley以及Cleary Gottlieb Steen & Hamilton LLP曾就本招股说明书所载的若干治理事项担任LTBT的法律顾问。Cravath, Swaine & Moore LLP曾就本招股说明书所载的若干治理事项担任联合创始人的法律顾问。

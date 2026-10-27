@@ -34,7 +34,7 @@
 .s1-versions th, .s1-versions td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: start; }
 .s1-chtoc { margin: 8px 0 16px; font-size: 15px; }
 .s1-chtoc summary { cursor: pointer; color: var(--secondary); }
-.s1-switchbar { position: sticky; top: 8px; z-index: 6; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px; margin: 4px auto 16px; }
+.s1-switchbar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px; margin: 4px auto 16px; }
 .s1-switch { display: flex; width: fit-content; border: 1px solid var(--border); border-radius: var(--radius);
   overflow: hidden; margin: 0; background: var(--theme); box-shadow: 0 2px 8px rgb(0 0 0 / .08); }
 .s1-switch button { padding: 6px 14px; font: inherit; font-size: 14px; border: 0; background: none; color: var(--secondary); cursor: pointer; }
@@ -88,10 +88,11 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 .s1-ibar { display: none; }
 body.s1-immersive { padding-top: 52px; }
 html:has(body.s1-immersive) { scroll-padding-top: 60px; }
-body.s1-immersive :is(.header, .footer, .top-link, .s1-chapter > :not(.s1-original, .s1-ibar, .s1-reflow)) { display: none !important; }
+body.s1-immersive :is(.header, .footer, .top-link, .s1-chapter > :not(.s1-original, .s1-ibar, .s1-reflow, .s1-rights)) { display: none !important; }
 body.s1-immersive .main { max-width: none !important; padding: 0; margin: 0; }
 body.s1-immersive .s1-original { width: auto !important; margin: 0 !important; max-width: none !important; }
 body.s1-immersive .s1-sheets { border-radius: 0; margin: 0; min-height: calc(100vh - 52px); overflow: visible; width: max-content; min-width: 100%; }
+body.s1-immersive .s1-rights { max-width: var(--main-width); margin: 0 auto; padding: 16px var(--gap) 32px; }
 body.s1-immersive .s1-reflow { max-width: var(--main-width) !important; margin: 0 auto !important; padding: 16px var(--gap) 48px; }
 body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-index: 50; height: 52px; max-width: none !important; margin: 0 !important;
   display: flex; align-items: center; gap: 10px; padding: 0 12px; background: var(--theme); border-bottom: 1px solid var(--border);
@@ -149,3 +150,8 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-versions .s1-dl-col { display: none; }  /* 窄屏表格放不下；版本页和首页有下载卡片 */
 }
   background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 18px rgb(0 0 0 / .15); white-space: nowrap; }
+
+/* 重排版里的宽表格（财务报表）在宽屏上跳出正文栏，最多 1100px，居中；窄屏仍在栏内横向滚动 */
+@media (min-width: 1000px) {
+  .s1-reflow table { width: max-content; max-width: min(1100px, 100vw - 48px); position: relative; left: 50%; transform: translateX(-50%); }
+}

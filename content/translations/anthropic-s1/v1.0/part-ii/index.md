@@ -2,7 +2,7 @@
 title: "第二部分"
 weight: 29
 pages: [413, 417]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 第二部分"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 第二部分"
 ---
 
 #### 招股说明书无需载列的信息

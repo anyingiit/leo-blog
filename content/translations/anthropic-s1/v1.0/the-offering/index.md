@@ -2,7 +2,7 @@
 title: "本次发行"
 weight: 4
 pages: [29, 32]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 本次发行"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 本次发行"
 ---
 
 | 我们发售的A类普通股 | \_\_\_\_股 |

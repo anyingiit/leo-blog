@@ -2,7 +2,7 @@
 title: "部分术语释义"
 weight: 2
 pages: [12, 15]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 部分术语释义"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 部分术语释义"
 ---
 
 以下为本招股说明书中使用的若干术语的缩写、首字母缩略词及定义：

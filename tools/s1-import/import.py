@@ -18,7 +18,7 @@
 配图复制到 assets/translations/anthropic-s1/img/，同名图片内容不同时报错，不会悄悄覆盖旧版本用的图。
 已存在的版本目录不会被覆盖（历史版本只增不改），除非加 --force。
 """
-import argparse, hashlib, json, os, re, shutil, sys, tempfile, urllib.parse
+import argparse, datetime, hashlib, json, os, re, shutil, sys, tempfile, urllib.parse
 
 # 章节标题 → 网址里的英文名（S-1 的标准章节）；没收录的用序号
 SLUGS = {
@@ -84,6 +84,8 @@ def to_hugo_md(text, img_names):
     # Typora 对含空格、括号的路径写成 ![](<路径>)
     text = re.sub(r"!\[[^\]]*\]\((?:<([^>]+)>|([^)\s]+))\)", img, text)
     text = PAGE_MARK.sub(lambda m: "{{< s1-page %s >}}" % m.group(1), text)
+    # 译文 HTML 里有些整句被包在 <sup> 里（原文的 15th、脚注标记翻译后范围错位），只保留像脚注标记的短上标
+    text = re.sub(r"<sup>([^<]*)</sup>", lambda m: m.group(0) if re.fullmatch(r"[\d()*†‡§,，a-z ]{1,12}", m.group(1)) else m.group(1), text)
     text = re.sub(r"<(/?sup|br\s*/?)>", lambda m: '{{< s1-raw "<%s>" >}}' % m.group(1).replace(" ", ""), text)
     text = re.sub(r"(?<!\\)\$", r"\\$", text)  # 美元金额不能被当成公式（docs/testing.md）
     text = text.replace("\\(", "(").replace("\\[", "&#91;")  # \( \[ 也是站点的公式定界符
@@ -121,13 +123,16 @@ def main():
     ap.add_argument("--captured", required=True, help="原文采集时间（ISO 8601）")
     ap.add_argument("--source", required=True, help="原文网址")
     ap.add_argument("--form", default="S-1", help="原文文件类型，例如 S-1、S-1/A")
-    ap.add_argument("--date", help="本版译文定稿日期，默认同 --filed")
+    ap.add_argument("--date", default=datetime.date.today().isoformat(), help="本版译文定稿日期，默认今天")
     ap.add_argument("--notes", default="", help="本版说明（更新了什么）")
     ap.add_argument("--pages", help="只导入这些原文页，例如 1-15（预览用节选）")
     ap.add_argument("--weight", type=int, default=1, help="版本排序，越新越小")
     ap.add_argument("--extra", action="append", default=[], help="额外写进版本 front matter 的 key=value")
+    ap.add_argument("--title", action="append", default=[], metavar="SLUG=标题",
+                    help="改某章在目录里的标题，例如两份同名的会计师报告要区分开")
     ap.add_argument("--force", action="store_true")
     a = ap.parse_args()
+    a.titles = dict(t.split("=", 1) for t in a.title)
 
     md = open(os.path.expanduser(a.md), encoding="utf-8").read()
     pages = split_pages(open(os.path.expanduser(a.html), encoding="utf-8").read())
@@ -148,7 +153,8 @@ def main():
     all_ch = chapters(md)
     for i, c in enumerate(all_ch):
         slug = slug_for(i, c, used)
-        title = "封面与目录" if i == 0 else " · ".join(c["titles"])
+        title = a.titles.get(slug) or ("封面与目录" if i == 0 else "合并财务报表索引" if slug == "financial-statements-cover"
+                                       else " · ".join(c["titles"]))
         included = c["page"] >= lo and c["last_page"] <= hi
         toc.append({"slug": slug, "title": title, "pages": [c["page"], c["last_page"]], "included": included})
         if not included:
@@ -160,7 +166,7 @@ def main():
         os.makedirs(cdir)
         with open(os.path.join(cdir, "index.md"), "w", encoding="utf-8") as f:
             f.write(front({"title": title, "weight": i + 1, "pages": [c["page"], c["last_page"]],
-                           "description": f"Anthropic, PBC {a.form} 非官方中文译本（AI 翻译，未经人工核对）{a.version} · {title}"}))
+                           "description": f"Anthropic, PBC {a.form} 非官方中文译本（AI 翻译，译文一致性未经人工核对）{a.version} · {title}"}))
             f.write(to_hugo_md(body, img_names))
         with open(os.path.join(cdir, "original.html"), "w", encoding="utf-8") as f:
             f.write(to_fragment(pages[c["page"] - 1:c["last_page"]], img_names))
@@ -182,8 +188,8 @@ def main():
         open(p, "w", encoding="utf-8").write(s)
 
     meta = {"title": f"{a.form} 非官方中文译本 {a.version}",
-            "description": f"Anthropic, PBC {a.form}（{a.filed} 提交）的非官方中文译本 {a.version}，AI 翻译，未经人工核对", "version": a.version, "form": a.form, "filed": a.filed,
-            "captured": a.captured, "source": a.source, "date": a.date or a.filed, "notes": a.notes,
+            "description": f"Anthropic, PBC {a.form}（{a.filed} 提交）的非官方中文译本 {a.version}，AI 翻译，译文一致性未经人工核对", "version": a.version, "form": a.form, "filed": a.filed,
+            "captured": a.captured, "source": a.source, "date": a.date, "notes": a.notes,
             "weight": a.weight, "excerpt": bool(a.pages), "chapters": toc}
     # 版本页和章节不进首页 RSS、站内搜索（site.RegularPages），仍在本版本的 .Pages 里
     # 版本页另外输出单文件的完整 HTML（full.html，供下载；PDF 由 pdf.cjs 从它打印）

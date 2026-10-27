@@ -113,7 +113,7 @@
     const hp = /^#page-(\d+)$/.exec(location.hash);
     const pos = hp ? { page: +hp[1], frac: 0 } : currentPos();
     before = view();
-    if (!phone() || !reflow) show("original", false);
+    if (!reflow) show("original", false); // 保持读者选的版式
     document.body.classList.add("s1-immersive");
     ibar.hidden = false;
     const u = readURL(true);

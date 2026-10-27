@@ -2,7 +2,7 @@
 title: "股本说明"
 weight: 20
 pages: [303, 317]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 股本说明"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 股本说明"
 ---
 
 ## 概述

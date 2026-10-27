@@ -2,7 +2,7 @@
 title: "资本总额"
 weight: 11
 pages: [137, 139]
-description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，未经人工核对）v1.0 · 资本总额"
+description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 资本总额"
 ---
 
 下表列示截至2026年9月30日我们的现金、现金等价物及短期投资以及我们的资本总额，具体如下：
