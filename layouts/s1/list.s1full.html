@@ -1,0 +1,98 @@
+{{- /*
+  版本页的「完整 HTML」（输出格式 s1full，网址 <版本>/full.html）：整本原版版式放进一个独立文件，
+  样式内联、图片内嵌，离线也能打开；不用站点的页头页脚和脚本。
+  文件开头是完整的译者声明，每屏顶部有一条「非官方译本」横幅；打印（tools/s1-import/pdf.cjs 生成 PDF）时
+  声明单独成一页，之后每张原文页面各占一页。
+*/ -}}
+{{- $v := . -}}
+{{- $p := .Params -}}
+{{- $cap := time.AsTime $p.captured -}}
+{{- $root := .Parent -}}
+<!doctype html>
+<html lang="zh-CN" data-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{ $root.Title }} {{ $p.version }}（非官方 AI 译本）</title>
+<meta name="description" content="{{ .Description }}">
+<link rel="canonical" href="{{ .Permalink }}">
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #e9e9e9; color: #1f2328; font: 15px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+a { color: #0b57d0; }
+.dl-banner { position: sticky; top: 0; z-index: 5; background: #fff8e1; border-bottom: 1px solid #e3c770; padding: 6px 16px; font-size: 13px; text-align: center; }
+.dl-banner .dl-long { display: inline; }
+@media (max-width: 600px) { .dl-banner { padding: 4px 10px; font-size: 12px; } .dl-banner .dl-long { display: none; } }
+.dl-end { max-width: 860px; margin: 0 auto; padding: 8px 16px; }
+.dl-cover { max-width: 860px; margin: 0 auto; padding: 32px 16px 8px; }
+.dl-cover h1 { font-size: 26px; line-height: 1.3; margin: 0 0 6px; }
+.dl-meta { color: #57606a; font-size: 14px; margin: 0 0 16px; }
+.s1-notice { border: 1px solid #d0d7de; border-left: 4px solid #9a6700; border-radius: 8px; background: #fff; padding: 12px 16px; margin: 16px 0; }
+.s1-notice ul { margin: 0; padding-inline-start: 20px; }
+.s1-notice li { margin: 4px 0; }
+.s1-notice-title { font-weight: 700; margin: 0 0 6px; }
+.dl-toc { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 10px 16px; }
+.dl-toc ol { margin: 6px 0 0; padding-inline-start: 24px; columns: 2 280px; column-gap: 32px; }
+.dl-toc li { break-inside: avoid; }
+.dl-toc small { color: #57606a; margin-inline-start: 6px; }
+.dl-toc .missing { color: #8c959f; }
+.dl-ch { position: absolute; margin: 0; font-size: 1px; line-height: 1px; color: transparent; } /* 只给 PDF 书签和读屏用 */
+.dl-rights { max-width: 860px; margin: 0 auto; padding: 8px 16px 40px; font-size: 13px; color: #57606a; }
+.s1-sheets { overflow-x: auto; padding: 4px 0; }
+.s1-sheets-inner { width: 836px; margin: 0 auto; color: #000; }
+.s1-sheet { box-shadow: 0 1px 4px rgb(0 0 0 / .15); margin-block: 12px !important; }
+.s1-sheet a { color: #0000ee; text-decoration: underline; }
+/* 打印（含 tools/s1-import/pdf.cjs 生成的 PDF）：原文每页 612×792pt 原样一页，下面另加 18pt 页边写「非官方」标记和页码，
+   不压到原文内容；读者自己用浏览器打印也一样带标记 */
+@page { size: 612pt 810pt; margin: 0 0 18pt 0;
+  @bottom-center { content: "非官方 AI 译本 {{ $p.version }} · 与 Anthropic 无关，译文一致性未经人工核对，以 SEC 英文原文为准 · 第 " counter(page) " / " counter(pages) " 页";
+    font: 7pt/1 "Noto Sans CJK SC", "PingFang SC", sans-serif; color: #555; vertical-align: middle; } }
+/* 原文有 6 页是横版（792×612pt，主要股东表、部分财务报表），单独用横版纸，否则 Chromium 会把整份文档缩小到放得下最宽的一页 */
+@page landscape { size: 792pt 630pt; }
+@media print {
+  .s1-sheet[style*="width:792pt"] { page: landscape; }
+  body { background: #fff; }
+  .dl-banner { display: none; }
+  .dl-cover { max-width: none; height: 792pt; padding: 48pt 54pt; break-after: page; overflow: hidden; font-size: 11pt; }
+  .dl-cover h1 { font-size: 20pt; }
+  .dl-toc { padding: 6pt 10pt; font-size: 8.5pt; line-height: 1.45; }
+  .dl-toc ol { columns: 2; margin-top: 3pt; }
+  .s1-notice { font-size: 9.5pt; line-height: 1.6; }
+  .s1-sheets { overflow: visible; padding: 0; }
+  .s1-sheets-inner { width: auto; zoom: 1 !important; }
+  .s1-sheet { margin: 0 !important; border: 0 !important; box-shadow: none; break-after: page; content-visibility: visible !important; }
+  .dl-rights { display: none; }
+  .dl-end { max-width: none; padding: 48pt 54pt; break-before: page; font-size: 10pt; }
+}
+</style>
+</head>
+<body>
+<div class="dl-banner" role="note"><strong>非官方 AI 译本 {{ $p.version }}</strong><span class="dl-long">，与 Anthropic 无关，译文一致性未经人工核对</span> · 不是 SEC 原文<span class="dl-long"> · 以 <a href="{{ $p.source }}">英文原文</a>为准</span> · 后果自负</div>
+<header class="dl-cover">
+  <h1>{{ $root.Title }}</h1>
+  <p class="dl-meta">译本 {{ $p.version }}（{{ .Date.Format "2006-01-02" }} 定稿）· 对应 {{ $p.form }}，{{ $p.filed }} 提交 · 原文采集于 {{ $cap.UTC.Format "2006-01-02 15:04" }} UTC · 在线版 <a href="{{ .Permalink }}">{{ .Permalink }}</a></p>
+  {{- partial "s1/notice.html" (dict "v" $v "full" true) }}
+  <nav class="dl-toc" aria-label="目录">
+    <strong>目录</strong>{{ if $p.excerpt }}（灰色章节未包含在本文件中）{{ end }}
+    <ol>
+      {{- range $p.chapters }}
+      <li>{{ if .included }}<a href="#ch-{{ .slug }}">{{ .title }}</a>{{ else }}<span class="missing">{{ .title }}</span>{{ end }}<small>第 {{ index .pages 0 }}{{ if ne (index .pages 0) (index .pages 1) }}–{{ index .pages 1 }}{{ end }} 页</small></li>
+      {{- end }}
+    </ol>
+  </nav>
+</header>
+<main>
+{{- range .Pages.ByWeight }}
+<section id="ch-{{ path.Base (strings.TrimSuffix "/" .RelPermalink) }}">
+  <h2 class="dl-ch">{{ .Title }}</h2>
+  {{- partial "s1/original.html" (dict "page" . "book" true "inline" true) }}
+</section>
+{{- end }}
+</main>
+<section class="dl-end" aria-label="译者声明（重复）">{{ partial "s1/notice.html" (dict "v" $v "full" true) }}</section>
+<footer class="dl-rights">{{ partial "s1/rights.html" . }}</footer>
+<script>{const f=()=>{const z=Math.min(1,document.documentElement.clientWidth/836);for(const e of document.querySelectorAll(".s1-sheets-inner"))e.style.zoom=z<1?z.toFixed(4):""};f();addEventListener("resize",f);addEventListener("beforeprint",()=>{for(const e of document.querySelectorAll(".s1-sheets-inner"))e.style.zoom=""});addEventListener("afterprint",f)}</script>
+</body>
+</html>

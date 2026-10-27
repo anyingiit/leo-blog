@@ -1,0 +1,3 @@
+{{- /* 译文里少量的 <sup>、<br>（站点没开 goldmark unsafe），导入工具只会传这几种标签 */ -}}
+{{- $t := .Get 0 -}}
+{{- if in (slice "<sup>" "</sup>" "<br>" "<br/>") $t }}{{ $t | safeHTML }}{{ end -}}

@@ -117,6 +117,26 @@ test("导航菜单第一项是短文栏目（中文「短文」、英文「Notes
   assert.match(menu(site.read("en/")), new RegExp(`^<li><a href="?${PROD}en/notes/"?[^>]*><span>Notes</span>`));
 });
 
+test("列表里没有 0 分钟、0 字的条目（没有正文的栏目页不显示阅读时长和字数）", () => {
+  for (const list of ["", "en/", "translations/", "en/translations/", "notes/", "en/notes/", "archives/", "en/archives/"]) {
+    if (!site.exists(`${list}index.html`)) continue;
+    assert.doesNotMatch(allPagesOf(site, list), /(^|[>\s·])0 (分钟|字|min\b|words?\b)/, `${list || "首页"} 有 0 分钟或 0 字`);
+  }
+});
+
+test("正文里的链接不指向页面自己（Markdown 站内链接会被换成当前语言的页面，跨语言链接要用 relref 加 lang）", () => {
+  const pages = walk(site.out).filter((f) => f.endsWith("index.html")).map((f) => relative(site.out, f));
+  const self = [];
+  for (const f of pages) {
+    const html = readFileSync(join(site.out, f), "utf8");
+    const body = html.split(/<div class="?post-content[^>]*>/)[1]?.split("</main>")[0];
+    if (!body) continue;
+    const path = "/" + f.replace(/index\.html$/, "");
+    for (const h of hrefs(body)) if (h === path || h === PROD + path.slice(1)) self.push(`${path} → ${h}`);
+  }
+  assert.deepEqual(self, []);
+});
+
 test("草稿不发布", () => {
   for (const f of contentFiles.filter(isDraft)) {
     const slug = field(frontMatter(join(root, "content", f)), "slug");
@@ -126,8 +146,11 @@ test("草稿不发布", () => {
 
 // ── 中英文副本（项目规则：每篇文章都有英文副本）─────────────────────────
 
+// 例外：S-1 这类英文文件的中文译本（translations/<译本>/<版本>/），英文版就是原文（SEC 上的原件），只在译本首页给英文说明
+const isS1Version = (f) => /^translations\/[^/]+\/v[^/]+\//.test(f);
+
 test("每篇已发布的中文文章都有英文副本，反之亦然", () => {
-  for (const f of contentFiles.filter((f) => !isDraft(f))) {
+  for (const f of contentFiles.filter((f) => !isDraft(f) && !isS1Version(f))) {
     const twin = f.endsWith(".en.md") ? f.replace(/\.en\.md$/, ".md") : f.replace(/\.md$/, ".en.md");
     assert.ok(contentFiles.includes(twin), `${f} 缺少对应的 ${twin}`);
   }
