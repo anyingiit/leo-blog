@@ -9,7 +9,7 @@
 | `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Regression tests |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests |
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集、文章里的视频（见 [tests/README.md](../tests/README.md)、[video.md](video.md)）；构建结果没有超过 25 MiB 的文件 | Regression tests |
-| `tests/film.test.mjs` | 短片（见 [films.md](films.md)）：播放器原样发布并只插入桥接脚本、noindex、canonical；封面卡片是链接、没有脚本也能打开短片页；全窗口放映的沙箱、深浅色同步、返回键/Esc/关闭、修饰键点击不拦截；短片页按短片高度撑开；真实短片不引用外部样式和脚本、手机横屏画面够大；英文页放英文版（无中文、英文配音、英文封面） | Regression tests |
+| `tests/film.test.mjs` | 短片（见 [films.md](films.md)）：播放器原样发布并只插入桥接脚本、noindex、canonical；封面卡片是链接、没有脚本也能打开短片页；全窗口放映的沙箱、深浅色同步、返回键/Esc/关闭、修饰键点击不拦截；短片页按短片高度撑开；真实短片不引用外部样式和脚本、手机横屏画面够大；英文页放英文版（无中文、英文配音、英文封面）；卡片下的「播放短片」「阅读文字稿」按钮、Tab 顺序、从对话框去短片页后的返回 | Regression tests |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Regression tests |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Test → Test image-i18n |
 | `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面（含短片封面、短片页、全窗口放映），Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Visual (浏览器-设备)，6 个任务 |

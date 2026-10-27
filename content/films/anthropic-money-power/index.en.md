@@ -12,7 +12,7 @@ How do the five share classes in the prospectus (A / N / T / F / E), the Long-Te
 
 Based on the sections of Anthropic's S-1 prospectus on its governance structure and objectives, description of capital stock, management and related risk factors. It is a structural explainer made for personal study, not investment advice; the prospectus text governs.
 
-## Transcript
+## Transcript {#transcript}
 
 ### 01 Two questions
 

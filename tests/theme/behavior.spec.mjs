@@ -261,7 +261,7 @@ test("键盘焦点：短文图片的焦点框", async ({ browser }, info) => {
   await context.close();
 });
 
-test("短片：点封面全窗口放映，返回键、Esc、关闭按钮都回到原文", async ({ browser }, info) => {
+test("短片：点封面或「播放短片」全窗口放映，返回键、Esc、关闭按钮都回到原文", async ({ browser }, info) => {
   const { page, errors } = await open(browser, info, SITE + "/notes/film-note/");
   const url = page.url();
   const dialog = page.locator(".film-dialog");
@@ -277,9 +277,9 @@ test("短片：点封面全窗口放映，返回键、Esc、关闭按钮都回�
   await film.locator("#play").click();
   await film.locator("#play").press("Escape");
   await expect(dialog).toBeHidden();
-  await expect(page.locator(".film-open")).toBeFocused();
+  await expect(page.locator(".film-play-btn")).toBeFocused();
 
-  await page.click(".film-open");
+  await page.click(".film-play-btn");
   await page.click(".film-close");
   await expect(dialog).toBeHidden();
   await expect(page.locator(".film-dialog iframe")).toHaveAttribute("src", "about:blank");

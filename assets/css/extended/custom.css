@@ -60,11 +60,15 @@
 .film-open img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; margin: 0 !important; transition: opacity .2s; }
 .film-open:hover img { opacity: .85; }
 .film-open:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.film-play { position: absolute; left: .75rem; bottom: .75rem; display: flex; align-items: center; gap: .5rem; padding: .4rem .9rem .4rem .7rem; color: #fff; font-size: .9rem; font-weight: 600; background: rgb(0 0 0 / .65); border-radius: 999px; }
-.film-play::before { content: ""; border-style: solid; border-width: .45rem 0 .45rem .75rem; border-color: transparent transparent transparent #fff; }
+.film-play { position: absolute; left: .75rem; bottom: .75rem; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: rgb(0 0 0 / .65); }
+.film-play::before { content: ""; position: absolute; left: 52%; top: 50%; width: .9rem; height: 1rem; transform: translate(-50%, -50%); background: #fff; clip-path: polygon(0 0, 100% 50%, 0 100%); }
 .film-cover figcaption { display: flex; flex-wrap: wrap; gap: .25rem .75rem; align-items: baseline; margin-top: .5rem; font-size: .875rem; color: var(--secondary); text-align: left; }
 .film-cover figcaption strong { color: var(--primary); font-weight: 600; font-size: 1rem; }
 .film-cover figcaption span { font-weight: 400; }
+.film-acts { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .9rem; }
+.film-acts .btn { flex: 1 1 0; max-width: 14rem; }
+.film-play-btn::before { content: ""; width: .6rem; height: .7rem; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.film-jump { margin: 0 0 var(--gap); font-size: .95rem; }
 .film-dialog { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0f1522; display: none; flex-direction: column; }
 .film-dialog[open] { display: flex; }
 .film-dialog::backdrop { background: rgb(0 0 0 / .7); }
@@ -75,3 +79,12 @@
 .film-dialog iframe { flex: 1; width: 100%; border: 0; }
 .film-stage { --w: min(1000px, 100vw - 2 * var(--gap)); width: var(--w); margin: 0 0 var(--gap) calc(50% - var(--w) / 2); }
 .film-stage iframe { display: block; width: 100%; height: calc(var(--w) * 9 / 16 + 200px); border: 0; background: transparent; }
+
+/* 按钮（短片的操作按钮；S-1 译本的「开始阅读」也可以用）：实心是主操作，描边是次操作。
+   写成 .md-content a.btn:not(.anchor)，压过 PaperMod 给正文链接加的下划线，不靠样式表的先后 */
+.btn, .md-content a.btn:not(.anchor) { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: 8px 18px; border: 1px solid var(--primary); border-radius: var(--radius); font-size: .95rem; line-height: 1.3; white-space: nowrap; text-decoration: none; box-shadow: none; }
+.btn-primary, .md-content a.btn-primary:not(.anchor) { background: var(--primary); color: var(--theme); }
+.btn-primary:hover { opacity: .88; }
+.btn-outline, .md-content a.btn-outline:not(.anchor) { border-color: var(--border); color: var(--primary); }
+.btn-outline:hover { background: var(--code-bg); }
+.btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

@@ -26,3 +26,5 @@
   translation: 短片页、文字稿
 - id: film_transcript
   translation: 文字稿
+- id: film_read_transcript
+  translation: 阅读文字稿

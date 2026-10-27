@@ -26,3 +26,5 @@
   translation: Film page & transcript
 - id: film_transcript
   translation: Transcript
+- id: film_read_transcript
+  translation: Read the transcript
