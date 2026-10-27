@@ -1,7 +1,7 @@
 ---
 title: "A Sample Essay (Chinese translation)"
 slug: sample-essay
-date: 2026-10-20
+date: 2026-01-10
 type: bilingual
 enStub: true
 originalTitle: A Sample Essay
@@ -11,7 +11,6 @@ source: https://example.com/essay.html
 captured: 2026-10-20T08:00:00Z
 version: v1.0
 methodDetailEn: A fixture for the visual regression tests.
-tags: [Translations]
 summary: A fixture for the visual regression tests.
 ShowReadingTime: false
 ShowWordCount: false

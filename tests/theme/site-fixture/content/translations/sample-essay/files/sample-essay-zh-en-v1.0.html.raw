@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN" data-standalone>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
-<title>一篇样例短文（非官方译文 v1.0）</title>
+<title>一篇测试短文（非官方译文 v1.0）</title>
 <style>
 body { margin: 0; background: #eee; }
 .bl-dl-notice { max-width: 816px; box-sizing: border-box; margin: 0 auto; padding: 16px 64px; font: 14px/1.7 system-ui, sans-serif; color: #444; background: #fffbe6; }
@@ -21,7 +21,7 @@ body { margin: 0; background: #eee; }
 <body>
 <section class="bl-dl-notice">
 <p><strong>非官方中文译文</strong>：A Sample Essay，Jane Doe（简·多伊），2020-01-01 发表。原文：<a href="https://example.com/essay.html">https://example.com/essay.html</a></p>
-<p>翻译方式：视觉回归测试用的样例（tools/bilingual-import/testdata/sample.html 去掉图片）。 原文采集时间：2026-10-20 08:00:00+00:00。译文版本：v1.0。</p>
+<p>翻译方式：视觉回归测试用（tools/bilingual-import/testdata/sample.html 去掉图片）。 原文采集时间：2026-10-20 08:00:00+00:00。译文版本：v1.0。</p>
 <p>译者与原作者没有关联，译文未经作者审阅，以原文为准；译者不对译文的准确性负责，读者据此作出的判断与行动后果自负。原文著作权归原作者所有，下架请求：leoycwan@gmail.com</p>
 </section>
 <div class="bl-sheet"><style>.bl-sheet .style1 { font-family: Palatino; } .bl-sheet h1, .bl-sheet h2 { color: #222; }</style>
@@ -33,7 +33,7 @@ body { margin: 0; background: #eee; }
 </div>
 <section class="bl-dl-notice">
 <p><strong>非官方中文译文</strong>：A Sample Essay，Jane Doe（简·多伊），2020-01-01 发表。原文：<a href="https://example.com/essay.html">https://example.com/essay.html</a></p>
-<p>翻译方式：视觉回归测试用的样例（tools/bilingual-import/testdata/sample.html 去掉图片）。 原文采集时间：2026-10-20 08:00:00+00:00。译文版本：v1.0。</p>
+<p>翻译方式：视觉回归测试用（tools/bilingual-import/testdata/sample.html 去掉图片）。 原文采集时间：2026-10-20 08:00:00+00:00。译文版本：v1.0。</p>
 <p>译者与原作者没有关联，译文未经作者审阅，以原文为准；译者不对译文的准确性负责，读者据此作出的判断与行动后果自负。原文著作权归原作者所有，下架请求：leoycwan@gmail.com</p>
 </section>
 </body></html>
