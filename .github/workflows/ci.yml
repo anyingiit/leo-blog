@@ -112,6 +112,12 @@ jobs:
       - name: Install test dependencies
         run: npm ci
 
+      # s1-links.test.mjs 用 pypdf 读冻结 PDF 的书签和页内链接
+      - name: Install pypdf
+        run: |
+          command -v pip3 >/dev/null || (apt-get update -qq && apt-get install -y -qq python3-pip)
+          pip3 install --quiet --break-system-packages pypdf==6.17.0
+
       # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠、图集和页头语言切换（见 tests/README.md）
       - name: Run regression tests
         run: npm test

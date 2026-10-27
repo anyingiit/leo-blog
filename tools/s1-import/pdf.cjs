@@ -22,6 +22,9 @@ try { playwright = require("playwright"); } catch { playwright = require(path.jo
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: "load" });
   await page.emulateMedia({ media: "print" });
+  // 整页分隔图上的锚点是 top:0 的空 div，Chromium 打印时会把它们的页码算错（PDF 里的链接跳到别的页或丢失），挪下 1pt 就对了
+  // （站点 HTML 压缩后 top:0pt 写成 top:0，两种都要匹配）
+  await page.addStyleTag({ content: '[id][style$="position:absolute;top:0pt"]:empty, [id][style$="position:absolute;top:0"]:empty { top: 1pt !important; }' });
   // 页面大小、页边和每页底部的「非官方」标记都由 full.html 的 @page 规则决定（读者自己打印也一样）
   await page.pdf({ path: out, preferCSSPageSize: true, printBackground: true, outline: true, tagged: true });
   await browser.close();

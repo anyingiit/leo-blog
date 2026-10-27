@@ -114,6 +114,33 @@ test("全屏阅读：目录面板底部有下载链接，不另加按钮", async
   await ctx.close();
 });
 
+test("打印成 PDF 时原文页不被缩小：横版页（792pt 宽）单独用横版纸，其余内容不超出 612pt 纸宽", async () => {
+  // 只要有一页比纸宽，Chromium 就把整份文档缩小到放得下它（v1.0 第一次生成的 PDF 因此只有原尺寸的 77%）
+  const full = ["translations/anthropic-s1/v1.0/full.html", `translations/anthropic-s1/v1.0/files/${NAME}.html`].find((p) => site.exists(p));
+  const page = await browser.newPage({ viewport: { width: 816, height: 1056 } });
+  await page.goto(server.url + "/" + full, { waitUntil: "load" });
+  await page.emulateMedia({ media: "print" });
+  const r = await page.evaluate(() => {
+    const wide = [...document.querySelectorAll(".s1-sheet")].filter((s) => s.offsetWidth > 816);
+    const outside = [...document.querySelectorAll("body *")].filter((e) => e.getBoundingClientRect().right > 817 && !e.closest(".s1-sheet[style*='width:792pt']"));
+    return { wide: wide.length, landscape: wide.filter((s) => getComputedStyle(s).page === "landscape").length, outside: outside.length };
+  });
+  await page.close();
+  assert.ok(r.wide > 0, "真实译本里有横版页");
+  assert.deepEqual(r, { wide: r.wide, landscape: r.wide, outside: 0 });
+});
+
+test("原版视图里的图片都有宽度（PaperMod 的 img{max-width:100%} 曾把第 2、412 页的黑底图压成 0 宽）", async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const zero = [];
+  for (const ch of ["cover", "financial-statements-2"]) {
+    await page.goto(server.url + `/translations/anthropic-s1/v1.0/${ch}/`, { waitUntil: "load" });
+    zero.push(...await page.evaluate(() => [...document.querySelectorAll(".s1-original img")].filter((i) => i.getBoundingClientRect().width < 10).map((i) => i.closest(".s1-sheet").dataset.page)));
+  }
+  await page.close();
+  assert.deepEqual(zero, []);
+});
+
 test("s1.css 没有游离的声明（括号外的残行会让后面的规则整条失效）", () => {
   const css = readFileSync(join(root, "assets/css/extended/s1.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   let depth = 0, outside = "";

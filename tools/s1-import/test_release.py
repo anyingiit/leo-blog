@@ -69,7 +69,7 @@ class ReleasedFiles(unittest.TestCase):
                     self.assertEqual(len(b), d["bytes"], f"{d['file']} 大小和 front matter 不一致（发布后被改过？）")
                     self.assertEqual(hashlib.sha256(b).hexdigest(), d["sha256"], f"{d['file']} sha256 不一致")
                     self.assertLessEqual(len(b), release.MAX_BYTES)
-                release.check_pdf(os.path.join(vdir, dl["pdf"]["file"]), pages)
+                release.check_pdf(os.path.join(vdir, dl["pdf"]["file"]), pages, excerpt=bool(re.search(r"^excerpt: true$", fm, re.M)))
 
                 html = open(os.path.join(vdir, dl["html"]["file"]), encoding="utf-8").read()
                 self.assertRegex(html, r"<html[^>]* data-standalone")

@@ -14,7 +14,8 @@
 .s1-notice-short .s1-notice { border: 0; padding: 8px 0 0; margin: 0; background: none; }
 .s1-vbar { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 14px; color: var(--secondary); margin: 8px 0; }
 .s1-vtag { border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; color: var(--primary); }
-.s1-vtag.s1-latest { border-color: #16a34a; color: #16a34a; }
+.s1-vtag.s1-latest { border-color: #15803d; color: #15803d; } /* 浅色底上对比度 ≥ 4.5:1 */
+[data-theme="dark"] .s1-vtag.s1-latest { border-color: #16a34a; color: #16a34a; }
 .s1-vmenu { position: relative; }
 .s1-vmenu summary { cursor: pointer; text-decoration: underline; }
 .s1-vmenu ul { position: absolute; z-index: 5; inset-inline-start: 0; top: 1.8em; min-width: 260px; list-style: none; margin: 0;
@@ -59,6 +60,7 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 .s1-sheet { box-shadow: 0 1px 4px rgb(0 0 0 / .15); margin-block: 12px !important; }
 [data-theme="dark"] .s1-sheet { filter: brightness(.75); }
 .s1-sheet a { color: #0000ee; text-decoration: underline; box-shadow: none; }
+.s1-sheet img { max-width: none; } /* PaperMod 的 img{max-width:100%} 在没有宽度的绝对定位容器里会把图片算成 0 宽（原文第 2、412 页的黑底图） */
 @media (max-width: 880px) {
   .s1-sheets { margin-inline: calc(var(--gap) * -1); border-radius: 0; }
 }

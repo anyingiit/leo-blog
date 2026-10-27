@@ -47,7 +47,7 @@
     }
   };
   // 阅读位置 = 原文页码 + 在这一页里读到的比例，切换版式、缩放、进出沉浸时保持
-  const TOP = () => (immersive() ? 56 : 80);
+  const TOP = () => (immersive() ? 60 : 80); // 沉浸阅读里和 s1.css 的 scroll-padding-top 一致，锚点跳到的页算作当前页
   const firstPage = +(chapter?.dataset.firstPage || 0) || null;
   const pageBlocks = () => {
     // [{page, el}]，按顺序；重排版第一页从正文开头算
@@ -189,8 +189,11 @@
       const a = e.target.closest("a[href]");
       if (!immersive() || !a || e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey) return;
       const u = new URL(a.href, location.href);
-      if (u.origin !== location.origin || !u.pathname.startsWith(vroot) || u.pathname === location.pathname || u.searchParams.has("read")) return;
+      if (u.origin !== location.origin || !u.pathname.startsWith(vroot) || u.searchParams.has("read")) return;
       e.preventDefault();
+      ibar.querySelector(".s1-ibar-toc[open]")?.removeAttribute("open");
+      // 目录里的当前章：只收起目录，停在原处（以前会重新加载成普通模式、回到章首）；本章内带 #id 的只改片段，浏览器原地跳转
+      if (u.pathname === location.pathname && !u.hash) return;
       u.searchParams.set("read", "1");
       location.href = u;
     });

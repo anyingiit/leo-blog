@@ -50,7 +50,7 @@ def fix_tounicode(data):
     return RADICAL.sub(_unradical, data)
 
 
-def check_pdf(path, pages):
+def check_pdf(path, pages, excerpt=False):
     """发布前（以及 CI 里对已发布文件）的检查：页数、页面尺寸、每页的「非官方」标记、文字层没有部首字符、有书签和元数据"""
     from pypdf import PdfReader
 
@@ -65,10 +65,15 @@ def check_pdf(path, pages):
         if bad:
             fail(f"PDF 第 {i} 页的文字层还有部首字符 {''.join(bad[:10])}")
         box = p.mediabox
-        if (round(float(box.width)), round(float(box.height))) != (612, 810):
-            fail(f"PDF 第 {i} 页尺寸 {box.width}×{box.height}，应为 612×810pt")
+        if (round(float(box.width)), round(float(box.height))) not in ((612, 810), (792, 630)):
+            fail(f"PDF 第 {i} 页尺寸 {box.width}×{box.height}，应为 612×810pt（原文横版页 792×630pt）")
     if not r.outline:
         fail("PDF 没有章节书签")
+    dests = r.named_destinations
+    lost = sorted({str(a["/Dest"]) for p in r.pages for a in (x.get_object() for x in p.get("/Annots", []))
+                   if a.get("/Subtype") == "/Link" and "/Dest" in a and dests.get(str(a["/Dest"])) is None})
+    if lost and not excerpt:  # 节选版本里指向未收录页面的链接本来就没有目标
+        fail(f"PDF 里 {len(lost)} 个链接目标没有落到任何页：{', '.join(lost[:5])}")
     if "非官方" not in (r.metadata.title or "") or "非官方" not in (r.metadata.author or ""):
         fail("PDF 元数据缺少「非官方」标题或作者")
     if r.trailer["/Root"].get("/PageMode") != "/UseOutlines":
@@ -81,7 +86,7 @@ def fail(msg):
     raise ValueError(msg)
 
 
-def fix_pdf(path, title, version, pages):
+def fix_pdf(path, title, version, pages, excerpt=False):
     from pypdf import PdfReader, PdfWriter
     from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
@@ -114,7 +119,7 @@ def fix_pdf(path, title, version, pages):
     with pikepdf.open(path, allow_overwriting_input=True) as pdf:
         pdf.save(path, object_stream_mode=pikepdf.ObjectStreamMode.generate, compress_streams=True)
 
-    check_pdf(path, pages)
+    check_pdf(path, pages, excerpt)
     return fixed
 
 
@@ -153,7 +158,7 @@ def main():
     subprocess.run(["node", os.path.join(HERE, "pdf.cjs"), a.full, pdf_path], check=True)
     title = re.search(r"<title>([^<]+)</title>", html).group(1)
     try:
-        fixed = fix_pdf(pdf_path, title, version, pages)
+        fixed = fix_pdf(pdf_path, title, version, pages, any(not c["included"] for c in chapters))
     except ValueError as e:
         die(str(e))
 
