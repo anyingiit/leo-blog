@@ -21,13 +21,5 @@
   translation: "View"
 - id: bl_both
   translation: "Both"
-- id: bl_original
-  translation: "Original"
-- id: bl_expand_all
-  translation: "Show all original paragraphs"
-- id: bl_collapse_all
-  translation: "Hide all original paragraphs"
 - id: bl_link_para
   translation: "Link to paragraph"
-- id: bl_about
-  translation: "About this translation"

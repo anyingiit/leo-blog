@@ -19,6 +19,10 @@ const pages = [
   ["site", "/en/", "site-en-home", false],
   ["site", "/en/posts/sample-post/", "site-en-post", false],
   ["site", "/en/notes/", "site-en-notes", false],
+  // 双语对照译文（layouts/bilingual/）：电脑上默认原版版式、平板和手机上默认重排版；全屏阅读；英文页只放说明
+  ["site", "/translations/sample-essay/", "site-bilingual", true],
+  ["site", "/translations/sample-essay/?read=1", "site-bilingual-read", false],
+  ["site", "/en/translations/sample-essay/", "site-en-bilingual", false],
   // PaperMod 官方示例站：主题自身的参照
   ["example", "/", "example-home", true],
   ["example", "/posts/markdown-syntax/", "example-markdown", true],

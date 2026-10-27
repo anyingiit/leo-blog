@@ -2,7 +2,7 @@
   原版阅读：沿用 S-1 译本的阅读界面（类名、assets/js/s1.js、s1.css 都是同一套），只是内容换成一篇网页：
   - 原版版式：同目录 original.html（tools/bilingual-import/import.py 第三个参数生成），排在一张 816px 宽的「纸」上，
     宽屏按宽度放大（最多 1.4 倍），深色模式下纸也不反色；
-  - 重排版：本站排版，「中文 / 对照 / English」三档切换（和 bilingualMode: toggle 相同）；
+  - 重排版：本站排版，「中文 / 对照 / English」三档切换；
   - 没选过时电脑默认原版、手机默认重排（s1.js）；?read=1 全屏阅读；全文下载用 s1/downloads.html（front matter downloads）。
   参数 dict "page" 页面 "data" pairs.yaml 的内容
 */ -}}
@@ -24,7 +24,6 @@
     <button type="button" class="s1-ibar-exit" data-exit title="退出全屏阅读（Esc）">✕ 退出</button>
   </div>
   <header class="post-header s1-header">
-    {{- with $p.previewLabel }}<div class="bl-preview-label">{{ . }}</div>{{ end }}
     {{- with $sec }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
     <h1 class="post-title">{{ $page.Title }}</h1>
     <div class="post-meta bl-meta">
@@ -47,7 +46,7 @@
     </div>
     <a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>
   </div>
-  <div class="post-content s1-reflow bl-article bl-mode-toggle" data-view="reflow" data-mode="both">
+  <div class="post-content s1-reflow bl-article" data-view="reflow" data-mode="both">
     <script>
       (function (a) {
         var m = null;
@@ -64,6 +63,10 @@
     <div class="bl-body">
     {{- range $i, $x := .data.pairs }}
       {{- $n := add $i 1 }}
+      {{- if eq $x.kind "img" }}
+      <figure class="bl-pair bl-img" id="p{{ $n }}"><img src="{{ $x.src }}" alt="{{ $x.alt }}" loading="lazy" decoding="async"></figure>
+      {{- continue }}
+      {{- end }}
       {{- $tag := cond (in (slice "h1" "h2") $x.kind) "h2" (cond (in (slice "h3" "h4") $x.kind) "h3" (cond (eq $x.kind "quote") "blockquote" "p")) }}
       <div class="bl-pair bl-k-{{ $x.kind }}" id="p{{ $n }}">
         {{- printf "<%s class=\"bl-zh\" lang=\"zh-CN\">%s</%s>" $tag ($x.zh | default "" | markdownify) $tag | safeHTML }}
@@ -86,7 +89,7 @@
 {{- partial "s1/script.html" $page }}
 <script>
 (function () {
-  // 重排版的「中文 / 对照 / English」切换，记在本机（和 bilingualMode: toggle 相同）
+  // 重排版的「中文 / 对照 / English」切换，记在本机
   var a = document.querySelector(".s1-reflow.bl-article"), key = "bl-mode-{{ $lang }}";
   function mark() { a.querySelectorAll(".bl-switch [data-set]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.set === a.dataset.mode); }); }
   mark();

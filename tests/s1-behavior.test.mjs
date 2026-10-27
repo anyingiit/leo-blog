@@ -116,7 +116,7 @@ for (const [lang, home, label, list, entry] of [["中文", "/", "译文", "/tran
     await waitPath(s.page, list);
     // 菜单当前项高亮
     assert.equal(await s.page.locator("#menu .active").textContent(), label);
-    await s.page.locator(".post-entry .entry-link").first().click();
+    await s.page.locator(`.post-entry .entry-link[href$="${entry}"]`).click();
     await waitPath(s.page, entry);
     assert.equal(await s.page.locator("html").getAttribute("lang"), lang === "中文" ? "zh" : "en");
     await s.done();

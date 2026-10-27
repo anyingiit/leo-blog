@@ -1,136 +1,36 @@
 {{- /*
-  双语对照译文（沉浸式翻译导出的「原文段落 + 译文段落」），段落对存在同目录的 pairs.yaml（tools/bilingual-import/import.py 生成）。
-  版式由 front matter 的 bilingualMode 决定：
-    alt    原文、译文逐段交替（和沉浸式翻译一致）
-    side   电脑上左右并排、逐段对齐，整篇加宽到页头宽度；手机退回逐段交替
-    toggle 「中文 / 对照 / English」三档切换，中文页默认中文，记住读者的选择；不开脚本时显示对照、不显示切换条
-    best   同 toggle；「对照」档在电脑上左右并排（中文在左）并整篇加宽，切换条吸顶
-    fold   默认只显示中文，每段末尾「原文」可逐段展开，也可一键全部展开
-    original 和 S-1 译本同一套阅读界面（layouts/bilingual/reader.html）：原版版式（原网页 + 段后译文，同目录 original.html）
-           和重排版（中文 / 对照 / English）切换，宽屏加宽，?read=1 全屏阅读，HTML / PDF 全文下载
-  英文页（.en.md）设 enStub: true 时只放说明和原文链接，不重复原文全文。
+  双语对照译文（沉浸式翻译导出的「原文段落 + 段后译文」网页）。用 tools/bilingual-import/import.py 导入，同目录：
+    pairs.yaml     段落对，重排版用
+    original.html  原网页正文（保留原作者的样式，段后译文），原版版式用
+  中文页和 S-1 译本同一套阅读界面（layouts/_partials/bilingual/reader.html）。
+  英文页（.en.md）设 enStub: true：只放说明和原文链接，不重复原文全文。
 */ -}}
 {{- define "main" }}
-{{- $data := dict }}
-{{- $res := .Resources.GetMatch "pairs*.yaml" }}
-{{- if not $res }}{{ range .AllTranslations }}{{ with .Resources.GetMatch "pairs*.yaml" }}{{ $res = . }}{{ end }}{{ end }}{{ end }}
-{{- with $res }}{{ $data = . | transform.Unmarshal }}{{ end }}
-{{- $mode := .Params.bilingualMode | default "best" }}
-{{- $switch := and (in (slice "toggle" "best") $mode) (not .Params.enStub) }}
-{{- $lang := .Language.Lang }}
-{{- if and (eq $mode "original") (not .Params.enStub) }}
-{{- partial "bilingual/reader.html" (dict "page" . "data" $data) }}
-{{- else }}
-<article class="post-single bl-article {{ if not .Params.enStub }}bl-mode-{{ $mode }}{{ end }}" data-mode="{{ cond $switch "both" $mode }}">
-  {{- if $switch }}
-  <script>
-    (function (a) {
-      // 在正文渲染前定下显示方式，避免先闪出对照再切走；中英文页各记各的
-      var m = null;
-      try { m = localStorage.getItem("bl-mode-{{ $lang }}"); } catch (e) {}
-      a.dataset.mode = m || {{ cond (eq $lang "zh") "zh" "both" }};
-      a.classList.add("bl-js");
-    })(document.currentScript.parentNode);
-  </script>
-  {{- end }}
+{{- if .Params.enStub }}
+{{- $p := .Params }}
+<article class="post-single bl-stub">
   <header class="post-header">
-    {{- with .Params.previewLabel }}<div class="bl-preview-label">{{ . }}</div>{{ end }}
+    {{- with .Parent }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
     <h1 class="post-title">{{ .Title }}</h1>
-    {{- if eq $lang "zh" }}{{ with .Params.originalTitle }}<div class="bl-original-title" lang="en">{{ . }}</div>{{ end }}{{ end }}
     <div class="post-meta bl-meta">
-      {{- with .Params.author }}<span>{{ . }}</span>{{ end }}
-      {{- with .Params.originalDate }}&nbsp;·&nbsp;<span>{{ i18n "bl_published" }} {{ time.Format ":date_long" . }}</span>{{ end }}
+      {{- with $p.originalTitle }}<span>{{ . }}</span>{{ end }}
+      {{- with $p.author }}&nbsp;·&nbsp;<span>{{ . }}</span>{{ end }}
+      {{- with $p.originalDate }}&nbsp;·&nbsp;<span>{{ i18n "bl_published" }} {{ time.Format ":date_long" . }}</span>{{ end }}
       {{- partial "translation_list.html" . -}}
     </div>
   </header>
-  {{- partial "bilingual/notice.html" . }}
-
-  {{- if .Params.enStub }}
-  <div class="post-content md-content">{{ .Content }}</div>
-  {{- else }}
-  {{- if $switch }}
-  <div class="bl-switch" role="group" aria-label="{{ i18n "bl_view" }}">
-    <button type="button" data-set="zh">中文</button>
-    <button type="button" data-set="both">{{ i18n "bl_both" }}</button>
-    <button type="button" data-set="en">English</button>
-  </div>
-  {{- else if eq $mode "fold" }}
-  <div class="bl-switch bl-switch-fold"><button type="button" data-expand-all>{{ i18n "bl_expand_all" }}</button></div>
-  {{- end }}
-  <div class="post-content bl-body">
-    {{- range $i, $p := $data.pairs }}
-    {{- $n := add $i 1 }}
-    {{- if eq $p.kind "img" }}
-    <figure class="bl-pair bl-img" id="p{{ $n }}"><img src="{{ $p.src }}" alt="{{ $p.alt }}" loading="lazy"></figure>
-    {{- else }}
-    {{- $tag := cond (in (slice "h1" "h2") $p.kind) "h2" (cond (in (slice "h3" "h4") $p.kind) "h3" (cond (eq $p.kind "quote") "blockquote" "p")) }}
-    <div class="bl-pair bl-k-{{ $p.kind }}" id="p{{ $n }}">
-      {{- $en := printf "<%s class=\"bl-en\" lang=\"en\">%s</%s>" $tag ($p.en | markdownify) $tag | safeHTML }}
-      {{- $cn := printf "<%s class=\"bl-zh\" lang=\"zh-CN\">%s</%s>" $tag ($p.zh | default "" | markdownify) $tag | safeHTML }}
-      {{- if in (slice "alt" "side") $mode }}{{ $en }}{{ $cn }}
-      {{- else if eq $mode "fold" }}{{ $cn }}<details class="bl-orig"><summary>{{ i18n "bl_original" }}</summary>{{ $en }}</details>
-      {{- else if eq $lang "zh" }}{{ $cn }}{{ $en }}
-      {{- else }}{{ $en }}{{ $cn }}{{ end }}
-      <a class="bl-anchor" href="#p{{ $n }}" aria-label="{{ i18n "bl_link_para" }} {{ $n }}">#</a>
-    </div>
-    {{- end }}
-    {{- end }}
-  </div>
-  {{- if .Content }}<div class="post-content md-content bl-afterword">{{ .Content }}</div>{{ end }}
-  {{- end }}
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      {{- range (.GetTerms "tags") }}<li><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></li>{{ end }}
+  <div class="post-content">{{ .Content }}</div>
+  <aside class="bl-notice" role="note">
+    <ul>
+      <li>Unofficial Chinese translation, version {{ $p.version }}. {{ $p.methodDetailEn }}</li>
+      {{- with $p.captured }}<li>Original captured {{ (time.AsTime .).UTC.Format "2006-01-02 15:04" }} UTC.</li>{{ end }}
+      <li>Copyright in the original belongs to {{ $p.author | default "its author" }}. Rights holders who object can write to {{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }} and the translation will be taken down.</li>
     </ul>
-  </footer>
+  </aside>
 </article>
-{{- if $switch }}
-<script>
-(function () {
-  var a = document.querySelector(".bl-article"), key = "bl-mode-{{ $lang }}";
-  function mark() {
-    a.querySelectorAll(".bl-switch [data-set]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.set === a.dataset.mode); });
-  }
-  mark();
-  a.querySelector(".bl-switch").addEventListener("click", function (e) {
-    var b = e.target.closest("[data-set]");
-    if (!b || b.dataset.set === a.dataset.mode) return;
-    // 切换后让读者停在刚才读的那一段：记下视口顶部附近的段落，切换后滚回它
-    var top = null;
-    a.querySelectorAll(".bl-pair").forEach(function (p) { if (!top && p.getBoundingClientRect().bottom > 80) top = p; });
-    var off = top && top.getBoundingClientRect().top;
-    a.dataset.mode = b.dataset.set;
-    mark();
-    if (top && window.scrollY > 0) window.scrollBy(0, top.getBoundingClientRect().top - off);
-    try { localStorage.setItem(key, b.dataset.set); } catch (e) {}
-  });
-  {{- if eq $mode "best" }}
-  // 吸顶的切换条：往下读时收起，往上滑一点就出现
-  var bar = a.querySelector(".bl-switch"), home = bar.offsetTop, last = window.scrollY;
-  window.addEventListener("scroll", function () {
-    var y = window.scrollY, stuck = y > home;
-    bar.classList.toggle("bl-stuck", stuck);
-    if (Math.abs(y - last) > 6) { bar.classList.toggle("bl-away", stuck && y > last); last = y; }
-  }, { passive: true });
-  {{- end }}
-})();
-</script>
-{{- else if eq $mode "fold" }}
-<script>
-(function () {
-  var b = document.querySelector("[data-expand-all]");
-  b.addEventListener("click", function () {
-    var open = !b.classList.contains("on");
-    document.querySelectorAll(".bl-orig").forEach(function (d) { d.open = open; });
-    b.classList.toggle("on", open);
-    b.textContent = open ? {{ i18n "bl_collapse_all" }} : {{ i18n "bl_expand_all" }};
-  });
-  // 带 #p5 打开时展开那一段的原文
-  var t = location.hash && document.querySelector(location.hash + " .bl-orig");
-  if (t) t.open = true;
-})();
-</script>
-{{- end }}
+{{- else }}
+{{- $data := dict }}
+{{- with .Resources.Get "pairs.yaml" }}{{ $data = . | transform.Unmarshal }}{{ end }}
+{{- partial "bilingual/reader.html" (dict "page" . "data" $data) }}
 {{- end }}
 {{- end }}

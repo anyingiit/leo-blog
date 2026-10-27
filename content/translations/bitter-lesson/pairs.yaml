@@ -1,4 +1,4 @@
-# 由 tools/bilingual-import/import.py 从沉浸式翻译保存的 HTML 生成；可以直接手改译文
+# 由 tools/bilingual-import/import.py 从 source.html.raw 生成，不要手改（改了会和原版版式对不上）
 header:
 - kind: h1
   en: The Bitter Lesson

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN" data-standalone>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>一篇样例短文（非官方译文 v1.0）</title>
+<style>
+body { margin: 0; background: #eee; }
+.bl-dl-notice { max-width: 816px; box-sizing: border-box; margin: 0 auto; padding: 16px 64px; font: 14px/1.7 system-ui, sans-serif; color: #444; background: #fffbe6; }
+.bl-dl-notice p { margin: 4px 0; }
+.bl-sheet { margin: 0 auto; max-width: 100%; }
+@media (max-width: 820px) { .bl-sheet { width: auto !important; padding: 24px 16px !important; } .bl-dl-notice { padding: 12px 16px; } }
+@page { size: 816px 1056px; margin: 0 0 40px; @bottom-center { content: "非官方译文 · v1.0 · 以原文为准"; font: 10px sans-serif; color: #888; } }
+@media print { body { background: #fff; } }
+.bl-sheet { width: 816px; box-sizing: border-box; padding: 56px 64px 64px; background: #fff; color: #000; font-size: 16px; line-height: 1.5; font-family: "Times New Roman", "Songti SC", "Noto Serif CJK SC", serif; }
+.bl-sheet .style1, .bl-sheet .style1 * { font-family: Palatino, "Palatino Linotype", "Book Antiqua", "URW Palladio L", "Songti SC", "Noto Serif CJK SC", serif; }
+.bl-sheet h1 { font-size: 2em; margin: 0.67em 0; font-weight: bold; }
+.bl-sheet h2 { font-size: 1.5em; margin: 0.83em 0; font-weight: bold; }
+.bl-sheet h3 { font-size: 1.17em; margin: 1em 0; font-weight: bold; }
+.bl-sheet .bl-tr { margin-inline-start: 0.5em; }
+.bl-sheet .bl-tr-block { display: block; margin: 0.4em 0 0; }
+</style></head>
+<body>
+<section class="bl-dl-notice">
+<p><strong>非官方中文译文</strong>：A Sample Essay，Jane Doe（简·多伊），2020-01-01 发表。原文：<a href="https://example.com/essay.html">https://example.com/essay.html</a></p>
+<p>翻译方式：视觉回归测试用的样例（tools/bilingual-import/testdata/sample.html 去掉图片）。 原文采集时间：2026-10-20 08:00:00+00:00。译文版本：v1.0。</p>
+<p>译者与原作者没有关联，译文未经作者审阅，以原文为准；译者不对译文的准确性负责，读者据此作出的判断与行动后果自负。原文著作权归原作者所有，下架请求：leoycwan@gmail.com</p>
+</section>
+<div class="bl-sheet"><style>.bl-sheet .style1 { font-family: Palatino; } .bl-sheet h1, .bl-sheet h2 { color: #222; }</style>
+<h1>A Sample Essay<span class="bl-tr" lang="zh-CN">一篇样例短文</span></h1>
+<h2>Jane Doe<span class="bl-tr" lang="zh-CN">简·多伊</span></h2>
+<p class="style1">Plain text with <i>italics</i>, a <a href="https://example.com/x">link</a>, a star * and $5 &lt;tag&gt;. A quote ``like this" here.<span class="bl-tr bl-tr-block" lang="zh-CN">纯文本，带*斜体*、链接、星号和 5 美元。</span></p>
+<p>1984. was a year.<span class="bl-tr bl-tr-block" lang="zh-CN">1984 年是一年。</span></p>
+<p>No translation here.</p>
+</div>
+<section class="bl-dl-notice">
+<p><strong>非官方中文译文</strong>：A Sample Essay，Jane Doe（简·多伊），2020-01-01 发表。原文：<a href="https://example.com/essay.html">https://example.com/essay.html</a></p>
+<p>翻译方式：视觉回归测试用的样例（tools/bilingual-import/testdata/sample.html 去掉图片）。 原文采集时间：2026-10-20 08:00:00+00:00。译文版本：v1.0。</p>
+<p>译者与原作者没有关联，译文未经作者审阅，以原文为准；译者不对译文的准确性负责，读者据此作出的判断与行动后果自负。原文著作权归原作者所有，下架请求：leoycwan@gmail.com</p>
+</section>
+</body></html>

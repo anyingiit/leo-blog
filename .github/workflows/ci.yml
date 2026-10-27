@@ -85,6 +85,12 @@ jobs:
           /tmp/venv/bin/pip install --quiet -r tools/s1-import/requirements.txt
           /tmp/venv/bin/python -m unittest discover -s tools/s1-import -v
 
+      # 双语对照译文的导入、发布工具，并核对每篇已发布的冻结下载文件（docs/bilingual-translations.md）
+      - name: Test bilingual-import
+        run: |
+          /tmp/venv/bin/pip install --quiet -r tools/bilingual-import/requirements.txt
+          /tmp/venv/bin/python -m unittest discover -s tools/bilingual-import -v
+
   # 两个浏览器测试任务都在 Playwright 官方镜像里运行（按 digest 锁定）：浏览器和系统依赖已装好，不用每次下载安装，
   # 截图基准也在同一镜像里生成，换机器不会因字体渲染不同而误报。
 

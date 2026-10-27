@@ -1,0 +1,18 @@
+# 由 tools/bilingual-import/import.py 从 source.html.raw 生成，不要手改（改了会和原版版式对不上）
+header:
+- kind: h1
+  en: A Sample Essay
+  zh: 一篇样例短文
+- kind: h2
+  en: Jane Doe
+  zh: 简·多伊
+pairs:
+- kind: p
+  en: |-
+    Plain text with *italics*, a [link](https://example.com/x), a star \* and \$5 &lt;tag>. A quote “like this” here.
+  zh: 纯文本，带\*斜体\*、链接、星号和 5 美元。
+- kind: p
+  en: 1984\. was a year.
+  zh: 1984 年是一年。
+- kind: p
+  en: No translation here.

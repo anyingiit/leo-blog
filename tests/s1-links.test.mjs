@@ -322,7 +322,7 @@ for (const engine of ["chromium", "webkit"]) {
     await page.goto(server.url + "/en/translations/anthropic-s1/");
     assert.equal((await go(page, "a[aria-label=中文]")).path, "/translations/anthropic-s1/");
     await page.goto(server.url + "/en/translations/");
-    assert.equal((await go(page, "main a.entry-link")).path, "/en/translations/anthropic-s1/");
+    assert.equal((await go(page, "main a.entry-link[href$='/en/translations/anthropic-s1/']")).path, "/en/translations/anthropic-s1/");
     // 章节页：面包屑、语言切换
     await page.goto(server.url + `${V}mdna/`);
     assert.equal((await go(page, ".s1-crumb a >> nth=1")).path, V);

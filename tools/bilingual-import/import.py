@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 """把沉浸式翻译（Immersive Translate）保存的双语对照 HTML 拆成「原文/译文」段落对。
 
-用法：python3 tools/bilingual-import/import.py <保存的.html> <输出的 pairs.yaml> [<输出的 original.html>]
+用法：python3 tools/bilingual-import/import.py <保存的.html> content/translations/<slug>
+
+在文章目录里写三个文件（流程见 docs/bilingual-translations.md）：
+  source.html.raw  保存的网页原样存一份，导入脚本改进后可以重新导入（.raw 不会被 Hugo 当成文章）
+  pairs.yaml       段落对，重排版用
+  original.html    原版版式用的网页片段
 
 沉浸式翻译把每段译文包在 <font class="immersive-translate-target-wrapper"> 里，追加在该段原文末尾。
 这里按文档顺序把 DOM 摊平：遇到译文包装就结束当前一段原文，与包装里的译文配成一对；
 段落的种类（标题、引用、列表项、正文）取自原文所在的块元素。行内的斜体、粗体、链接、代码转成 Markdown。
 没有译文的块（例如图片、代码块）原样保留为只有原文的一段。
 
-给了第三个参数时，另外输出「原版版式」用的 HTML 片段：原网页 <body> 的内容原样保留（标题、段落、行内样式），
+original.html：原网页 <body> 的内容原样保留（标题、段落、行内样式），
 去掉插件注入的脚本、样式、弹窗和 data-imt 属性；每段译文换成 <span class="bl-tr"> 或 <span class="bl-tr bl-tr-block">，
-样式由 layouts/_partials/bilingual/original.html 和 bilingual.css 决定。原网页 <head> 里的 <style> 也保留（只取作者自己的样式）。
+样式由 assets/css/extended/bilingual.css 的 .bl-sheet 决定。原网页 <head> 里的 <style> 也保留（只取作者自己的样式）。
 """
+import os
 import re
 import sys
 
@@ -20,6 +26,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 
 WRAPPER = "immersive-translate-target-wrapper"
 BLOCKS = {"p", "div", "li", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "td", "th", "dd", "dt", "figcaption", "section", "article", "body"}
+PLUGIN_ID = re.compile("immersive|^mount$")  # 插件注入的弹窗、悬浮球等
 KINDS = {"h1": "h1", "h2": "h2", "h3": "h3", "h4": "h4", "h5": "h4", "h6": "h4", "li": "li", "blockquote": "quote", "pre": "code"}
 
 
@@ -73,6 +80,8 @@ def extract(soup):
     body = soup.body or soup
     for junk in body.find_all(["script", "style", "template", "noscript"]):
         junk.decompose()
+    for el in body.find_all(id=PLUGIN_ID):
+        el.decompose()
     pairs, buf, buf_kind = [], [], None
 
     def flush(zh=None):
@@ -123,7 +132,7 @@ def original_fragment(soup):
     body = soup.body
     for junk in body.find_all(["script", "style", "template", "noscript", "link"]):
         junk.decompose()
-    for el in body.find_all(id=re.compile("immersive|^mount$")):
+    for el in body.find_all(id=PLUGIN_ID):
         el.decompose()
     for w in body.find_all(class_=WRAPPER):
         inner = w.find(class_="immersive-translate-target-inner")
@@ -154,10 +163,13 @@ class Literal(str):
 yaml.add_representer(Literal, lambda d, s: d.represent_scalar("tag:yaml.org,2002:str", s, style="|"))
 
 
-def main(src, out, original=None):
-    if original:
-        with open(original, "w", encoding="utf-8") as f:
-            f.write(original_fragment(read(src)))
+def main(src, bundle):
+    os.makedirs(bundle, exist_ok=True)
+    raw = open(src, "rb").read()
+    if os.path.abspath(src) != os.path.abspath(os.path.join(bundle, "source.html.raw")):
+        open(os.path.join(bundle, "source.html.raw"), "wb").write(raw)
+    with open(os.path.join(bundle, "original.html"), "w", encoding="utf-8") as f:
+        f.write(original_fragment(read(src)))
     pairs = extract(read(src))
     # 开头连续的标题行（文章标题、作者、日期）单独放进 header，正文排版时不重复显示
     n = 0
@@ -168,12 +180,14 @@ def main(src, out, original=None):
         for k in ("en", "zh"):
             if k in p and len(p[k]) > 60:
                 p[k] = Literal(p[k])
-    with open(out, "w", encoding="utf-8") as f:
-        f.write("# 由 tools/bilingual-import/import.py 从沉浸式翻译保存的 HTML 生成；可以直接手改译文\n")
+    with open(os.path.join(bundle, "pairs.yaml"), "w", encoding="utf-8") as f:
+        f.write("# 由 tools/bilingual-import/import.py 从 source.html.raw 生成，不要手改（改了会和原版版式对不上）\n")
         yaml.dump({"header": header, "pairs": pairs}, f, allow_unicode=True, sort_keys=False, width=10**9)
     untranslated = sum(1 for p in pairs if p["kind"] != "img" and "zh" not in p)
     print(f"{len(pairs)} 段，其中 {untranslated} 段没有译文", file=sys.stderr)
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    if len(sys.argv) != 3:
+        sys.exit(__doc__)
+    main(sys.argv[1], sys.argv[2])

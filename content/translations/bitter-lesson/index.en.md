@@ -4,7 +4,6 @@ slug: bitter-lesson
 date: 2026-10-27
 type: bilingual
 enStub: true
-previewLabel: "Option S · English page: link to the original"
 originalTitle: The Bitter Lesson
 author: Rich Sutton
 originalDate: 2019-03-13
@@ -19,6 +18,6 @@ ShowReadingTime: false
 ShowWordCount: false
 ---
 
-This page hosts a Chinese translation of Rich Sutton's 2019 essay *The Bitter Lesson*. The English original is on the author's website, and that is the place to read it: [incompleteideas.net/IncIdeas/BitterLesson.html](http://www.incompleteideas.net/IncIdeas/BitterLesson.html).
+This page hosts a Chinese translation of Rich Sutton's 2019 essay *The Bitter Lesson*. The English original is on the author's website: [incompleteideas.net/IncIdeas/BitterLesson.html](http://www.incompleteideas.net/IncIdeas/BitterLesson.html).
 
-If you read Chinese, or are learning it, the [Chinese page](/translations/bitter-lesson/) shows the original and the translation paragraph by paragraph.
+The [Chinese page]({{< relref path="/translations/bitter-lesson" lang="zh" >}}) shows the original and the translation paragraph by paragraph.
