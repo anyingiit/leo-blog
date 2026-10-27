@@ -136,19 +136,19 @@ test("返回键先关掉短片，留在原文原处", async () => {
 test("关闭按钮、短片里按 Esc 都能关闭，焦点回到「播放短片」按钮，历史记录不多出一条", async () => {
   const { page, ctx } = await open("/notes/film-note/");
   const depth = await page.evaluate(() => history.length);
-  const onPlayButton = () => page.evaluate(() => document.activeElement.classList.contains("film-play-btn"));
+  const onPlayButton = () => page.waitForFunction(() => document.activeElement.classList.contains("film-play-btn"), null, { timeout: 2000 });
   await page.click(".film-play-btn");
   assert.equal(await dialogOpen(page), true, "「播放短片」按钮和封面一样在对话框里放映");
   await page.click(".film-close");
   assert.equal(await dialogOpen(page), false);
   await page.waitForFunction((n) => history.length === n + 1 && history.state === null, depth);
-  assert.equal(await onPlayButton(), true);
+  await onPlayButton();
 
   await page.click(".film-open"); // 从封面打开，焦点也回到按钮（封面不进 Tab 顺序）
   await film(page).locator("#play").click(); // 焦点进入短片
   await film(page).locator("#play").press("Escape");
   await page.waitForFunction(() => !document.querySelector(".film-dialog").open);
-  assert.equal(await onPlayButton(), true);
+  await onPlayButton(); // dialog 的 close 事件在 close() 之后才派发，焦点稍后才回来
   await ctx.close();
 });
 

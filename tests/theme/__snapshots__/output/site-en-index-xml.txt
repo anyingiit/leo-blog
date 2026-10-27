@@ -15,9 +15,13 @@
 <guid>http://blog.test/en/notes/film-note/</guid>
 <description>&lt;p&gt;A film cover in the text:&lt;/p&gt;
 &lt;figure class="film film-cover"&gt;
-&lt;a class="film-open" href="http://blog.test/en/films/test-film/" data-play="/films/test-film/play/?lang=en" data-title="Test Film" aria-label="Play the film：Test Film"&gt;&lt;img src="http://blog.test/films/test-film/poster_hu_80a0afd65939a82.webp" width="1280" height="720" alt="" loading="lazy" decoding="async" class="in-text"&gt;&lt;span class="film-play" aria-hidden="true"&gt;Play the film&lt;/span&gt;
+&lt;a class="film-open" href="http://blog.test/en/films/test-film/" data-play="/films/test-film/play/?lang=en" data-title="Test Film" tabindex="-1" aria-hidden="true"&gt;&lt;img src="http://blog.test/films/test-film/poster_hu_80a0afd65939a82.webp" width="1280" height="720" alt="" loading="lazy" decoding="async" class="in-text"&gt;&lt;span class="film-play"&gt;&lt;/span&gt;
 &lt;/a&gt;
 &lt;figcaption&gt;&lt;strong&gt;Test Film&lt;/strong&gt;&lt;span&gt;Animated short · about 2 min · narrated&lt;/span&gt;&lt;/figcaption&gt;
+&lt;div class="film-acts"&gt;
+&lt;a class="btn btn-primary film-play-btn" href="http://blog.test/en/films/test-film/" data-play="/films/test-film/play/?lang=en" data-title="Test Film" aria-haspopup="dialog"&gt;Play the film&lt;/a&gt;
+&lt;a class="btn btn-outline" href="http://blog.test/en/films/test-film/#transcript"&gt;Read the transcript&lt;/a&gt;
+&lt;/div&gt;
 &lt;/figure&gt;
 &lt;p&gt;A paragraph after the film.&lt;/p&gt;</description>
 </item>
