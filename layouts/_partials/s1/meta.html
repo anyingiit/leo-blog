@@ -1,0 +1,6 @@
+{{- /* 取当前页所属的译本版本（版本目录的 _index）和译本首页；返回 dict */ -}}
+{{- $v := . -}}
+{{- if .IsPage }}{{ $v = .Parent }}{{ end -}}
+{{- $root := $v.Parent -}}
+{{- $versions := $root.Sections.ByWeight -}}
+{{- return dict "version" $v "root" $root "versions" $versions "latest" (index $versions 0) -}}

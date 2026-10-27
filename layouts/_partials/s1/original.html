@@ -1,0 +1,23 @@
+{{- /*
+  原版版式：输出一章的 original.html（导入工具从译文 HTML 里切出的整页），
+  图片占位 s1img:<文件名> 换成 assets/translations/anthropic-s1/img/ 里同名图片转出的 WebP。
+  每页加 data-page，供页码跳转和原版/重排切换对齐。
+*/ -}}
+{{- $page := . -}}
+{{- $html := "" -}}
+{{- with .Resources.Get "original.html" }}{{ $html = .Content }}{{ end -}}
+{{- range uniq (findRESubmatch `s1img:([^"]+)` $html) -}}
+  {{- $name := index . 1 -}}
+  {{- with resources.Get (printf "translations/anthropic-s1/img/%s" $name) -}}
+    {{- $img := .Process "webp q80" -}}
+    {{- $html = replace $html (printf "s1img:%s" $name) $img.RelPermalink -}}
+  {{- else -}}
+    {{- errorf "%s: 找不到配图 %s" $page.File.Path $name -}}
+  {{- end -}}
+{{- end -}}
+{{- $first := index .Params.pages 0 | default 1 -}}
+{{- $n := 0 -}}
+{{- $html = replaceRE `<div style="--justify:justify;` `<div class="s1-sheet" style="--justify:justify;` $html -}}
+<div class="s1-sheets" data-first-page="{{ $first }}">
+  <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>
+</div>

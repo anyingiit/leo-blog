@@ -1,0 +1,59 @@
+/* S-1 中文译本（layouts/s1/）。原版版式是 612pt 宽的固定页面，按屏宽整体缩放（zoom，由 s1.js 设置）；
+   页面本身保持白纸黑字，深色模式下也不反色，和看 PDF 一样 */
+.s1-header .s1-crumb { font-size: 14px; color: var(--secondary); margin-bottom: 6px; }
+.s1-header .s1-crumb a { color: inherit; }
+.s1-notice { border: 1px solid var(--border); border-left: 4px solid #d97706; border-radius: var(--radius);
+  background: var(--code-bg); padding: 12px 16px; margin: 16px 0; font-size: 15px; line-height: 1.7; }
+.s1-notice ul { margin: 0; padding-inline-start: 20px; }
+.s1-notice li { margin: 4px 0; }
+.s1-notice-title { font-weight: 700; margin: 0 0 6px; }
+.s1-notice-short { padding: 8px 14px; font-size: 14px; }
+.s1-notice-short summary { cursor: pointer; }
+.s1-notice-short .s1-more { margin-inline-start: 6px; text-decoration: underline; color: var(--secondary); }
+.s1-notice-short details[open] .s1-more { display: none; }
+.s1-notice-short .s1-notice { border: 0; padding: 8px 0 0; margin: 0; background: none; }
+.s1-vbar { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 14px; color: var(--secondary); margin: 8px 0; }
+.s1-vtag { border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; color: var(--primary); }
+.s1-vtag.s1-latest { border-color: #16a34a; color: #16a34a; }
+.s1-vmenu { position: relative; }
+.s1-vmenu summary { cursor: pointer; text-decoration: underline; }
+.s1-vmenu ul { position: absolute; z-index: 5; inset-inline-start: 0; top: 1.8em; min-width: 260px; list-style: none; margin: 0;
+  padding: 8px 12px; background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 18px rgb(0 0 0 / .12); }
+.s1-vmenu li { margin: 4px 0; }
+.s1-vmenu li[aria-current] a { font-weight: 700; }
+.s1-old { border: 1px solid #dc2626; color: var(--primary); background: color-mix(in srgb, #dc2626 8%, transparent);
+  border-radius: var(--radius); padding: 8px 14px; margin: 12px 0; font-size: 15px; }
+.s1-old a { text-decoration: underline; }
+.s1-cta { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin: 20px 0; }
+.s1-btn { display: inline-block; padding: 8px 18px; border-radius: var(--radius); background: var(--primary); color: var(--theme) !important; }
+.s1-toc { padding-inline-start: 24px; line-height: 1.9; }
+.s1-toc small { color: var(--secondary); margin-inline-start: 8px; }
+.s1-missing { color: var(--secondary); opacity: .7; }
+.s1-small { font-size: 14px; color: var(--secondary); }
+.s1-versions { width: 100%; font-size: 15px; border-collapse: collapse; }
+.s1-versions th, .s1-versions td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: start; }
+.s1-chtoc { margin: 8px 0 16px; font-size: 15px; }
+.s1-chtoc summary { cursor: pointer; color: var(--secondary); }
+.s1-switch { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 4px 0 16px; }
+.s1-switch button { padding: 6px 14px; font-size: 14px; background: none; color: var(--secondary); cursor: pointer; }
+.s1-switch button[aria-pressed="true"] { background: var(--primary); color: var(--theme); }
+
+/* 重排版：原文页码分隔线，表格可横向滚动 */
+.s1-reflow .s1-pg { display: flex; align-items: center; gap: 10px; margin: 28px 0; color: var(--secondary); font-size: 12px; }
+.s1-reflow .s1-pg::before, .s1-reflow .s1-pg::after { content: ""; flex: 1; border-top: 1px dashed var(--border); }
+.s1-reflow table { display: block; overflow-x: auto; font-size: 14px; }
+.s1-reflow h3, .s1-reflow h4 { text-align: center; }
+
+/* 原版版式：页面宽 612pt = 816px，加左右各 10px 边距 */
+.s1-chapter.s1-mode-original, .s1-chapter.s1-mode-both, .s1-book { --s1-w: 836px; }
+body:has(.s1-mode-original, .s1-mode-both, .s1-book) .main { max-width: calc(836px + var(--gap) * 2); }
+.s1-sheets { background: #e4e4e4; border-radius: var(--radius); padding: 1px 0; margin: 0 auto 16px; overflow-x: auto; }
+.s1-sheets-inner { width: 836px; margin: 0 auto; color: #000; }
+.s1-sheet { box-shadow: 0 1px 4px rgb(0 0 0 / .15); }
+.s1-sheet a { color: #0000ee; text-decoration: underline; box-shadow: none; }
+@media (max-width: 880px) {
+  .s1-sheets { margin-inline: calc(var(--gap) * -1); border-radius: 0; }
+}
+.s1-booktoc { position: sticky; top: 0; z-index: 4; background: var(--theme); padding: 8px 0; font-size: 15px; }
+.s1-booktoc summary { cursor: pointer; font-weight: 600; }
+.s1-booktoc ol { max-height: 50vh; overflow: auto; margin: 6px 0 0; padding-inline-start: 24px; }

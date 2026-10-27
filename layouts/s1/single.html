@@ -1,0 +1,43 @@
+{{- /*
+  S-1 译本的一章。params.s1mode（在译本首页用 cascade 设置）：
+  original 原版版式（original.html，按屏宽缩放）；reflow 重排版（index.md，站点正文样式）；
+  both 两者都输出，读者切换，选择记在本机
+*/ -}}
+{{- define "main" }}
+{{- $mode := .Params.s1mode | default "original" }}
+{{- $m := partial "s1/meta.html" . }}
+{{- $v := $m.version }}
+{{- $chs := where $v.Params.chapters "included" true }}
+{{- $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
+<article class="post-single s1-chapter s1-mode-{{ $mode }}">
+  <header class="post-header s1-header">
+    <div class="s1-crumb"><a href="{{ $m.root.RelPermalink }}">{{ $m.root.Title }}</a> › <a href="{{ $v.RelPermalink }}">{{ $v.Params.version }} 目录</a></div>
+    <h1 class="post-title">{{ .Title }}</h1>
+    <div class="post-meta">原文第 {{ index .Params.pages 0 }}–{{ index .Params.pages 1 }} 页</div>
+  </header>
+  {{- partial "s1/versionbar.html" (dict "page" .) }}
+  {{- partial "s1/notice.html" (dict "v" $v "full" false) }}
+  <details class="s1-chtoc"><summary>章节目录</summary>{{ partial "s1/toc.html" $v }}</details>
+  {{- if eq $mode "both" }}
+  <div class="s1-switch" role="group" aria-label="版式">
+    <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
+    <button type="button" data-view="original" aria-pressed="false">原版版式</button>
+  </div>
+  {{- end }}
+  {{- if in (slice "reflow" "both") $mode }}
+  <div class="post-content s1-reflow" data-view="reflow">{{ .Content }}</div>
+  {{- end }}
+  {{- if in (slice "original" "both") $mode }}
+  <div class="s1-original" data-view="original"{{ if eq $mode "both" }} hidden{{ end }}>{{ partial "s1/original.html" . }}</div>
+  {{- end }}
+  <nav class="paginav s1-paginav">
+    {{- range $i, $c := $chs }}
+      {{- if eq $c.slug $slug }}
+        {{- if gt $i 0 }}{{ with index $chs (sub $i 1) }}<a class="prev" href="../{{ .slug }}/"><span class="title">« 上一章</span><br><span>{{ .title }}</span></a>{{ end }}{{ end }}
+        {{- if lt (add $i 1) (len $chs) }}{{ with index $chs (add $i 1) }}<a class="next" href="../{{ .slug }}/"><span class="title">下一章 »</span><br><span>{{ .title }}</span></a>{{ end }}{{ end }}
+      {{- end }}
+    {{- end }}
+  </nav>
+</article>
+{{- partial "s1/script.html" . }}
+{{- end }}

@@ -5,6 +5,13 @@ module:
       target: content
     - source: tests/fixtures/content
       target: content
+    # S-1 译本的四套方案原型（只在预览里出现）
+    - source: tests/fixtures/s1-preview/content
+      target: content
+    - source: assets
+      target: assets
+    - source: tests/fixtures/s1-preview/assets
+      target: assets
 # 所有测试短文都在第一页，正式短文变多也不会把它们挤到下一页
 pagination:
   pagerSize: 100
