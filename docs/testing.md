@@ -17,6 +17,8 @@
 | `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Test → Test s1-import |
 | `tools/s1-import/test_import.py` | 导入脚本 `import.py` 把译文 Markdown 转成 Hugo 正文：脚注标记保留为上标，被误包进 `<sup>` 的整句、中文、点线引导符去掉上标；章首前只有图片的整页分隔图归入后一章 | Test → Test s1-import |
 | `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Visual (浏览器-设备)，6 个任务 |
+| `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Visual (浏览器-设备)，6 个任务 |
+| `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Visual (浏览器-设备)，6 个任务 |
 | `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Visual (浏览器-设备)，6 个任务 |
 | `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Visual (chromium-desktop) |
 | `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint |
@@ -42,7 +44,7 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 - `tests/theme/example-site/`：PaperMod 官方 exampleSite 原样拷贝（来源见其中的 `SOURCE.md`），代表主题自身的行为，包括多语言、RTL、个人主页模式、封面图、代码高亮等。
 - `tests/theme/site-fixture/content/`：本站的模板、样式和配置，加上一套固定的测试文章（中英文长文、短文、带图短文）。用固定文章而不是真实文章，发新文章时不需要更新基准图。
 
-**像素级比对**：`toHaveScreenshot` 容差为 0（`maxDiffPixels: 0, threshold: 0`），整页截图，关闭动画、隐藏光标。为了让同一页每次截图完全一致，截图前会等图片加载完、字体就绪、Mermaid 画完、版面连续 10 帧不变，并把视口拉到整页高度再截（`helpers.mjs` 的 `settle`、`fullPage`）。浏览器的所有请求都由测试直接返回本地文件，不访问外网；页面用到的 KaTeX、Mermaid 由 `tests/theme/package.json` 锁定的本地副本提供，版本与线上一致（`tests/site.test.mjs` 会检查这一点）。
+**像素级比对**：`toHaveScreenshot` 容差为 0（`maxDiffPixels: 0, threshold: 0`），整页截图，关闭动画、隐藏光标。为了让同一页每次截图完全一致，截图前会等图片加载完、字体就绪、Mermaid 画完、版面连续 10 帧不变，并把视口拉到整页高度、让整页重新绘制一遍再截（`helpers.mjs` 的 `settle`、`fullPage`、`repaint`，原因见下面的「截图与绘制历史」「整页截图与 vh」）。浏览器的所有请求都由测试直接返回本地文件，不访问外网；页面用到的 KaTeX、Mermaid 由 `tests/theme/package.json` 锁定的本地副本提供，版本与线上一致（`tests/site.test.mjs` 会检查这一点）。
 
 **设备与浏览器**：Chromium（对应 Chrome）和 WebKit（Safari 的引擎；它不等于真正的 Safari 应用，后者只能在 macOS 上运行），各自在电脑 1280×800、平板 820×1180、手机 390×844 三种视口下运行，平板和手机开启触屏；不开 Playwright 的 isMobile（移动端视口缩放），因为它会让 srcset 选图取决于时序、基准无法固定（原因见 `playwright.config.mjs`），响应式布局仍按视口宽度生效。截图按 CSS 像素 1:1 保存。
 
@@ -59,6 +61,14 @@ git checkout FETCH_HEAD -- tests/theme/__snapshots__ && git commit -m "Update sc
 ```
 
 PR 合并后可以删掉对应的 `ci-baselines/` 分支。
+
+**截图与绘制历史**：Chromium 画点状下划线（PaperMod 文章元信息里的链接、`<abbr>` 等）时，只重画页面的一部分和整页一起画，抗锯齿结果不同：版面逐个元素量过完全一样，像素却差几十个。页面加载时哪些部分先画、哪些部分单独重画过，取决于机器当时忙不忙，所以 CI 偶尔会在 Markdown 示例页上差 32 像素（2026-10-27 PR #24、#25 各一次，重跑通过）。本地把浏览器主线程放慢 8 倍（`Emulation.setCPUThrottlingRate`）就能复现：同一页 32 次截出 2～4 种结果。另有两种操作必定复现：窗口宽度变 1px 再变回，或把元信息行隐藏再显示。
+
+所以每次截图前都由 `repaint` 让整页从头重画：给根元素临时加 `filter: blur(0px)`（会移动像素的滤镜让 Chromium 必须整页重画），出一帧后去掉，再整页画一次。之后放慢 8 倍各 40 次、电脑和手机都只有一种结果。新写截图测试时，截图前要么调用 `fullPage`（里面已经调用 `repaint`），要么直接调用 `repaint`。`repaint.spec.mjs` 用上面两种必定复现的操作检查这一点：去掉 `repaint` 它就失败；如果哪天 Chromium 不再有这个问题，它的前提检查会失败，那时可以去掉 `repaint` 和这个测试。
+
+**整页截图与 vh**：`fullPage` 把视口拉到整页高度再截视口。PaperMod 的 `.main`（以及个人主页模式的 `.profile`）是 `min-height: calc(100vh - 页头 - 页脚)`，视口一拉高，`min-height` 也跟着变大；手机上页头折成两行，比主题变量 `--header-height` 高，页面永远比视口高一截，截出来末尾一大段空白、页脚被截掉（示例站 Markdown 页 390 宽：5685 → 视口 5805 → 页面 5865；电脑上也会多出 1px）。所以拉高视口之前，`freezeViewportUnits` 先把所有用 `vh`/`svh`/`dvh`/`vmin` 等单位写的尺寸固定成原视口下的计算值，截到的就是读者在原视口里从头滚到尾看到的页面。拉高后页面高度还在变，`fullPage` 直接报错，不会截一张错的图。`fullpage.spec.mjs` 在 6 个浏览器×设备上检查几类页面（长文、归档、个人主页、不满一屏的页面、404、禁用脚本）：截图高度等于原视口下的页面高度、页脚位置不变；去掉冻结，三种设备都会失败。
+
+不用 Playwright 自带的 `fullPage: true`：它在截图过程中另画视口以外的部分，`repaint` 管不到，放慢后同样会截出不同结果。
 
 **验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
 

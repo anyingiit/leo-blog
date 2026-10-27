@@ -112,11 +112,19 @@ jobs:
       - name: Install test dependencies
         run: npm ci
 
-      # s1-links.test.mjs 用 pypdf 读冻结 PDF 的书签和页内链接
+      # s1-links.test.mjs 用 pypdf 读冻结 PDF 的书签和页内链接。镜像里没有 pip，apt 装 python3-pip 会卡住，
+      # pypdf 是纯 Python，直接下载固定版本的 wheel（校验 sha256）解压到 site-packages
       - name: Install pypdf
+        timeout-minutes: 3
         run: |
-          command -v pip3 >/dev/null || (apt-get update -qq && apt-get install -y -qq python3-pip)
-          pip3 install --quiet --break-system-packages pypdf==6.17.0
+          python3 - <<'PY'
+          import hashlib, io, site, urllib.request, zipfile
+          url = "https://files.pythonhosted.org/packages/c1/08/1e9731038124a9127e1d27848952b86fb32b2f45f8f1b94adc7f0817a6ac/pypdf-6.17.0-py3-none-any.whl"
+          data = urllib.request.urlopen(url, timeout=60).read()
+          assert hashlib.sha256(data).hexdigest() == "5bd827266a21553b74d910e350131a6227b72f2ab4209bf372814b8195fa11c5"
+          zipfile.ZipFile(io.BytesIO(data)).extractall(site.getsitepackages()[0])
+          PY
+          python3 -I -c "import pypdf; print('pypdf', pypdf.__version__)"
 
       # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠、图集和页头语言切换（见 tests/README.md）
       - name: Run regression tests

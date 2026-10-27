@@ -18,4 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 《博客项目取得重大进展》移入短文，旧地址 `/posts/blog-project-progress/` 自动跳转。
 
+### Fixed
+
+- 主题截图测试偶发差几十个像素（点状下划线随绘制过程变化）：截图前让整页重新绘制一遍，并加回归测试 `tests/theme/repaint.spec.mjs`。
+
 [Unreleased]: https://github.com/anyingiit/leo-blog/commits/main
