@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- S-1 译本发布 v1.1（译文仓库 anthropic-s1-zh v1.1.0：依外部审校清单修订语义、术语、体例和版式），v1.0 保留为历史版本；导入脚本遇到内容变了的同名配图时加内容哈希另存。
 - 《博客项目取得重大进展》移入短文，旧地址 `/posts/blog-project-progress/` 自动跳转。
 
 ### Fixed
