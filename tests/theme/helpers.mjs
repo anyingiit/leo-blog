@@ -115,15 +115,60 @@ export async function settle(page, { images = true, mermaid = true } = {}) {
 // 整页截图：先把视口拉到整页高度再截"视口"，而不是用 fullPage。
 // fullPage 在截图过程中临时改视口，点状下划线等细线的栅格化会随之抖动（同一页两次截图差几十个像素）；
 // 页面高度常带小数（如 4641.016px），这里统一向上取整。
+// 拉高视口前先 freezeViewportUnits：否则用 vh 的尺寸会跟着视口变高，页面越拉越长、页脚被截掉。
+// 冻结后页面高度不再随视口变化，拉一次就到位；没到位说明还有随视口变化的东西，直接报错而不是截一张错的图
 export async function fullPage(page) {
   const vp = page.viewportSize();
-  for (let i = 0; i < 3; i++) {
-    const h = await page.evaluate(() => Math.ceil(Math.max(document.documentElement.getBoundingClientRect().height, document.documentElement.scrollHeight)));
-    if (h === page.viewportSize().height) break;
+  await freezeViewportUnits(page);
+  const height = () => pageHeight(page);
+  let h = await height();
+  for (let i = 0; i < 3 && h !== page.viewportSize().height; i++) {
     await page.setViewportSize({ width: vp.width, height: Math.max(h, vp.height) });
     await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+    h = await height();
   }
+  if (h !== page.viewportSize().height) throw new Error(`拉高视口后页面高度仍在变化（视口 ${page.viewportSize().height}px，页面 ${h}px）`);
   await repaint(page);
+}
+
+// 禁用脚本的页面：requestAnimationFrame 不运行，不能用 fullPage 的等帧，从测试端拉高视口两次（之后由调用方等图片、字体并 repaint）
+export async function fullPageNoScript(page) {
+  await freezeViewportUnits(page);
+  await page.setViewportSize({ width: page.viewportSize().width, height: await pageHeight(page) });
+  await page.setViewportSize({ width: page.viewportSize().width, height: await pageHeight(page) });
+}
+
+// 页面高度，带小数时向上取整（如 4641.016px → 4642），最后一行像素也截进来
+export const pageHeight = (page) => page.evaluate(() =>
+  Math.ceil(Math.max(document.documentElement.getBoundingClientRect().height, document.documentElement.scrollHeight)));
+
+// 把用视口高度单位（vh、svh、lvh、dvh、vmin、vmax、vb）写的尺寸，固定成当前视口下的计算值（行内 !important）。
+// PaperMod 的 .main 是 min-height: calc(100vh - 页头 - 页脚)，个人主页模式的 .profile 也是；手机上页头折成两行，
+// 比主题变量高，视口拉到整页高度时 min-height 跟着变大、页面又变高，永远追不上（示例站 Markdown 页 390 宽：
+// 5685 → 视口 5805 → 页面 5865），截出来末尾一大段空白、页脚不见。固定之后，截到的就是读者在原视口里从头滚到尾看到的整页。
+// 只扫描写了这些单位的样式规则和 style 属性，冻结的是层叠后的计算值，所以哪条规则胜出都一样。
+// 读不到规则的跨域样式表（如 CDN 的 KaTeX）、伪元素上的 vh 管不到；本站和示例站都没有这种情况，fullPage 末尾的检查会兜底
+export async function freezeViewportUnits(page) {
+  return page.evaluate(() => {
+    const unit = /(^|[^\w-])-?[\d.]+(s|l|d)?(vh|vmin|vmax|vb)\b/i;
+    const found = new Map(); // 元素 → 要冻结的属性
+    const add = (els, props) => { for (const e of els) { const s = found.get(e) || new Set(); props.forEach((p) => s.add(p)); found.set(e, s); } };
+    const props = (style) => [...style].filter((p) => unit.test(style.getPropertyValue(p)));
+    const walk = (rules) => {
+      for (const r of rules) {
+        if (r.style && r.selectorText) {
+          const ps = props(r.style);
+          if (ps.length) { try { add(document.querySelectorAll(r.selectorText), ps); } catch { /* 伪元素等选不到 */ } }
+        }
+        if (r.cssRules) walk(r.cssRules);
+      }
+    };
+    for (const sheet of document.styleSheets) { try { walk(sheet.cssRules); } catch { /* 跨域样式表读不到规则 */ } }
+    for (const e of document.querySelectorAll("[style]")) { const ps = props(e.style); if (ps.length) add([e], ps); }
+    const values = [...found].map(([e, ps]) => [e, [...ps].map((p) => [p, getComputedStyle(e).getPropertyValue(p)])]);
+    for (const [e, ps] of values) for (const [p, v] of ps) e.style.setProperty(p, v, "important");
+    return values.length;
+  });
 }
 
 // 截图前让整页从头重新绘制一遍，截图只取决于页面最终的样子，与加载过程无关。
