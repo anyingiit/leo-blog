@@ -6,6 +6,8 @@
     toggle 「中文 / 对照 / English」三档切换，中文页默认中文，记住读者的选择；不开脚本时显示对照、不显示切换条
     best   同 toggle；「对照」档在电脑上左右并排（中文在左）并整篇加宽，切换条吸顶
     fold   默认只显示中文，每段末尾「原文」可逐段展开，也可一键全部展开
+    original 和 S-1 译本同一套阅读界面（layouts/bilingual/reader.html）：原版版式（原网页 + 段后译文，同目录 original.html）
+           和重排版（中文 / 对照 / English）切换，宽屏加宽，?read=1 全屏阅读，HTML / PDF 全文下载
   英文页（.en.md）设 enStub: true 时只放说明和原文链接，不重复原文全文。
 */ -}}
 {{- define "main" }}
@@ -16,6 +18,9 @@
 {{- $mode := .Params.bilingualMode | default "best" }}
 {{- $switch := and (in (slice "toggle" "best") $mode) (not .Params.enStub) }}
 {{- $lang := .Language.Lang }}
+{{- if and (eq $mode "original") (not .Params.enStub) }}
+{{- partial "bilingual/reader.html" (dict "page" . "data" $data) }}
+{{- else }}
 <article class="post-single bl-article {{ if not .Params.enStub }}bl-mode-{{ $mode }}{{ end }}" data-mode="{{ cond $switch "both" $mode }}">
   {{- if $switch }}
   <script>
@@ -126,5 +131,6 @@
   if (t) t.open = true;
 })();
 </script>
+{{- end }}
 {{- end }}
 {{- end }}

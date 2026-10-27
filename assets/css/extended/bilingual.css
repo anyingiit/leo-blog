@@ -58,3 +58,16 @@ details.bl-orig > .bl-en { padding-inline-start: 12px; border-inline-start: 2px 
 }
 
 .bl-preview-label { display: inline-block; margin-bottom: 8px; padding: 2px 10px; border-radius: 999px; background: #c62828; color: #fff; font-size: 13px; }
+
+/* 原版阅读（layouts/_partials/bilingual/reader.html）：原网页排在 816px 的纸上，和 S-1 的原版页面同宽，s1.js 负责缩放 */
+.bl-sheet { width: 816px; box-sizing: border-box; padding: 56px 64px 64px; background: #fff; color: #000; font-size: 16px; line-height: 1.5; font-family: "Times New Roman", "Songti SC", "Noto Serif CJK SC", serif; }
+.bl-sheet .style1, .bl-sheet .style1 * { font-family: Palatino, "Palatino Linotype", "Book Antiqua", "URW Palladio L", "Songti SC", "Noto Serif CJK SC", serif; }
+.bl-sheet h1 { font-size: 2em; margin: 0.67em 0; font-weight: bold; }
+.bl-sheet h2 { font-size: 1.5em; margin: 0.83em 0; font-weight: bold; }
+.bl-sheet h3 { font-size: 1.17em; margin: 1em 0; font-weight: bold; }
+/* 沉浸式翻译的「段后译文」：标题后面接两个空格，正文段落另起一行 */
+.bl-sheet .bl-tr { margin-inline-start: 0.5em; }
+.bl-sheet .bl-tr-block { display: block; margin: 0.4em 0 0; }
+.bl-reader .s1-reflow .bl-switch { margin-inline: auto; }
+.bl-reader .s1-ibar-dl { border: 0; padding: 0; }
+@media (max-width: 760px) { .bl-reader .s1-ibar-dl { display: none; } }

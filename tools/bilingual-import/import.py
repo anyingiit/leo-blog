@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """把沉浸式翻译（Immersive Translate）保存的双语对照 HTML 拆成「原文/译文」段落对。
 
-用法：python3 tools/bilingual-import/import.py <保存的.html> <输出的 pairs.yaml>
+用法：python3 tools/bilingual-import/import.py <保存的.html> <输出的 pairs.yaml> [<输出的 original.html>]
 
 沉浸式翻译把每段译文包在 <font class="immersive-translate-target-wrapper"> 里，追加在该段原文末尾。
 这里按文档顺序把 DOM 摊平：遇到译文包装就结束当前一段原文，与包装里的译文配成一对；
 段落的种类（标题、引用、列表项、正文）取自原文所在的块元素。行内的斜体、粗体、链接、代码转成 Markdown。
 没有译文的块（例如图片、代码块）原样保留为只有原文的一段。
+
+给了第三个参数时，另外输出「原版版式」用的 HTML 片段：原网页 <body> 的内容原样保留（标题、段落、行内样式），
+去掉插件注入的脚本、样式、弹窗和 data-imt 属性；每段译文换成 <span class="bl-tr"> 或 <span class="bl-tr bl-tr-block">，
+样式由 layouts/_partials/bilingual/original.html 和 bilingual.css 决定。原网页 <head> 里的 <style> 也保留（只取作者自己的样式）。
 """
 import re
 import sys
@@ -113,6 +117,36 @@ def extract(soup):
     return [p for p in pairs if p.get("en") or p.get("zh") or p["kind"] == "img"]
 
 
+def original_fragment(soup):
+    """原网页正文 + 作者自己的样式，去掉沉浸式翻译插件注入的一切，译文换成统一的 span。"""
+    styles = [st.get_text() for st in soup.find_all("style") if not st.get("data-id") and "immersive" not in st.get_text()]
+    body = soup.body
+    for junk in body.find_all(["script", "style", "template", "noscript", "link"]):
+        junk.decompose()
+    for el in body.find_all(id=re.compile("immersive|^mount$")):
+        el.decompose()
+    for w in body.find_all(class_=WRAPPER):
+        inner = w.find(class_="immersive-translate-target-inner")
+        block = w.find(class_=re.compile("block-wrapper")) is not None
+        span = soup.new_tag("span", attrs={"class": "bl-tr bl-tr-block" if block else "bl-tr", "lang": "zh-CN"})
+        for c in list((inner or w).contents):
+            span.append(c.extract())
+        w.replace_with(span)
+    for el in body.find_all(True):
+        for a in list(el.attrs):
+            if a.startswith("data-imt") or a.startswith("data-immersive"):
+                del el[a]
+        if "notranslate" in (el.get("class") or []):
+            el["class"] = [c for c in el["class"] if c != "notranslate"] or None
+            if not el["class"]:
+                del el["class"]
+    # 原版的样式只作用在原版页面里：给每条选择器加上 .bl-sheet 前缀
+    css = "\n".join(re.sub(r"<!--|-->", "", t) for t in styles)
+    css = re.sub(r"(^|})\s*([^{}@]+)\{", lambda m: m.group(1) + " " + ", ".join(".bl-sheet " + x.strip() for x in m.group(2).split(",")) + " {", css)
+    html = "".join(str(c) for c in body.contents).strip()
+    return (f"<style>{css.strip()}</style>\n" if css.strip() else "") + html + "\n"
+
+
 class Literal(str):
     pass
 
@@ -120,7 +154,10 @@ class Literal(str):
 yaml.add_representer(Literal, lambda d, s: d.represent_scalar("tag:yaml.org,2002:str", s, style="|"))
 
 
-def main(src, out):
+def main(src, out, original=None):
+    if original:
+        with open(original, "w", encoding="utf-8") as f:
+            f.write(original_fragment(read(src)))
     pairs = extract(read(src))
     # 开头连续的标题行（文章标题、作者、日期）单独放进 header，正文排版时不重复显示
     n = 0
@@ -139,4 +176,4 @@ def main(src, out):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:3])
+    main(*sys.argv[1:4])
