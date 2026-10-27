@@ -123,4 +123,16 @@ export async function fullPage(page) {
     await page.setViewportSize({ width: vp.width, height: Math.max(h, vp.height) });
     await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
   }
+  await repaint(page);
+}
+
+// 截图前让整页从头重新绘制一遍，截图只取决于页面最终的样子，与加载过程无关。
+// Chromium 只重画页面的一部分时（加载中某段内容先画、某个元素单独重画、窗口尺寸变过），点状下划线的抗锯齿
+// 和整页一起画时不同，版面完全一样，像素却差几十个（docs/testing.md「截图与绘制历史」）。机器忙时加载过程不同，
+// 截图就偶尔和基准不一致。给根元素临时加 blur(0px)：会移动像素的滤镜让 Chromium 必须整页重画，去掉后再整页画一次。
+// 用截图（而不是 requestAnimationFrame）推动出帧，禁用脚本的页面也适用。
+export async function repaint(page) {
+  const old = await page.evaluate(() => { const s = document.documentElement.style, v = s.filter; s.filter = "blur(0px)"; return v; });
+  await page.screenshot({ clip: { x: 0, y: 0, width: 1, height: 1 } });
+  await page.evaluate((v) => { document.documentElement.style.filter = v; }, old);
 }
