@@ -1,0 +1,28 @@
+{{- /* 版本条：当前版本、原文日期，切换到其他版本的同一章；不是最新版时给出提醒 */ -}}
+{{- $m := partial "s1/meta.html" .page -}}
+{{- $v := $m.version -}}
+{{- $slug := "" }}{{ if .page.IsPage }}{{ $slug = path.Base (strings.TrimSuffix "/" .page.RelPermalink) }}{{ end -}}
+{{- $isLatest := eq $v $m.latest -}}
+{{- if not $isLatest }}
+<div class="s1-old" role="alert">
+  你正在看<strong>历史版本 {{ $v.Params.version }}</strong>（对应 {{ $v.Params.form }}，{{ $v.Params.filed }} 提交）。
+  <a href="{{ partial "s1/same-chapter.html" (dict "v" $m.latest "slug" $slug) }}">查看最新版本 {{ $m.latest.Params.version }} →</a>
+</div>
+{{- end }}
+<div class="s1-vbar">
+  <span class="s1-vtag{{ if $isLatest }} s1-latest{{ end }}">{{ $v.Params.version }}{{ if $isLatest }} · 最新{{ end }}</span>
+  <span>{{ $v.Params.form }} · {{ $v.Params.filed }} 提交 · 采集于 {{ (time.AsTime $v.Params.captured).UTC.Format "2006-01-02 15:04" }} UTC</span>
+  {{- if gt (len $m.versions) 1 }}
+  <details class="s1-vmenu">
+    <summary>其他版本</summary>
+    <ul>
+      {{- range $m.versions }}
+      <li{{ if eq . $v }} aria-current="true"{{ end }}><a href="{{ partial "s1/same-chapter.html" (dict "v" . "slug" $slug) }}">{{ .Params.version }}</a> <small>{{ .Params.form }} {{ .Params.filed }}{{ with .Params.notes }} · {{ . }}{{ end }}</small></li>
+      {{- end }}
+      <li><a href="{{ $m.root.RelPermalink }}#versions">全部版本与更新记录</a></li>
+    </ul>
+  </details>
+  {{- end }}
+  {{- /* 章节页给一行全文下载；版本页下面有卡片，不重复 */}}
+  {{- if .page.IsPage }}{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" "全文：") }}{{ end }}
+</div>

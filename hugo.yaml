@@ -15,6 +15,15 @@ pagination:
 outputs:
   home: [HTML, RSS, JSON]  # JSON 供 PaperMod 站内搜索
 
+# S-1 译本版本页的「完整 HTML」下载：单文件、图片内嵌（layouts/s1/list.s1full.html），导入工具在版本页 outputs 里启用
+outputFormats:
+  s1full:
+    mediaType: text/html
+    baseName: full
+    isHTML: true
+    notAlternative: true
+    permalinkable: false
+
 # 文章文件夹里的原图只在被引用原文件时才发布；正文里的 jpg/png/webp 会缩成 WebP（见 render-image.html），原图不用上线
 cascade:
   - build:
@@ -27,6 +36,8 @@ permalinks:
 
 params:
   env: production
+  # S-1 译本的下架联系方式（声明、版权行、下载文件里都会出现；tools/s1-import/release.py 要求设置）
+  s1Contact: leoycwan@gmail.com
   # 首页、归档、上一篇/下一篇只收长文（content/posts）；短文（content/notes）在 /notes/ 单独成栏
   mainSections: [posts]
   defaultTheme: auto
@@ -59,6 +70,7 @@ languages:
     menu:
       main:
         - { name: 短文, url: /notes/, weight: 5 }
+        - { name: 译文, url: /translations/, weight: 7 }
         - { name: 归档, url: /archives/, weight: 10 }
         - { name: 标签, url: /tags/, weight: 20 }
         - { name: 搜索, url: /search/, weight: 30 }
@@ -74,6 +86,7 @@ languages:
     menu:
       main:
         - { name: Notes, url: /en/notes/, weight: 5 }
+        - { name: Translations, url: /en/translations/, weight: 7 }
         - { name: Archive, url: /en/archives/, weight: 10 }
         - { name: Tags, url: /en/tags/, weight: 20 }
         - { name: Search, url: /en/search/, weight: 30 }
@@ -90,3 +103,4 @@ markup:
         delimiters:
           block: [['\[', '\]'], ['$$', '$$']]
           inline: [['\(', '\)'], ['$', '$']]
+
