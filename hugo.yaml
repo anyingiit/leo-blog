@@ -27,6 +27,7 @@ permalinks:
 
 params:
   env: production
+  s1Contact: leoycwan@gmail.com  # 译文的下架联系邮箱（S-1 译本和双语译文共用）
   # 首页、归档、上一篇/下一篇只收长文（content/posts）；短文（content/notes）在 /notes/ 单独成栏
   mainSections: [posts]
   defaultTheme: auto
