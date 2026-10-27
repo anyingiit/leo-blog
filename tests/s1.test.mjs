@@ -14,6 +14,7 @@ import { build, serve, root } from "./helpers.mjs";
 
 const FIX = join(root, "tests/fixtures/s1-preview/versions/v1.0");
 const NAME = "anthropic-s1-zh-unofficial-v1.0";
+const LATEST = readFileSync(join(root, "content/translations/anthropic-s1/_index.md"), "utf8").match(/^latest: (\S+)$/m)[1];
 const fm = readFileSync(join(FIX, "_index.md"), "utf8");
 const downloads = JSON.parse(fm.match(/^downloads: (.+)$/m)[1]);
 
@@ -116,7 +117,7 @@ test("全屏阅读：目录面板底部有下载链接，不另加按钮", async
 
 test("打印成 PDF 时原文页不被缩小：横版页（792pt 宽）单独用横版纸，其余内容不超出 612pt 纸宽", async () => {
   // 只要有一页比纸宽，Chromium 就把整份文档缩小到放得下它（v1.0 第一次生成的 PDF 因此只有原尺寸的 77%）
-  const full = ["translations/anthropic-s1/v1.0/full.html", `translations/anthropic-s1/v1.0/files/${NAME}.html`].find((p) => site.exists(p));
+  const full = [`translations/anthropic-s1/${LATEST}/full.html`, `translations/anthropic-s1/${LATEST}/files/anthropic-s1-zh-unofficial-${LATEST}.html`].find((p) => site.exists(p));
   const page = await browser.newPage({ viewport: { width: 816, height: 1056 } });
   await page.goto(server.url + "/" + full, { waitUntil: "load" });
   await page.emulateMedia({ media: "print" });
@@ -134,7 +135,7 @@ test("原版视图里的图片都有宽度（PaperMod 的 img{max-width:100%} �
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const zero = [];
   for (const ch of ["cover", "financial-statements-2"]) {
-    await page.goto(server.url + `/translations/anthropic-s1/v1.0/${ch}/`, { waitUntil: "load" });
+    await page.goto(server.url + `/translations/anthropic-s1/${LATEST}/${ch}/`, { waitUntil: "load" });
     zero.push(...await page.evaluate(() => [...document.querySelectorAll(".s1-original img")].filter((i) => i.getBoundingClientRect().width < 10).map((i) => i.closest(".s1-sheet").dataset.page)));
   }
   await page.close();

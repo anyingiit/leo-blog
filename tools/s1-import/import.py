@@ -213,18 +213,30 @@ def main():
         f.write(front(meta))
 
     dirs = [os.path.expanduser(d) for d in a.images]
-    copies = []
+    copies, renamed = [], {}
     for name in sorted(img_names):
         src = next((os.path.join(d, name) for d in dirs if os.path.exists(os.path.join(d, name))), None)
         if not src:
             sys.exit(f"找不到配图 {name}（{vdir} 留着方便排查，正式目录没有改动）")
+        digest = hashlib.sha256(open(src, "rb").read()).hexdigest()
         dst = os.path.join(a.assets, name)
-        if os.path.exists(dst):
-            same = hashlib.sha256(open(dst, "rb").read()).digest() == hashlib.sha256(open(src, "rb").read()).digest()
-            if not same:
-                sys.exit(f"{dst} 已存在且内容不同：旧版本还在用它，请给新图换个文件名")
-            continue
-        copies.append((src, dst))
+        if os.path.exists(dst) and hashlib.sha256(open(dst, "rb").read()).hexdigest() != digest:
+            # 同名图片内容变了（新版本重新渲染的中文配图）：旧版本还在用原名，新图加内容哈希另存
+            stem, ext = os.path.splitext(name)
+            renamed[name] = f"{stem}-{digest[:8]}{ext}"
+            dst = os.path.join(a.assets, renamed[name])
+        if not os.path.exists(dst):
+            copies.append((src, dst))
+    if renamed:
+        for root, _, files in os.walk(vdir):
+            for fn in files:
+                if fn not in ("index.md", "original.html"):
+                    continue
+                p = os.path.join(root, fn)
+                s = open(p, encoding="utf-8").read()
+                for old, new in renamed.items():
+                    s = s.replace(f"s1img:{old}\"", f"s1img:{new}\"").replace(f"/img/{old})", f"/img/{new})")
+                open(p, "w", encoding="utf-8").write(s)
     os.makedirs(a.assets, exist_ok=True)
     for src, dst in copies:
         shutil.copyfile(src, dst)
