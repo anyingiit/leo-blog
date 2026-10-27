@@ -53,12 +53,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
           PR: ${{ github.event.pull_request.number }}
+          BEFORE: ${{ github.event.before }}
         run: |
           tested=""
           if [ "$EVENT" = pull_request ]; then
             files="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')" || files=""
           elif [ "$EVENT" = push ]; then
-            files="$(git diff --name-only HEAD^1 HEAD)" || files=""
+            # 一次推送可能带多个提交，要比较推送前后的整个范围。推送前的提交不是祖先（强推）、
+            # 新建分支或改动超过 300 个文件（比较接口只列 300 个）时拿不到完整列表，按全跑处理
+            files="$(gh api "repos/$GITHUB_REPOSITORY/compare/$BEFORE...$GITHUB_SHA" \
+              --jq 'if .status == "ahead" and (.files | length) < 300 then .files[].filename else error("范围不完整") end')" || files=""
             # 合并 PR 的提交：文件树和 PR 分支最后一个提交相同，而那个提交的 PR CI 已经通过 → 这棵树已经测过
             if p2="$(git rev-parse -q --verify 'HEAD^2')" && [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$p2^{tree}")" ]; then
               n="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$p2&event=pull_request&status=success" \
