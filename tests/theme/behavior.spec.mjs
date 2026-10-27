@@ -19,7 +19,7 @@ async function open(browser, info, url, opts = {}) {
 
 // 两个站点里所有截图页面：没有脚本错误，也没有横向滚动条（手机上最常见的版面问题）
 const all = [
-  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/notes/travel-photos/", "/notes/page/2/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/"]],
+  [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/notes/travel-photos/", "/notes/page/2/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/", "/notes/film-note/", "/films/test-film/", "/en/films/test-film/"]],
   [EXAMPLE, ["/", "/posts/markdown-syntax/", "/posts/code_syntax/", "/posts/inner-section/cover-page/", "/posts/emoji-support/", "/archives/", "/tags/", "/search/", "/fr/", "/fa/", "/fa/posts/markdown-syntax/", "/posts/", "/page/2/"]],
 ];
 for (const [host, paths] of all) {
@@ -259,4 +259,39 @@ test("键盘焦点：短文图片的焦点框", async ({ browser }, info) => {
   const box = await img.boundingBox();
   await expect(page).toHaveScreenshot("site-focus-image.png", { clip: { x: Math.max(0, box.x - 8), y: box.y - 8, width: Math.min(box.width + 16, page.viewportSize().width), height: 40 } });
   await context.close();
+});
+
+test("短片：点封面全窗口放映，返回键、Esc、关闭按钮都回到原文", async ({ browser }, info) => {
+  const { page, errors } = await open(browser, info, SITE + "/notes/film-note/");
+  const url = page.url();
+  const dialog = page.locator(".film-dialog");
+  const film = page.frameLocator(".film-dialog iframe");
+  await page.click(".film-open");
+  await expect(dialog).toBeVisible();
+  await expect(film.locator("#theme")).toHaveText("light");
+  await page.goBack();
+  await expect(dialog).toBeHidden();
+  expect(page.url()).toBe(url);
+
+  await page.click(".film-open");
+  await film.locator("#play").click();
+  await film.locator("#play").press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(page.locator(".film-open")).toBeFocused();
+
+  await page.click(".film-open");
+  await page.click(".film-close");
+  await expect(dialog).toBeHidden();
+  await expect(page.locator(".film-dialog iframe")).toHaveAttribute("src", "about:blank");
+  expect(errors).toEqual([]);
+});
+
+test("短片页：播放器按短片高度撑开", async ({ browser }, info) => {
+  const { page, errors } = await open(browser, info, SITE + "/films/test-film/");
+  const film = page.frameLocator("iframe.film-frame");
+  await film.locator("html[data-embed=page]").waitFor({ state: "attached" });
+  // 测试短片嵌入时只剩播放器，iframe 正好包住它（不多出空白，也不出现滚动条）
+  const want = await film.locator(".player").evaluate((e) => Math.ceil(e.getBoundingClientRect().height));
+  await expect.poll(() => page.locator("iframe.film-frame").evaluate((f) => f.getBoundingClientRect().height)).toBe(want);
+  expect(errors).toEqual([]);
 });

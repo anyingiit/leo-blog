@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>测试短片</title>
+<!-- 回归测试用的短片：和真实短片一样是自包含的页面，不知道自己会被嵌进博客。
+     颜色跟随 <html data-theme>（博客经桥接脚本设置），没有就跟随系统；高度固定，便于测试播放器的高度。 -->
+<style>
+:root { --bg: #f4f1ea; --fg: #222; --stage: #1b2a41; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #111; --fg: #eee; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #111; --fg: #eee; color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 sans-serif; }
+header, footer { padding: 16px; }
+[data-embed] header, [data-embed] footer { display: none; }
+.player { background: var(--stage); color: #fff; }
+.stage { aspect-ratio: 16 / 9; display: grid; place-items: center; }
+.stage img { width: 40%; }
+.ctrls { height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 16px; }
+</style>
+</head>
+<body>
+<header><h1>测试短片</h1><p>独立打开时显示的标题和说明。</p></header>
+<div class="player">
+  <div class="stage"><img src="media/still.svg" alt="静帧"></div>
+  <div class="ctrls"><button id="play" type="button">▶ 播放</button><span id="theme"></span></div>
+</div>
+<footer>独立打开时显示的页脚。</footer>
+<script>
+const t = document.getElementById("theme");
+const show = () => { t.textContent = document.documentElement.dataset.theme || "system"; };
+show();
+new MutationObserver(show).observe(document.documentElement, { attributes: true });
+document.getElementById("play").onclick = (e) => { e.target.textContent = "❚❚ 暂停"; };
+</script>
+</body>
+</html>

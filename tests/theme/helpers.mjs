@@ -15,7 +15,7 @@ export const sites = {
     args: ["-s", "tests/theme/example-site", "--themesDir", "../../../themes", "--buildDrafts",
       "--config", `${join(here, "example-site/config.yml")},${join(here, "example-site.overrides.yaml")}`] },
   site: { host: "blog.test", dir: join(out, "site"),
-    args: ["--contentDir", "tests/theme/site-fixture/content"] },
+    args: ["--contentDir", "tests/theme/site-fixture/content", "--config", `hugo.yaml,${join(here, "site-fixture.yaml")}`] },
 };
 export const CLOCK = "2026-10-26T12:00:00Z";
 

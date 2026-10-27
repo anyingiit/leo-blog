@@ -76,6 +76,7 @@ for (const [name, from, to] of cases) {
 test("所有页面：有对应语言版本时切换到它；没有时去一个存在的同语言上级页，只有首页和 404 才回首页", async () => {
   let checked = 0, translated = 0;
   for (const f of htmlFiles(site.out)) {
+    if (/\/films\/[^/]+\/play\//.test(pathOf(f))) continue; // 短片播放器是原样发布的短片页面，不是博客页面（docs/films.md）
     const info = await inspect(readFileSync(f, "utf8"));
     if (!info) continue;
     const path = pathOf(f), other = info.lang === "en" ? "zh" : "en", home = BASE + (other === "en" ? "/en/" : "/");

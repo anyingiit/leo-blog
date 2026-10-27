@@ -1,10 +1,15 @@
-# 回归测试用的额外配置：在正式内容之外再挂上 tests/fixtures/content 里的测试短文（正式构建不会包含它们）
+# 回归测试用的额外配置：在正式内容之外再挂上 tests/fixtures 里的测试短文和测试短片（正式构建不会包含它们）
+# 写了某一类挂载（content、assets）就不再有默认挂载，所以正式目录也要列出来
 module:
   mounts:
     - source: content
       target: content
     - source: tests/fixtures/content
       target: content
+    - source: assets
+      target: assets
+    - source: tests/fixtures/assets
+      target: assets
 # 所有测试短文都在第一页，正式短文变多也不会把它们挤到下一页
 pagination:
   pagerSize: 100
