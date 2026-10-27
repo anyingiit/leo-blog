@@ -22,19 +22,8 @@ try { playwright = require("playwright"); } catch { playwright = require(path.jo
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: "load" });
   await page.emulateMedia({ media: "print" });
-  const version = await page.evaluate(() => document.querySelector(".dl-banner strong")?.textContent.trim() || "非官方 AI 译本");
-  await page.pdf({
-    path: out,
-    width: "8.5in", // 612pt
-    height: "11.25in", // 810pt
-    margin: { top: "0", right: "0", bottom: "0.25in", left: "0" },
-    printBackground: true,
-    outline: true, // 按章节生成书签
-    tagged: true,
-    displayHeaderFooter: true,
-    headerTemplate: "<span></span>",
-    footerTemplate: `<div style="width:100%;font-size:7pt;color:#666;text-align:center;font-family:'PingFang SC','Noto Sans CJK SC',sans-serif">${version} · 与 Anthropic 无关，未经人工核对，以 SEC 英文原文为准 · PDF 第 <span class="pageNumber"></span> / <span class="totalPages"></span> 页</div>`,
-  });
+  // 页面大小、页边和每页底部的「非官方」标记都由 full.html 的 @page 规则决定（读者自己打印也一样）
+  await page.pdf({ path: out, preferCSSPageSize: true, printBackground: true, outline: true, tagged: true });
   await browser.close();
   console.log(`${out}  ${(fs.statSync(out).size / 1048576).toFixed(1)} MB`);
 })();

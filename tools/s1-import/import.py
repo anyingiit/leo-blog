@@ -189,7 +189,7 @@ def main():
     # 版本页另外输出单文件的完整 HTML（full.html，供下载；PDF 由 pdf.cjs 从它打印）
     meta["outputs"] = ["html", "s1full"]
     meta["build"] = {"list": "local"}
-    meta["cascade"] = {"build": {"list": "local"}}
+    meta["cascade"] = {"build": {"list": "local", "publishResources": False}}  # 章节的 original.html 只在模板里读取，不单独发布
     for kv in a.extra:
         k, v = kv.split("=", 1)
         meta[k] = v

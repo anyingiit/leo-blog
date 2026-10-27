@@ -22,7 +22,10 @@
     <a class="s1-ibar-tag" href="{{ $m.root.RelPermalink }}" title="完整声明在译本首页">非官方 AI 译本</a>
     <details class="s1-ibar-toc">
       <summary title="章节目录"><span class="s1-ibar-title">{{ .Title }}</span> ▾</summary>
-      {{ partial "s1/toc.html" (dict "v" $v "current" $slug) }}
+      <div class="s1-ibar-panel">
+        {{ partial "s1/toc.html" (dict "v" $v "current" $slug) }}
+        {{- if eq .Params.s1dl "best" }}<p class="s1-ibar-dl">{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" (printf "%s 全文：" $v.Params.version)) }}</p>{{ end }}
+      </div>
     </details>
     <button type="button" class="s1-ibar-page" data-total="{{ $total }}" title="原文页码，点击跳页（g）"></button>
     <span class="s1-ibar-nav">

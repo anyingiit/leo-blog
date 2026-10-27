@@ -24,6 +24,6 @@
     </ul>
   </details>
   {{- end }}
-  {{- if eq $dl "cards" }}{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" "全文：") }}{{ end }}
+  {{- if or (eq $dl "cards") (and (eq $dl "best") .page.IsPage) }}{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" "全文：") }}{{ end }}
   {{- if eq $dl "menu" }}{{ partial "s1/downloads.html" (dict "v" $v "style" "menu") }}{{ end }}
 </div>
