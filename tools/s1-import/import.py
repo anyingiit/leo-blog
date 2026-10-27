@@ -186,6 +186,8 @@ def main():
             "captured": a.captured, "source": a.source, "date": a.date or a.filed, "notes": a.notes,
             "weight": a.weight, "excerpt": bool(a.pages), "chapters": toc}
     # 版本页和章节不进首页 RSS、站内搜索（site.RegularPages），仍在本版本的 .Pages 里
+    # 版本页另外输出单文件的完整 HTML（full.html，供下载；PDF 由 pdf.cjs 从它打印）
+    meta["outputs"] = ["html", "s1full"]
     meta["build"] = {"list": "local"}
     meta["cascade"] = {"build": {"list": "local"}}
     for kv in a.extra:

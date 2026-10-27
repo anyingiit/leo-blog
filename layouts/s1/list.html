@@ -14,6 +14,8 @@
   </header>
   {{- partial "s1/versionbar.html" (dict "page" .) }}
   {{- partial "s1/notice.html" (dict "v" . "full" false) }}
+  {{- if eq .Params.s1dl "cards" }}{{ partial "s1/downloads.html" (dict "v" . "style" "cards") }}{{ end }}
+  {{- if eq .Params.s1dl "table" }}<p class="s1-small">{{ partial "s1/downloads.html" (dict "v" . "style" "line" "label" (printf "下载 %s 全文：" .Params.version)) }}</p>{{ end }}
   {{- if eq $mode "book" }}
   <div class="s1-book">
     <nav class="s1-booktoc" aria-label="目录">
@@ -42,19 +44,22 @@
   <div class="s1-cta">
     <a class="s1-btn" href="{{ $m.latest.RelPermalink }}{{ if ne $mode "book" }}{{ (index (where $m.latest.Params.chapters "included" true) 0).slug }}/{{ end }}">开始阅读最新版 {{ $m.latest.Params.version }}</a>
     <a href="{{ $m.latest.Params.source }}" rel="noopener">英文原文（SEC）</a>
+    {{- if eq .Params.s1dl "menu" }}{{ partial "s1/downloads.html" (dict "v" $m.latest "style" "menu") }}{{ end }}
+    {{- if eq .Params.s1dl "table" }}{{ partial "s1/downloads.html" (dict "v" $m.latest "style" "line" "label" "下载全文：") }}{{ end }}
   </div>
+  {{- if eq .Params.s1dl "cards" }}{{ partial "s1/downloads.html" (dict "v" $m.latest "style" "cards") }}{{ end }}
   {{- .Content }}
   <h2>目录（{{ $m.latest.Params.version }}）</h2>
   {{- partial "s1/toc.html" $m.latest }}
   <h2 id="versions">全部版本</h2>
   <table class="s1-versions">
-    <thead><tr><th>译本版本</th><th>对应原文</th><th>原文采集</th><th>说明</th></tr></thead>
+    <thead><tr><th>译本版本</th><th>对应原文</th><th>原文采集</th><th>说明</th>{{ if eq .Params.s1dl "table" }}<th>全文下载</th>{{ end }}</tr></thead>
     <tbody>
     {{- range .Sections.ByWeight }}
       <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $m.latest }} <span class="s1-vtag s1-latest">最新</span>{{ end }}</td>
         <td>{{ .Params.form }}（{{ .Params.filed }} 提交）</td>
         <td>{{ (time.AsTime .Params.captured).UTC.Format "2006-01-02 15:04" }} UTC</td>
-        <td>{{ .Params.notes }}</td></tr>
+        <td>{{ .Params.notes }}</td>{{ if eq $.Params.s1dl "table" }}<td>{{ partial "s1/downloads.html" (dict "v" . "style" "line") }}</td>{{ end }}</tr>
     {{- end }}
     </tbody>
   </table>

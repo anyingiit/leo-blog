@@ -134,3 +134,28 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-ibar button { padding: 0 8px; }
 }
 @media (max-width: 480px) { .s1-ibar-tag { font-size: 12px; white-space: normal; line-height: 1.2; width: 4em; } }
+
+/* 全文下载（layouts/_partials/s1/downloads.html，params.s1dl 选位置）：都是直链 */
+.s1-dl-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+.s1-dl-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; background: var(--entry); font-size: 15px; }
+.s1-dl-card p { margin: 6px 0; color: var(--secondary); line-height: 1.6; }
+.s1-dl-kind { font-weight: 700; }
+.s1-dl-kind small { font-weight: 400; color: var(--secondary); margin-inline-start: 6px; }
+.s1-dl-acts { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.s1-dl-acts a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.s1-dl-line a { text-decoration: underline; text-underline-offset: 3px; }
+.s1-dl-line small { color: var(--secondary); }
+.s1-dl-foot { font-size: 14px; color: var(--secondary); margin-top: 24px; }
+.s1-dl-menu { position: relative; }
+.s1-dl-menu summary { cursor: pointer; list-style: none; text-decoration: underline; }
+.s1-dl-menu summary::-webkit-details-marker { display: none; }
+.s1-dl-menu ul { position: absolute; z-index: 60; top: 1.9em; inset-inline-start: 0; min-width: 220px; list-style: none; margin: 0; padding: 6px 0;
+  background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 18px rgb(0 0 0 / .15); white-space: nowrap; }
+.s1-dl-menu li a { display: flex; justify-content: space-between; gap: 16px; padding: 8px 14px; color: var(--primary); }
+.s1-dl-menu li a:hover { background: var(--code-bg); }
+.s1-dl-menu small { color: var(--secondary); }
+.s1-dl-menu .s1-dl-note { padding: 6px 14px 2px; font-size: 12px; color: var(--secondary); border-top: 1px solid var(--border); margin-top: 4px; }
+.s1-ibar .s1-dl-menu summary { text-decoration: none; padding: 0 8px; color: var(--primary); }
+.s1-ibar .s1-dl-menu ul { position: fixed; top: 56px; inset-inline-start: auto; inset-inline-end: 8px; }
+.s1-ibar .s1-dl-menu li a { min-height: 44px; display: flex; align-items: center; }
+.s1-cta .s1-dl-menu summary { text-decoration: underline; }

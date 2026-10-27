@@ -3,6 +3,7 @@
 {{- $v := $m.version -}}
 {{- $slug := "" }}{{ if .page.IsPage }}{{ $slug = path.Base (strings.TrimSuffix "/" .page.RelPermalink) }}{{ end -}}
 {{- $isLatest := eq $v $m.latest -}}
+{{- $dl := .page.Params.s1dl -}}
 {{- if not $isLatest }}
 <div class="s1-old" role="alert">
   你正在看<strong>历史版本 {{ $v.Params.version }}</strong>（对应 {{ $v.Params.form }}，{{ $v.Params.filed }} 提交）。
@@ -23,4 +24,6 @@
     </ul>
   </details>
   {{- end }}
+  {{- if eq $dl "cards" }}{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" "全文：") }}{{ end }}
+  {{- if eq $dl "menu" }}{{ partial "s1/downloads.html" (dict "v" $v "style" "menu") }}{{ end }}
 </div>

@@ -37,6 +37,7 @@
       <button type="button" data-zoom="fit" title="适应宽度">适应</button>
       <button type="button" data-zoom="in" aria-label="放大" title="放大">+</button>
     </span>
+    {{- if eq .Params.s1dl "menu" }}{{ partial "s1/downloads.html" (dict "v" $v "style" "menu") }}{{ end }}
     <button type="button" class="s1-ibar-exit" data-exit title="退出全屏阅读（Esc）">✕ 退出</button>
   </div>
   {{- end }}
@@ -74,6 +75,7 @@
       {{- end }}
     {{- end }}
   </nav>
+  {{- if eq .Params.s1dl "table" }}<p class="s1-dl-foot">{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" (printf "下载 %s 全文：" $v.Params.version)) }}</p>{{ end }}
   {{- partial "s1/rights.html" . }}
 </article>
 {{- partial "s1/script.html" . }}

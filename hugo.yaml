@@ -15,6 +15,15 @@ pagination:
 outputs:
   home: [HTML, RSS, JSON]  # JSON 供 PaperMod 站内搜索
 
+# S-1 译本版本页的「完整 HTML」下载：单文件、图片内嵌（layouts/s1/list.s1full.html），导入工具在版本页 outputs 里启用
+outputFormats:
+  s1full:
+    mediaType: text/html
+    baseName: full
+    isHTML: true
+    notAlternative: true
+    permalinkable: false
+
 # 文章文件夹里的原图只在被引用原文件时才发布；正文里的 jpg/png/webp 会缩成 WebP（见 render-image.html），原图不用上线
 cascade:
   - build:
