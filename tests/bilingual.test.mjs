@@ -295,10 +295,38 @@ test("不开脚本：显示重排版的中英对照，不显示切换条；声�
   await s.done();
 });
 
-test("段落锚点：带 #p3 打开时第 3 段在视口里", async (t) => {
+for (const [name, opts] of [["手机", PHONE.chromium], ["电脑（默认原版、也记住了原版）", DESKTOP]]) {
+  test(`段落链接：${name}带 #p3 打开时显示重排版，第 3 段在视口里；不改读者记住的版式`, async (t) => {
+    const s = await open(t, "chromium", opts);
+    if (opts === DESKTOP) {
+      await s.go(P);
+      await s.page.click(".s1-switch [data-view=original]");
+      await s.go("/translations/"); // 只改 #片段 的跳转不会重新加载页面，先离开
+    }
+    await s.go(P + "#p3");
+    assert.equal(await shown(s.page), "reflow");
+    await until(s.page, () => { const t = document.getElementById("p3").getBoundingClientRect().top; return t >= 0 && t < 200; });
+    if (opts === DESKTOP) {
+      await s.go(P);
+      assert.equal(await shown(s.page), "original", "不带段落链接时还是读者选的原版");
+    }
+    await s.done();
+  });
+}
+
+// 样例 tests/theme/site-fixture/content/translations/sample-essay（经 tests/hugo.test.yaml 挂进测试站）：最后一段没有译文
+test("没有译文的段落：「中文」档也显示原文，「English」档照常显示", async (t) => {
   const s = await open(t, "chromium", PHONE.chromium);
-  await s.go(P + "#p3");
-  const top = await s.page.locator("#p3").evaluate((e) => e.getBoundingClientRect().top);
-  assert.ok(top >= 0 && top < 200, `#p3 在 ${top}px`);
+  await s.go("/translations/sample-essay/");
+  assert.equal(await mode(s.page), "zh");
+  const untr = s.page.locator(".bl-pair.bl-untr");
+  assert.equal(await untr.count(), 1);
+  assert.equal(await untr.locator(".bl-zh").count(), 0);
+  assert.equal(await untr.locator(".bl-en").isVisible(), true);
+  assert.match(await untr.textContent(), /No translation here\./);
+  // 有译文的段落在「中文」档仍然只显示中文
+  assert.deepEqual(await visible(s.page), { zh: true, en: false });
+  await s.page.click(".bl-switch [data-set=en]");
+  assert.equal(await untr.locator(".bl-en").isVisible(), true);
   await s.done();
 });

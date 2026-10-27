@@ -9,7 +9,7 @@
 {{- $page := .page }}{{ $lang := $page.Language.Lang }}
 {{- $p := $page.Params }}
 {{- $sec := $page.Parent }}
-<article class="post-single s1-chapter bl-reader" data-vroot="{{ $page.RelPermalink }}" data-first-page="1" data-wide data-immersive>
+<article class="post-single s1-chapter bl-reader" data-hash-reflow data-vroot="{{ $page.RelPermalink }}" data-first-page="1" data-wide data-immersive>
   <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
   <div class="s1-ibar" role="toolbar" aria-label="全屏阅读" tabindex="-1" hidden>
     <a class="s1-ibar-tag" href="#bl-notice" title="完整声明">非官方译文</a>
@@ -68,8 +68,9 @@
       {{- continue }}
       {{- end }}
       {{- $tag := cond (in (slice "h1" "h2") $x.kind) "h2" (cond (in (slice "h3" "h4") $x.kind) "h3" (cond (eq $x.kind "quote") "blockquote" "p")) }}
-      <div class="bl-pair bl-k-{{ $x.kind }}" id="p{{ $n }}">
-        {{- printf "<%s class=\"bl-zh\" lang=\"zh-CN\">%s</%s>" $tag ($x.zh | default "" | markdownify) $tag | safeHTML }}
+      {{- /* 没有译文的段落（插件跳过的）只有原文，「中文」档也显示原文，不让内容消失 */}}
+      <div class="bl-pair bl-k-{{ $x.kind }}{{ if not $x.zh }} bl-untr{{ end }}" id="p{{ $n }}">
+        {{- with $x.zh }}{{ printf "<%s class=\"bl-zh\" lang=\"zh-CN\">%s</%s>" $tag (. | markdownify) $tag | safeHTML }}{{ end }}
         {{- printf "<%s class=\"bl-en\" lang=\"en\">%s</%s>" $tag ($x.en | markdownify) $tag | safeHTML }}
         <a class="bl-anchor" href="#p{{ $n }}" aria-label="{{ i18n "bl_link_para" }} {{ $n }}">#</a>
       </div>

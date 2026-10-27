@@ -23,8 +23,8 @@
 .bl-switch button[aria-pressed="true"] { color: var(--primary); background: var(--tertiary); font-weight: 500; }
 @media (max-width: 600px) { .bl-switch button { padding: 8px 18px; } }
 .bl-article:not(.bl-js) .bl-switch { display: none; }
-.bl-article[data-mode="zh"] .bl-en, .bl-article[data-mode="en"] .bl-zh { display: none; }
-.bl-article[data-mode="en"] .bl-en { font-size: 1em; color: var(--content); }
+.bl-article[data-mode="zh"] .bl-pair:not(.bl-untr) .bl-en, .bl-article[data-mode="en"] .bl-zh { display: none; }
+.bl-article[data-mode="en"] .bl-en, .bl-untr .bl-en { font-size: 1em; color: var(--content); }
 .bl-article[data-mode="zh"] .bl-body .bl-zh + .bl-en { margin-top: 0; }
 
 /* 原版阅读（layouts/_partials/bilingual/reader.html）：原网页排在 816px 的纸上，和 S-1 的原版页面同宽，s1.js 负责缩放 */
