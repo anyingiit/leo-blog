@@ -1,0 +1,40 @@
+<meta charset=utf-8>
+<meta http-equiv=X-UA-Compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>Search | PaperMod</title>
+<meta name=keywords content>
+<meta name=description content="Search - PaperMod">
+<meta name=author content="Theme PaperMod">
+<link rel=canonical href=http://example.test/search/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
+<link crossorigin=anonymous rel=preload as=fetch href=../index.json>
+<script defer crossorigin=anonymous src=/assets/js/search.<hash>.js integrity="sha256-<hash>">
+</script>
+<link rel=icon href=http://example.test/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://example.test/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=http://example.test/favicon-32x32.png>
+<link rel=apple-touch-icon href=http://example.test/apple-touch-icon.png>
+<link rel=mask-icon href=http://example.test/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<link rel=alternate hreflang=en href=http://example.test/search/>
+<link rel=alternate hreflang=fr href=http://example.test/fr/search/>
+<noscript>
+<style>…</style>
+<style>…</style>
+</noscript>
+<script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script>
+<meta property="og:url" content="http://example.test/search/">
+<meta property="og:site_name" content="PaperMod">
+<meta property="og:title" content="Search">
+<meta property="og:description" content="Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod">
+<meta property="og:locale" content="en">
+<meta property="og:type" content="article">
+<meta property="og:image" content="http://example.test/images/papermod-cover.png">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="http://example.test/images/papermod-cover.png">
+<meta name=twitter:title content="Search">
+<meta name=twitter:description content="Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Search","item":"http://example.test/search/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Search","name":"Search","description":"","keywords":[],"articleBody":"","wordCount":"0","inLanguage":"en","image":"http://example.test/images/papermod-cover.png","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","author":{"@type":"Person","name":"Theme PaperMod"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://example.test/search/"},"publisher":{"@type":"Organization","name":"PaperMod","logo":{"@type":"ImageObject","url":"http://example.test/favicon.ico"}}}</script>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+<title>短文 on Leoblog</title>
+<link>http://blog.test/notes/</link>
+<description>Recent content in 短文 on Leoblog</description>
+<generator>Hugo</generator>
+<language>zh-CN</language>
+<lastBuildDate>Thu, 05 Mar 2026 09:00:00 +0000</lastBuildDate>
+<atom:link href="http://blog.test/notes/index.xml" rel="self" type="application/rss+xml"/>
+<item>
+<title>一条短文</title>
+<link>http://blog.test/notes/sample-note/</link>
+<pubDate>Thu, 05 Mar 2026 09:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/sample-note/</guid>
+<description>&lt;p&gt;短文直接在栏目里展开全文。这里有两段文字。&lt;/p&gt;
+&lt;p&gt;第二段，带一个 &lt;a href="https://example.com"&gt;链接&lt;/a&gt;。&lt;/p&gt;</description>
+</item>
+<item>
+<title>带图的短文</title>
+<link>http://blog.test/notes/photo-note/</link>
+<pubDate>Wed, 04 Mar 2026 09:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/photo-note/</guid>
+<description>&lt;p&gt;一张竖图：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="山和太阳" class="photo" data-zoom="/notes/photo-note/photo_hu_1df156f354e68a29.webp" decoding="async" height="1000" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/photo-note/photo_hu_1df156f354e68a29.webp" srcset="http://blog.test/notes/photo-note/photo_hu_990f97c2a37299b2.webp 480w, http://blog.test/notes/photo-note/photo_hu_1df156f354e68a29.webp 800w" style="--ar:0.8000" width="800"&gt;&lt;/p&gt;</description>
+</item>
+<item>
+<title>带公式和图表的短文</title>
+<link>http://blog.test/notes/math-note/</link>
+<pubDate>Tue, 03 Mar 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/math-note/</guid>
+<description>&lt;p&gt;短文里也能写公式 &lt;span class="katex"&gt;&lt;span class="katex-mathml"&gt;&lt;math xmlns="http://www.w3.org/1998/Math/MathML"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msup&gt;&lt;mi&gt;a&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;b&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;c&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;a^2 + b^2 = c^2&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class="katex-html" aria-hidden="true"&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;a&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.8141em;"&gt;&lt;span style="top:-3.063em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2222em;"&gt;&lt;/span&gt;&lt;span class="mbin"&gt;+&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2222em;"&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.8141em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;b&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.8141em;"&gt;&lt;span style="top:-3.063em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2778em;"&gt;&lt;/span&gt;&lt;span class="mrel"&gt;=&lt;/span&gt;&lt;span class="mspace" style="margin-right:0.2778em;"&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="base"&gt;&lt;span class="strut" style="height:0.8141em;"&gt;&lt;/span&gt;&lt;span class="mord"&gt;&lt;span class="mord mathnormal"&gt;c&lt;/span&gt;&lt;span class="msupsub"&gt;&lt;span class="vlist-t"&gt;&lt;span class="vlist-r"&gt;&lt;span class="vlist" style="height:0.8141em;"&gt;&lt;span style="top:-3.063em;margin-right:0.05em;"&gt;&lt;span class="pstrut" style="height:2.7em;"&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;，还有图表：&lt;/p&gt;
+&lt;pre class="mermaid"&gt;graph LR
+A[想法] --&amp;gt; B[短文]&lt;/pre&gt;</description>
+</item>
+<item>
+<title>【测试】周末出游随手拍</title>
+<link>http://blog.test/notes/travel-photos/</link>
+<pubDate>Wed, 25 Feb 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/travel-photos/</guid>
+<description>&lt;p&gt;周末去郊外走了走，拍了一堆照片，挑了十二张。&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_01_hu_5e2efe1621f98947.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_5e2efe1621f98947.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_7489d74a6c458a2d.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_5032d48f7b0d4ccb.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_3fbcc6d41a2875bd.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_01_hu_5e2efe1621f98947.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_02_hu_77f9ae158d1f4fea.webp" decoding="async" height="1600" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_77f9ae158d1f4fea.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_cadd28c2927717d1.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_214520d65c90f9f.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_02_hu_77f9ae158d1f4fea.webp 1200w" style="--ar:0.7500" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_03_hu_8c72c9516c9abbcd.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_8c72c9516c9abbcd.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_38f25911248dd8cf.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_3cfe041660fb81a6.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_81bb5c094a4d2ff2.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_03_hu_8c72c9516c9abbcd.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_04_hu_c1d66ff407d287e.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_c1d66ff407d287e.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_787cb4d68b33e581.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_5ff4e0ae0bb9a71.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_04_hu_c1d66ff407d287e.webp 1200w" style="--ar:1.0000" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_05_hu_ac09f9be24d91572.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_ac09f9be24d91572.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_adb7a531645dba27.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_96058c087a44f0c6.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_dee5552be314fb59.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_05_hu_ac09f9be24d91572.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_06_hu_24bf0c0c4c013c09.webp" decoding="async" height="1600" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_24bf0c0c4c013c09.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_63abdcb67f559342.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_f320bdf425fcc4a5.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_06_hu_24bf0c0c4c013c09.webp 1200w" style="--ar:0.7500" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_07_hu_39339112a7a6a6a9.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_39339112a7a6a6a9.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_8c90e7c70d911cbd.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_3351ecf7013f4465.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_35798666b43e0879.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_07_hu_39339112a7a6a6a9.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_08_hu_f463162255ba457e.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_f463162255ba457e.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_6e7ebb2f951e8bd.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_795712234edfa765.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_08_hu_f463162255ba457e.webp 1200w" style="--ar:1.0000" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/travel-photos/travel-photos.assets/IMG_09_hu_2762fe5b2b92e1a8.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_2762fe5b2b92e1a8.webp" srcset="http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_734c3d5fe7b74f6b.webp 480w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_ec9be3ab75551802.webp 800w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_949f6f069ee59818.webp 1200w, http://blog.test/notes/travel-photos/travel-photos.assets/IMG_09_hu_2762fe5b2b92e1a8.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;</description>
+</item>
+<item>
+<title>【测试】四张横图的短文</title>
+<link>http://blog.test/notes/four-photos/</link>
+<pubDate>Fri, 20 Feb 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/four-photos/</guid>
+<description>&lt;p&gt;手机拍的四张横图，三张 16:9、一张 4:3。&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/four-photos/four-photos.assets/IMG_01_hu_b5042720aed70fd4.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/four-photos/four-photos.assets/IMG_01_hu_b5042720aed70fd4.webp" srcset="http://blog.test/notes/four-photos/four-photos.assets/IMG_01_hu_a3f4d354bff142f4.webp 480w, http://blog.test/notes/four-photos/four-photos.assets/IMG_01_hu_daa2f6d69fec6c1b.webp 800w, http://blog.test/notes/four-photos/four-photos.assets/IMG_01_hu_899d002f461609c9.webp 1200w, http://blog.test/notes/four-photos/four-photos.assets/IMG_01_hu_b5042720aed70fd4.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/four-photos/four-photos.assets/IMG_02_hu_2f6c58183cb89616.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/four-photos/four-photos.assets/IMG_02_hu_2f6c58183cb89616.webp" srcset="http://blog.test/notes/four-photos/four-photos.assets/IMG_02_hu_3eee1db386c354d1.webp 480w, http://blog.test/notes/four-photos/four-photos.assets/IMG_02_hu_a45a45e27c764d62.webp 800w, http://blog.test/notes/four-photos/four-photos.assets/IMG_02_hu_35ed2d7a94844aab.webp 1200w, http://blog.test/notes/four-photos/four-photos.assets/IMG_02_hu_2f6c58183cb89616.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/four-photos/four-photos.assets/IMG_03_hu_14a4c40086a19863.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/four-photos/four-photos.assets/IMG_03_hu_14a4c40086a19863.webp" srcset="http://blog.test/notes/four-photos/four-photos.assets/IMG_03_hu_3c1bd841c91c0a39.webp 480w, http://blog.test/notes/four-photos/four-photos.assets/IMG_03_hu_f401bcaec8a5088.webp 800w, http://blog.test/notes/four-photos/four-photos.assets/IMG_03_hu_f83d219589e5b522.webp 1200w, http://blog.test/notes/four-photos/four-photos.assets/IMG_03_hu_14a4c40086a19863.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/four-photos/four-photos.assets/IMG_04_hu_7966bdd10d9abc46.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/four-photos/four-photos.assets/IMG_04_hu_7966bdd10d9abc46.webp" srcset="http://blog.test/notes/four-photos/four-photos.assets/IMG_04_hu_30883b82163556a1.webp 480w, http://blog.test/notes/four-photos/four-photos.assets/IMG_04_hu_aac89203102c806e.webp 800w, http://blog.test/notes/four-photos/four-photos.assets/IMG_04_hu_bbe33fb8e0dc1589.webp 1200w, http://blog.test/notes/four-photos/four-photos.assets/IMG_04_hu_7966bdd10d9abc46.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;</description>
+</item>
+<item>
+<title>【测试】七张图的短文</title>
+<link>http://blog.test/notes/seven-photos/</link>
+<pubDate>Sun, 15 Feb 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/seven-photos/</guid>
+<description>&lt;p&gt;七张图，横竖方都有。&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/seven-photos/seven-photos.assets/IMG_01_hu_ea7104a87a6e846f.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_01_hu_ea7104a87a6e846f.webp" srcset="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_01_hu_7a9807bbf786e462.webp 480w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_01_hu_b08f31aab820083c.webp 800w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_01_hu_f0d9fa7573748e3f.webp 1200w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_01_hu_ea7104a87a6e846f.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/seven-photos/seven-photos.assets/IMG_02_hu_ced2fa4c278d5bce.webp" decoding="async" height="1600" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_02_hu_ced2fa4c278d5bce.webp" srcset="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_02_hu_82cd00d158a84310.webp 480w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_02_hu_2b2ff563e7f6d91d.webp 800w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_02_hu_ced2fa4c278d5bce.webp 1200w" style="--ar:0.7500" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/seven-photos/seven-photos.assets/IMG_03_hu_2503ad13ade45918.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_03_hu_2503ad13ade45918.webp" srcset="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_03_hu_7a9bcf62406e50b2.webp 480w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_03_hu_e7bf03049cf789ad.webp 800w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_03_hu_cac1bdd50ef683d4.webp 1200w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_03_hu_2503ad13ade45918.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/seven-photos/seven-photos.assets/IMG_04_hu_41f4336b0a83da78.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_04_hu_41f4336b0a83da78.webp" srcset="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_04_hu_a485279869c43015.webp 480w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_04_hu_c4a6c0501445f03c.webp 800w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_04_hu_41f4336b0a83da78.webp 1200w" style="--ar:1.0000" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/seven-photos/seven-photos.assets/IMG_05_hu_df0223255ef726e.webp" decoding="async" height="1600" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_05_hu_df0223255ef726e.webp" srcset="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_05_hu_a9a2e9b0629f8b94.webp 480w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_05_hu_34ac3e78f270952e.webp 800w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_05_hu_df0223255ef726e.webp 1200w" style="--ar:0.7500" width="1200"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/seven-photos/seven-photos.assets/IMG_06_hu_d5cae29797cff8e.webp" decoding="async" height="1200" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_06_hu_d5cae29797cff8e.webp" srcset="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_06_hu_bcdb272ffef59f4a.webp 480w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_06_hu_35e568a9c8ddb8c3.webp 800w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_06_hu_ae60b3ab9b829b8c.webp 1200w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_06_hu_d5cae29797cff8e.webp 1600w" style="--ar:1.3333" width="1600"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img class="photo" data-zoom="/notes/seven-photos/seven-photos.assets/IMG_07_hu_e5794c45bbe60793.webp" decoding="async" height="900" loading="lazy" sizes="(min-width: 768px) 720px, 100vw" src="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_07_hu_e5794c45bbe60793.webp" srcset="http://blog.test/notes/seven-photos/seven-photos.assets/IMG_07_hu_a6030f4cf351bfb9.webp 480w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_07_hu_2cb0e41d65411ba4.webp 800w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_07_hu_c618a3e676b200e5.webp 1200w, http://blog.test/notes/seven-photos/seven-photos.assets/IMG_07_hu_e5794c45bbe60793.webp 1600w" style="--ar:1.7778" width="1600"&gt;&lt;/p&gt;</description>
+</item>
+<item>
+<title>【测试】很长的纯文字短文</title>
+<link>http://blog.test/notes/long-text/</link>
+<pubDate>Tue, 10 Feb 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/long-text/</guid>
+<description>&lt;p&gt;这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。&lt;/p&gt;
+&lt;p&gt;这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。这是一段很长的文字，用来测试纯文字短文超过一屏时会被折叠。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 7</title>
+<link>http://blog.test/notes/short-7/</link>
+<pubDate>Wed, 07 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-7/</guid>
+<description>&lt;p&gt;第 7 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 6</title>
+<link>http://blog.test/notes/short-6/</link>
+<pubDate>Tue, 06 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-6/</guid>
+<description>&lt;p&gt;第 6 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 5</title>
+<link>http://blog.test/notes/short-5/</link>
+<pubDate>Mon, 05 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-5/</guid>
+<description>&lt;p&gt;第 5 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 4</title>
+<link>http://blog.test/notes/short-4/</link>
+<pubDate>Sun, 04 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-4/</guid>
+<description>&lt;p&gt;第 4 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 3</title>
+<link>http://blog.test/notes/short-3/</link>
+<pubDate>Sat, 03 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-3/</guid>
+<description>&lt;p&gt;第 3 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 2</title>
+<link>http://blog.test/notes/short-2/</link>
+<pubDate>Fri, 02 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-2/</guid>
+<description>&lt;p&gt;第 2 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+<item>
+<title>短文 1</title>
+<link>http://blog.test/notes/short-1/</link>
+<pubDate>Thu, 01 Jan 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/short-1/</guid>
+<description>&lt;p&gt;第 1 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。&lt;/p&gt;</description>
+</item>
+</channel>
+</rss>

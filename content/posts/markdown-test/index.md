@@ -41,6 +41,8 @@ $$
 \int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}
 $$
 
+美元金额要转义：输出每百万 token 收费 \$30，整篇只花了 \$1.32。
+
 ## Mermaid
 
 ```mermaid

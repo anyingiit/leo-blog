@@ -1,0 +1,8 @@
+# 主题测试构建官方示例站时叠加的设置（tests/theme/helpers.mjs）。
+# x、instagram 短代码在构建时联网抓取嵌入内容，结果随网络状况变化（本地抓不到、CI 抓得到），
+# 会让文件清单和搜索索引的快照不稳定；测试里关掉它们，页面其余部分保持原样。
+privacy:
+  x:
+    disable: true
+  instagram:
+    disable: true

@@ -1,0 +1,48 @@
+<meta charset=utf-8>
+<meta http-equiv=X-UA-Compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>Visual regression sample post | Leoblog</title>
+<meta name=keywords content="Testing,Style">
+<meta name=description content="A fixed sample post covering headings, lists, tables, code, alerts, math, Mermaid and images, used by the pixel-level regression tests.">
+<meta name=author content>
+<link rel=canonical href=http://blog.test/en/posts/sample-post/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
+<link rel=icon href=http://blog.test/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
+<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
+<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<link rel=alternate hreflang=zh href=http://blog.test/posts/sample-post/>
+<link rel=alternate hreflang=en href=http://blog.test/en/posts/sample-post/>
+<noscript>
+<style>…</style>
+<style>…</style>
+</noscript>
+<script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script>
+<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css crossorigin=anonymous>
+<script type=module>
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs";
+  const dark = document.documentElement.dataset.theme === "dark";
+  
+  mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "default" });
+  await mermaid.run();
+</script>
+<meta property="og:url" content="http://blog.test/en/posts/sample-post/">
+<meta property="og:site_name" content="Leoblog">
+<meta property="og:title" content="Visual regression sample post">
+<meta property="og:description" content="A fixed sample post covering headings, lists, tables, code, alerts, math, Mermaid and images, used by the pixel-level regression tests.">
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="article:section" content="posts">
+<meta property="article:published_time" content="2026-03-01T08:00:00+00:00">
+<meta property="article:modified_time" content="2026-03-01T08:00:00+00:00">
+<meta property="article:tag" content="Testing">
+<meta property="article:tag" content="Style">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Visual regression sample post">
+<meta name=twitter:description content="A fixed sample post covering headings, lists, tables, code, alerts, math, Mermaid and images, used by the pixel-level regression tests.">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"http://blog.test/en/posts/"},{"@type":"ListItem","position":2,"name":"Visual regression sample post","item":"http://blog.test/en/posts/sample-post/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Visual regression sample post","name":"Visual regression sample post","description":"A fixed sample post covering headings, lists, tables, code, alerts, math, Mermaid and images, used by the pixel-level regression tests.","keywords":["Testing","Style"],"articleBody":"A paragraph with bold, italic, inline code and a link. Line height and letter spacing should stay stable.\nSecond-level heading First bullet Second bullet with a nested list Nested item Ordered list Second item Third-level heading Col A Col B Col C Left Center 123 Text Text 4.56 package main import \"fmt\" func main() { fmt.Println(\"Hello, world\") } 注意\nThis is a note.\n提示\nThis is a tip.\n重要\nThis is important.\n警告\nThis is a warning.\n小心\nThis is a caution.\nA plain quote.\nMath and diagrams Inline math E=mc2E = mc^2E=mc2, and a block:\n∫0∞e−x2 dx=π2 \\int_0^\\infty e^{-x^2}\\,dx = \\frac{\\sqrt{\\pi}}{2} ∫0∞​e−x2dx=2π​​graph LR A[Write] --\u003e B[Build] --\u003e C[Publish]Image The last paragraph.\n","wordCount":"112","inLanguage":"en","datePublished":"2026-03-01T08:00:00Z","dateModified":"2026-03-01T08:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/en/posts/sample-post/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico"}}}</script>
