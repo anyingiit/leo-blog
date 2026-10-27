@@ -168,7 +168,7 @@ def write_bundle(d, fm, body, media):
         shutil.copy(SRC / "media" / f, d / f)
 
 
-def own_body(x, sid=""):
+def own_body(x, sid="", brief=False):
     """自己的推文写成 Markdown 正文：文字、图片、缺失媒体提示、被引用原推框。"""
     arg = f' id="{x["id"]}"' if sid else ""
     body = "\n\n".join(md(p["text"]) for p in x["parts"] if p["text"])
@@ -177,7 +177,8 @@ def own_body(x, sid=""):
     if x["missing"]:
         body += f"\n\n{{{{< x-missing{arg} >}}}}"
     if x.get("other"):
-        body += f"\n\n{{{{< x-quoted{arg} >}}}}"
+        # brief（方案十）：被引用的原推只留一行“回应 @xx ↗”，不转载原文
+        body += f"\n\n{{{{< x-quoted{arg}{' brief=\"true\"' if brief else ''} >}}}}"
     return body.strip()
 
 
@@ -187,6 +188,7 @@ def more(recs, outdir):
       v6 按月合集：每月一篇“X 月记”短文，最新的在前，转发列在末尾；没有 /x/
       v7 精选进短文：150 字以上的原创进短文，全部推文在 /x/
       v8 单独成栏 + 首页一行：v5 再在首页简介下面加一行“最近在 X”
+      v10 只做摘录：每月一篇“X 摘录”（同 v9），引用的原推只留一行链接；没有 /x/
       v9 摘录：v5 再加每月一篇“X 摘录”短文，只放 3～5 条（正式版由博主挑选并加一句评注，预览里按长度代挑）
     """
     counts = {}
@@ -195,11 +197,16 @@ def more(recs, outdir):
     for r in recs:
         months.setdefault(r["date"].strftime("%Y-%m"), []).append(r)
     promoted = {r["x"]["id"] for r in recs if r["x"]["kind"] != "retweet" and r["chars"] >= 150}
-    for v in ("v5", "v6", "v7", "v8", "v9"):
-        if v != "v6":
+    for v in ("v5", "v6", "v7", "v8", "v9", "v10"):
+        if v not in ("v6", "v10"):
             tl = []
             for r in recs:
                 e = dict(r["x"], date=r["date"].isoformat(), chars=r["chars"])
+                # 时间线不收：只有表情/几个字又没有图片的原创，和没有文字的转发
+                if e["kind"] == "retweet" and not URL_RE.sub("", e["other"]["text"]).strip():
+                    continue
+                if e["kind"] == "original" and r["chars"] < 15 and not e["media"]:
+                    continue
                 if v == "v7" and e["id"] in promoted:
                     e["blog"] = f"notes/x-{e['id']}/"
                 tl.append(e)
@@ -208,9 +215,11 @@ def more(recs, outdir):
             (outdir / v / "x").mkdir(parents=True, exist_ok=True)
             (outdir / v / "x" / "_index.md").write_text(
                 "---\ntitle: 推文\ndescription: 我在 X（[@Name11216161228](https://x.com/Name11216161228)）上的碎碎念，最新的在前。\n---\n")
-            for ym in months:
+            for ym in list(months)[1:]:
                 y, m = ym.split("-")
-                (outdir / v / "x" / f"{ym}.md").write_text(f'---\ntitle: "推文 · {y}年{int(m)}月"\nmonth: "{ym}"\nslug: "{ym}"\nsitemap: {{disable: true}}\n---\n')
+                (outdir / v / "x" / f"{ym}.md").write_text(
+                    f'---\ntitle: "推文 · {y}年{int(m)}月"\nmonth: "{ym}"\nslug: "{ym}"\ndate: "{months[ym][0]["date"].isoformat()}"\n'
+                    'build: {list: never}\n---\n')
             counts[(v, "timeline")] = len(tl)
         if v == "v7":
             for r in recs:
@@ -219,17 +228,17 @@ def more(recs, outdir):
                     fm = {"title": r["title"], "slug": f"x-{x['id']}", "date": r["date"].isoformat(), "tags": ["来自X"], "x": x}
                     write_bundle(outdir / v / "notes" / f"x-{x['id']}", fm, own_body(x) + "\n\n{{< x-src >}}", x["media"])
                     counts[(v, "notes")] = counts.get((v, "notes"), 0) + 1
-        if v in ("v6", "v9"):
+        if v in ("v6", "v9", "v10"):
             for ym, rs in months.items():
                 y, m = ym.split("-")
                 own = [r for r in rs if r["x"]["kind"] != "retweet"]
                 rts = [r for r in rs if r["x"]["kind"] == "retweet"]
-                if v == "v9":
+                if v in ("v9", "v10"):
                     pick = sorted([r for r in own if r["chars"] >= 40], key=lambda r: -r["chars"])[:5]
                     if not pick:
                         continue
                     own, rts = sorted(pick, key=lambda r: r["date"], reverse=True), []
-                chunks = [f'{{{{< x-day id="{r["x"]["id"]}" >}}}}\n\n' + own_body(r["x"], sid=True) for r in own]
+                chunks = [f'{{{{< x-day id="{r["x"]["id"]}" >}}}}\n\n' + own_body(r["x"], sid=True, brief=v == "v10") for r in own]
                 body = "\n\n".join(chunks)
                 if rts:
                     body += "\n\n{{< x-rts >}}"

@@ -1,0 +1,8 @@
+# 整站预览：方案 10（只在预览分支上用，见 build.sh）
+params:
+  xpreview: { cur: 10 }
+module:
+  mounts:
+    - { source: content, target: content }
+    - { source: x-preview/out/v10/notes, target: content/notes }
+    - { source: assets, target: assets }

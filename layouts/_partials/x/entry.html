@@ -1,6 +1,6 @@
 {{- /* 推文时间线里的一条。参数：时间线数据里的一项。自己的话超过约 280 字、或被引用的原推超过约 240 字时先折叠（转发在 x/month.html 里单独列）。 */ -}}
 {{- $d := time .date -}}
-{{- $long := or (gt .chars 280) (and .other (gt (len .other.text) 240)) -}}
+{{- $long := or (gt .chars 280) false -}}
 
 <article class="xt-e{{ if $long }} xt-long{{ end }}" id="t{{ .id }}">
   <p class="xt-meta"><a href="{{ .url }}" rel="nofollow noopener noreferrer" target="_blank"><time datetime="{{ $d.Format "2006-01-02T15:04:05-07:00" }}">{{ $d | time.Format "1月2日 15:04" }}</time></a>

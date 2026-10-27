@@ -3,7 +3,7 @@
 {{- $cur := int .cur -}}
 <nav class="xpv" aria-label="方案切换">
   <span class="xpv-t">预览</span>
-  {{- range slice (slice 0 "现状" "不同步") (slice 1 "一" "官方嵌入") (slice 2 "二" "全部卡片") (slice 3 "三" "评审推荐") (slice 4 "四" "推荐 + 转发") (slice 5 "五" "推文单独成栏") (slice 6 "六" "按月合集") (slice 7 "七" "精选进短文") (slice 8 "八" "单独成栏 + 首页一行") (slice 9 "九" "单独成栏 + 每月摘录") }}
+  {{- range slice (slice 0 "现状" "不同步") (slice 1 "一" "官方嵌入") (slice 2 "二" "全部卡片") (slice 3 "三" "评审推荐") (slice 4 "四" "推荐 + 转发") (slice 5 "五" "推文单独成栏") (slice 6 "六" "按月合集") (slice 7 "七" "精选进短文") (slice 8 "八" "单独成栏 + 首页一行") (slice 9 "九" "单独成栏 + 每月摘录") (slice 10 "十" "只做每月摘录") }}
   {{- $n := index . 0 }}
   <a class="xpv-a{{ if eq $n $cur }} cur{{ end }}" href="{{ $root }}{{ if $n }}v{{ $n }}/{{ end }}"{{ if eq $n $cur }} aria-current="page"{{ end }} title="{{ index . 2 }}">{{ index . 1 }}<span class="xpv-l">·{{ index . 2 }}</span></a>
   {{- end }}

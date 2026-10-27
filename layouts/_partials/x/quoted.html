@@ -1,7 +1,15 @@
-{{- /* 外部推文框：别人的推文，不翻译，只标 lang；底色区分，不画线。参数：dict "page" "o"（x.other）"media"（框内图片文件名）。 */ -}}
+{{- /* 外部推文框：别人的推文，不翻译；最多显示约 140 字，其余到 X 上看。没有原文（存档只有链接）时只留一行“回应 @xx ↗”。
+       参数：dict "page" "o"（x.other）"media"（框内图片文件名）"brief"（true 时只留一行链接）。 */ -}}
 {{- $o := .o -}}
+{{- $text := replaceRE `\s*https?://t\.co/\S+$` "" $o.text | strings.TrimSpace -}}
+{{- if or .brief (not $text) }}
+<p class="xf-reply">回应 <a href="{{ $o.url }}" rel="nofollow noopener noreferrer" target="_blank">@{{ $o.handle }} 的推文 ↗</a></p>
+{{- else }}
 <blockquote class="xf-quoted" cite="{{ $o.url }}">
   <p class="xf-qhead"><span class="xf-name">@{{ $o.handle }}</span> <span class="xf-meta">· {{ partial "x/date.html" $o }}</span></p>
-  {{- with $o.text }}<div class="xf-qtext">{{ partial "x/paras.html" . }}</div>{{ else }}<p class="xf-meta">（原推内容请在 X 上查看）</p>{{ end }}
+  {{- $short := gt (strings.RuneCount $text) 160 }}
+  <div class="xf-qtext">{{ partial "x/paras.html" (cond $short (printf "%s…" (substr $text 0 140)) $text) }}</div>
+  {{- if $short }}<p class="xf-qmore"><a href="{{ $o.url }}" rel="nofollow noopener noreferrer" target="_blank">在 X 上看全文 ↗</a></p>{{ end }}
   {{- partial "x/media.html" (dict "page" .page "files" .media) }}
 </blockquote>
+{{- end }}
