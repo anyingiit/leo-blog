@@ -1,0 +1,22 @@
+{{- /*
+  短片：assets/films/<名字>/ 里的文件（index.html 及其引用的配音、图片）原样发布到 /films/<名字>/，
+  poster.png/jpg 缩成 WebP 当封面。返回 dict：url、poster、width、height、title。
+*/ -}}
+{{- $name := . -}}
+{{- $files := resources.Match (printf "films/%s/**" $name) -}}
+{{- if not $files }}{{ errorf "找不到短片 assets/films/%s/" $name }}{{ end -}}
+{{- $url := "" -}}
+{{- $title := $name -}}
+{{- range $files -}}
+  {{- if hasPrefix (path.Base .Name) "poster." }}{{ continue }}{{ end -}}
+  {{- $p := .RelPermalink -}}
+  {{- if eq (path.Base .Name) "index.html" }}{{ $url = path.Dir $p | printf "%s/" }}
+    {{- with findRESubmatch `<title>([^<]+)</title>` .Content 1 }}{{ $title = index (index . 0) 1 }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- $poster := dict -}}
+{{- with or (resources.Get (printf "films/%s/poster.png" $name)) (resources.Get (printf "films/%s/poster.jpg" $name)) -}}
+  {{- $img := .Process "resize 1280x webp q85" -}}
+  {{- $poster = dict "src" $img.RelPermalink "width" $img.Width "height" $img.Height -}}
+{{- end -}}
+{{- return dict "url" $url "poster" $poster.src "width" $poster.width "height" $poster.height "title" $title -}}
