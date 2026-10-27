@@ -1,19 +1,14 @@
 {{- /*
-  S-1 译本的一章。params.s1mode（在译本首页用 cascade 设置）：
-  original 原版版式（original.html，按屏宽缩放）；reflow 重排版（index.md，站点正文样式）；
-  both 两者都有，读者切换（选择记在本机；没选过时电脑默认原版、手机默认重排），
-  原版放在 <template> 里，选了才插入页面，图片也才下载
+  S-1 译本的一章。原版版式（original.html）和重排版（index.md）两者都有，读者切换
+  （选择记在本机；没选过时电脑默认原版、手机默认重排），原版放在 <template> 里，选了才插入页面，图片也才下载。
+  原版在宽屏上跳出正文栏加宽显示（data-wide）；?read=1 进入全屏阅读（data-immersive，隐藏站点外壳，只留一条顶栏）
 */ -}}
 {{- define "main" }}
-{{- $mode := .Params.s1mode | default "original" }}
 {{- $m := partial "s1/meta.html" . }}
 {{- $v := $m.version }}
 {{- $chs := where $v.Params.chapters "included" true }}
 {{- $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
-{{- $wide := .Params.s1wide }}
-{{- $imm := .Params.s1immersive }}
-<article class="post-single s1-chapter s1-mode-{{ $mode }}" data-vroot="{{ $v.RelPermalink }}" data-first-page="{{ index .Params.pages 0 }}"{{ if $wide }} data-wide{{ end }}{{ if $imm }} data-immersive{{ end }}>
-  {{- if $imm }}
+<article class="post-single s1-chapter s1-mode-both" data-vroot="{{ $v.RelPermalink }}" data-first-page="{{ index .Params.pages 0 }}" data-wide data-immersive>
   {{- /* 带 ?read=1 打开时先进入沉浸样式，避免先显示普通页面再跳变 */}}
   <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
   {{- /* 沉浸阅读的顶栏：只在沉浸模式下显示，保留"非官方"标记和声明入口 */}}
@@ -24,7 +19,7 @@
       <summary title="章节目录"><span class="s1-ibar-title">{{ .Title }}</span> ▾</summary>
       <div class="s1-ibar-panel">
         {{ partial "s1/toc.html" (dict "v" $v "current" $slug) }}
-        {{- if eq .Params.s1dl "best" }}<p class="s1-ibar-dl">{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" (printf "%s 全文：" $v.Params.version)) }}</p>{{ end }}
+        <p class="s1-ibar-dl">{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" (printf "%s 全文：" $v.Params.version)) }}</p>
       </div>
     </details>
     <button type="button" class="s1-ibar-page" data-total="{{ $total }}" title="原文页码，点击跳页（g）"></button>
@@ -34,16 +29,14 @@
         {{- if lt (add $i 1) (len $chs) }}{{ with index $chs (add $i 1) }}<a href="../{{ .slug }}/?read=1" data-dir="next" title="下一章：{{ .title }}（]）" aria-label="下一章"><span class="s1-ibar-lbl">下一章 </span>›</a>{{ end }}{{ end }}
       {{- end }}{{ end }}
     </span>
-    {{- if eq $mode "both" }}<button type="button" data-toggle-view title="在原版版式和重排版之间切换"></button>{{ end }}
+    <button type="button" data-toggle-view title="在原版版式和重排版之间切换"></button>
     <span class="s1-ibar-zoom" role="group" aria-label="缩放">
       <button type="button" data-zoom="out" aria-label="缩小" title="缩小">−</button>
       <button type="button" data-zoom="fit" title="适应宽度">适应</button>
       <button type="button" data-zoom="in" aria-label="放大" title="放大">+</button>
     </span>
-    {{- if eq .Params.s1dl "menu" }}{{ partial "s1/downloads.html" (dict "v" $v "style" "menu") }}{{ end }}
     <button type="button" class="s1-ibar-exit" data-exit title="退出全屏阅读（Esc）">✕ 退出</button>
   </div>
-  {{- end }}
   <header class="post-header s1-header">
     <div class="s1-crumb"><a href="{{ $m.root.RelPermalink }}">{{ $m.root.Title }}</a> › <a href="{{ $v.RelPermalink }}">{{ $v.Params.version }} 目录</a></div>
     <h1 class="post-title">{{ .Title }}</h1>
@@ -52,24 +45,16 @@
   {{- partial "s1/versionbar.html" (dict "page" .) }}
   {{- partial "s1/notice.html" (dict "v" $v "full" false) }}
   <details class="s1-chtoc"><summary>章节目录</summary>{{ partial "s1/toc.html" (dict "v" $v "current" $slug) }}</details>
-  {{- if eq $mode "both" }}
   <div class="s1-switchbar">
     <div class="s1-switch" role="group" aria-label="版式">
       <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
       <button type="button" data-view="original" aria-pressed="false">原版版式</button>
     </div>
-    {{- if $imm }}<a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>{{ end }}
+    <a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>
   </div>
-  {{- end }}
-  {{- if in (slice "reflow" "both") $mode }}
   <div class="post-content md-content s1-reflow" data-view="reflow">{{ .Content }}</div>
-  {{- end }}
-  {{- if eq $mode "original" }}
-  <div class="s1-original" data-view="original">{{ partial "s1/original.html" (dict "page" .) }}</div>
-  {{- else if eq $mode "both" }}
   <div class="s1-original" data-view="original" hidden></div>
   <template class="s1-original-tpl">{{ partial "s1/original.html" (dict "page" .) }}</template>
-  {{- end }}
   <nav class="paginav s1-paginav">
     {{- range $i, $c := $chs }}
       {{- if eq $c.slug $slug }}
@@ -78,7 +63,6 @@
       {{- end }}
     {{- end }}
   </nav>
-  {{- if eq .Params.s1dl "table" }}<p class="s1-dl-foot">{{ partial "s1/downloads.html" (dict "v" $v "style" "line" "label" (printf "下载 %s 全文：" $v.Params.version)) }}</p>{{ end }}
   {{- partial "s1/rights.html" . }}
 </article>
 {{- partial "s1/script.html" . }}

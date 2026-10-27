@@ -1,11 +1,10 @@
 {{- /*
   S-1 译本的栏目页，两层：
   - 译本首页（content/<译本>/_index.md）：完整声明、最新版目录、全部版本与更新记录
-  - 版本页（<译本>/<版本>/_index.md，由 tools/s1-import 生成）：该版本的目录；
-    方案 D（params.s1mode = book）在这里直接整本显示原版版式
+  - 版本页（<译本>/<版本>/_index.md，由 tools/s1-import 生成）：该版本的目录
+  全文下载（完整 HTML、PDF）：译本首页和版本页是卡片，版本表每个版本一列（layouts/_partials/s1/downloads.html）
 */ -}}
 {{- define "main" }}
-{{- $mode := .Params.s1mode | default "original" }}
 {{- if .Params.version }}
   {{- $m := partial "s1/meta.html" . }}
   <header class="page-header s1-header">
@@ -14,24 +13,8 @@
   </header>
   {{- partial "s1/versionbar.html" (dict "page" .) }}
   {{- partial "s1/notice.html" (dict "v" . "full" false) }}
-  {{- if in (slice "cards" "best") .Params.s1dl }}{{ partial "s1/downloads.html" (dict "v" . "style" "cards") }}{{ end }}
-  {{- if eq .Params.s1dl "table" }}<p class="s1-small">{{ partial "s1/downloads.html" (dict "v" . "style" "line" "label" (printf "下载 %s 全文：" .Params.version)) }}</p>{{ end }}
-  {{- if eq $mode "book" }}
-  <div class="s1-book">
-    <nav class="s1-booktoc" aria-label="目录">
-      <details><summary>目录（{{ len (where .Params.chapters "included" true) }} 章）</summary>
-      <ol>{{ range .Params.chapters }}<li>{{ if .included }}<a href="#ch-{{ .slug }}">{{ .title }}</a>{{ else }}<span class="s1-missing">{{ .title }}</span>{{ end }}</li>{{ end }}</ol>
-      </details>
-    </nav>
-    {{- range .Pages.ByWeight }}
-    <section id="ch-{{ path.Base (strings.TrimSuffix "/" .RelPermalink) }}" class="s1-book-ch">
-      {{- partial "s1/original.html" (dict "page" . "book" true) }}
-    </section>
-    {{- end }}
-  </div>
-  {{- else }}
+  {{- partial "s1/downloads.html" (dict "v" . "style" "cards") }}
   {{- partial "s1/toc.html" . }}
-  {{- end }}
   {{- partial "s1/rights.html" . }}
 {{- else }}
   {{- $m := dict "latest" (index .Sections.ByWeight 0) }}
@@ -42,24 +25,22 @@
   </header>
   {{- partial "s1/notice.html" (dict "v" $m.latest "full" true) }}
   <div class="s1-cta">
-    <a class="s1-btn" href="{{ $m.latest.RelPermalink }}{{ if ne $mode "book" }}{{ (index (where $m.latest.Params.chapters "included" true) 0).slug }}/{{ end }}">开始阅读最新版 {{ $m.latest.Params.version }}</a>
+    <a class="s1-btn" href="{{ $m.latest.RelPermalink }}{{ (index (where $m.latest.Params.chapters "included" true) 0).slug }}/">开始阅读最新版 {{ $m.latest.Params.version }}</a>
     <a href="{{ $m.latest.Params.source }}" rel="noopener">英文原文（SEC）</a>
-    {{- if eq .Params.s1dl "menu" }}{{ partial "s1/downloads.html" (dict "v" $m.latest "style" "menu") }}{{ end }}
-    {{- if eq .Params.s1dl "table" }}{{ partial "s1/downloads.html" (dict "v" $m.latest "style" "line" "label" "下载全文：") }}{{ end }}
   </div>
-  {{- if in (slice "cards" "best") .Params.s1dl }}{{ partial "s1/downloads.html" (dict "v" $m.latest "style" "cards") }}{{ end }}
+  {{- partial "s1/downloads.html" (dict "v" $m.latest "style" "cards") }}
   {{- .Content }}
   <h2>目录（{{ $m.latest.Params.version }}）</h2>
   {{- partial "s1/toc.html" $m.latest }}
   <h2 id="versions">全部版本</h2>
   <table class="s1-versions">
-    <thead><tr><th>译本版本</th><th>对应原文</th><th>原文采集</th><th>说明</th>{{ if in (slice "table" "best") .Params.s1dl }}<th class="s1-dl-col">全文下载</th>{{ end }}</tr></thead>
+    <thead><tr><th>译本版本</th><th>对应原文</th><th>原文采集</th><th>说明</th><th class="s1-dl-col">全文下载</th></tr></thead>
     <tbody>
     {{- range .Sections.ByWeight }}
       <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $m.latest }} <span class="s1-vtag s1-latest">最新</span>{{ end }}</td>
         <td>{{ .Params.form }}（{{ .Params.filed }} 提交）</td>
         <td>{{ (time.AsTime .Params.captured).UTC.Format "2006-01-02 15:04" }} UTC</td>
-        <td>{{ .Params.notes }}</td>{{ if in (slice "table" "best") $.Params.s1dl }}<td class="s1-dl-col">{{ partial "s1/downloads.html" (dict "v" . "style" "line") }}</td>{{ end }}</tr>
+        <td>{{ .Params.notes }}</td><td class="s1-dl-col">{{ partial "s1/downloads.html" (dict "v" . "style" "line") }}</td></tr>
     {{- end }}
     </tbody>
   </table>

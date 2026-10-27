@@ -1,8 +1,7 @@
 {{- /*
   全文下载链接（完整 HTML 和 PDF），都是直链，不设任何门槛。dict "v" 版本页 "style" 样式 "label" 前缀：
   cards  两张卡片（译本首页、版本页）
-  line   一行文字链接（版本条、全屏阅读的目录面板、版本表）
-  menu   「下载 ▾」下拉（只在预览方案 D2 里）
+  line   一行文字链接（章节页版本条、全屏阅读的目录面板、版本表）
   文件来自版本页 front matter 的 downloads（tools/s1-import/release.py 发布时冻结，记有大小和 sha256）；
   还没发布的版本只有构建时生成的 full.html（s1full 输出），没有 PDF。
   HTML 默认在浏览器里打开（最适合读），PDF 直接下载（不在网页里内嵌预览）。
@@ -34,16 +33,6 @@
   {{- end }}
   {{- with $pdf.sha }}<p class="s1-dl-sha">SHA-256：HTML <code title="{{ $html.sha }}">{{ substr $html.sha 0 12 }}…</code> PDF <code title="{{ . }}">{{ substr . 0 12 }}…</code></p>{{ end }}
 </div>
-{{- else if eq .style "menu" }}
-<details class="s1-dl-menu">
-  <summary title="下载本版本全文">下载 ▾</summary>
-  <ul>
-    <li><a href="{{ $html.url }}" target="_blank" rel="noopener">在浏览器打开完整 HTML <small>↗</small></a></li>
-    <li><a href="{{ $html.url }}" download="{{ $html.name }}">下载 HTML <small>{{ $html.size }}</small></a></li>
-    {{- with $pdf.url }}<li><a href="{{ . }}" download="{{ $pdf.name }}">下载 PDF <small>{{ $pdf.size }}</small></a></li>{{ end }}
-    <li class="s1-dl-note">{{ $ver }} 全文，含译者声明</li>
-  </ul>
-</details>
 {{- else }}
 <span class="s1-dl-line">{{ with .label }}<span class="s1-dl-label">{{ . }}</span>{{ end }}<a href="{{ $html.url }}" target="_blank" rel="noopener" title="完整 HTML">HTML ↗{{ with $html.size }} <small>{{ . }}</small>{{ end }}</a>{{ with $pdf.url }}<a href="{{ . }}" download="{{ $pdf.name }}" title="PDF">PDF ↓ <small>{{ $pdf.size }}</small></a>{{ end }}</span>
 {{- end }}

@@ -50,9 +50,9 @@
 
 /* 原版版式：页面宽 612pt = 816px，加左右各 10px 边距 */
 /* 只有原版页面正在显示时才把正文栏放宽到 836px，标题、声明等仍保持站点的 720px，和普通文章对齐 */
-body:has(.s1-original:not([hidden]), .s1-book) .main { max-width: calc(836px + var(--gap) * 2); }
-body:has(.s1-original:not([hidden]), .s1-book) .main > :is(.s1-chapter, .page-header, .s1-vbar, .s1-notice, .s1-old, .s1-rights),
-body:has(.s1-original:not([hidden]), .s1-book) .s1-chapter > :not(.s1-original) { max-width: var(--main-width); margin-inline: auto; }
+body:has(.s1-original:not([hidden])) .main { max-width: calc(836px + var(--gap) * 2); }
+body:has(.s1-original:not([hidden])) .main > :is(.s1-chapter, .page-header, .s1-vbar, .s1-notice, .s1-old, .s1-rights),
+body:has(.s1-original:not([hidden])) .s1-chapter > :not(.s1-original) { max-width: var(--main-width); margin-inline: auto; }
 body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 .s1-sheets { background: var(--code-bg); border-radius: var(--radius); padding: 1px 0; margin: 0 auto 16px; overflow-x: auto; }
 .s1-sheets-inner { width: 836px; margin: 0 auto; color: #000; }
@@ -62,11 +62,6 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 @media (max-width: 880px) {
   .s1-sheets { margin-inline: calc(var(--gap) * -1); border-radius: 0; }
 }
-.s1-booktoc { position: sticky; top: 0; z-index: 4; background: var(--theme); padding: 8px 0; font-size: 15px; max-width: var(--main-width); margin-inline: auto; }
-.s1-book-ch { scroll-margin-top: 48px; }
-.s1-book [id] { scroll-margin-top: 48px; }
-.s1-booktoc summary { cursor: pointer; font-weight: 600; }
-.s1-booktoc ol { max-height: 50vh; overflow: auto; margin: 6px 0 0; padding-inline-start: 24px; }
 
 .s1-toc li[aria-current] > a { font-weight: 700; }
 .s1-rights { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--secondary); }
@@ -153,18 +148,4 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-dl-line a, .s1-dl-acts a { min-height: 44px; }
   .s1-versions .s1-dl-col { display: none; }  /* 窄屏表格放不下；版本页和首页有下载卡片 */
 }
-.s1-dl-foot { font-size: 14px; color: var(--secondary); margin-top: 24px; }
-.s1-dl-menu { position: relative; }
-.s1-dl-menu summary { cursor: pointer; list-style: none; text-decoration: underline; }
-.s1-dl-menu summary::-webkit-details-marker { display: none; }
-.s1-dl-menu ul { position: absolute; z-index: 60; top: 1.9em; inset-inline-start: 0; min-width: 220px; list-style: none; margin: 0; padding: 6px 0;
   background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 18px rgb(0 0 0 / .15); white-space: nowrap; }
-.s1-dl-menu li a { display: flex; justify-content: space-between; gap: 16px; padding: 8px 14px; color: var(--primary); }
-.s1-dl-menu li a:hover { background: var(--code-bg); }
-.s1-dl-menu small { color: var(--secondary); }
-.s1-dl-menu .s1-dl-note { padding: 6px 14px 2px; font-size: 12px; color: var(--secondary); border-top: 1px solid var(--border); margin-top: 4px; }
-.s1-ibar .s1-dl-menu summary { text-decoration: none; padding: 0 8px; color: var(--primary); }
-.s1-ibar .s1-dl-menu ul { position: fixed; top: 56px; inset-inline-start: auto; inset-inline-end: 8px; }
-.s1-ibar .s1-dl-menu li a { min-height: 44px; display: flex; align-items: center; }
-.s1-cta .s1-dl-menu summary { text-decoration: underline; }
-.s1-dl-menu ul { max-width: calc(100vw - 32px); white-space: normal; }

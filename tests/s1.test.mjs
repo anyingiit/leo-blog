@@ -1,4 +1,4 @@
-// S-1 译本的全文下载（完整 HTML + PDF）：用预览样例（tests/fixtures/s1-preview，方案 D4 = s1dl: best）检查
+// S-1 译本的全文下载（完整 HTML + PDF）和与主题的契约：用测试样例（tests/fixtures/s1-preview，挂在 /s1-test/）检查
 //   - 下载入口出现在该出现的地方，都是直链、没有任何门槛（不弹窗、不要求同意、不登录）
 //   - 已发布版本的冻结文件原样发布（和 front matter 的 sha256 一致），未发布版本只有模板生成的 full.html
 //   - 完整 HTML 是单文件、首末都有译者声明；下载文件不进搜索引擎（_headers）
@@ -31,15 +31,15 @@ const files = (dir) => readdirSync(dir, { recursive: true }).map(String);
 
 test("已发布版本的冻结文件原样发布，内容和 front matter 的 sha256 一致", () => {
   for (const [kind, d] of Object.entries(downloads)) {
-    const b = readFileSync(join(site.out, "s1-d4/v1.0", d.file.replace(/\.raw$/, "")));
+    const b = readFileSync(join(site.out, "s1-test/v1.0", d.file.replace(/\.raw$/, "")));
     assert.equal(b.length, d.bytes, kind);
     assert.equal(createHash("sha256").update(b).digest("hex"), d.sha256, kind);
   }
   // 完整 HTML 在内容目录里是 .html.raw（免得被 Hugo 当成文章），只以 .html 的名字发布一份
-  assert.ok(!site.exists(`s1-d4/v1.0/files/${NAME}/index.html`));
+  assert.ok(!site.exists(`s1-test/v1.0/files/${NAME}/index.html`));
   assert.deepEqual(files(site.out).filter((f) => f.endsWith(".raw")), []);
   // 已发布的版本不再从模板生成 full.html
-  assert.ok(!site.exists("s1-d4/v1.0/full.html"));
+  assert.ok(!site.exists("s1-test/v1.0/full.html"));
 });
 
 test("章节的 original.html 只在模板里读取，不单独发布", () => {
@@ -47,8 +47,8 @@ test("章节的 original.html 只在模板里读取，不单独发布", () => {
 });
 
 test("下载入口：译本首页和版本页是卡片，章节版本条、版本表各一行；都是直链", () => {
-  const html = `/s1-d4/v1.0/files/${NAME}.html`, pdf = `/s1-d4/v1.0/files/${NAME}.pdf`;
-  for (const page of ["s1-d4/index.html", "s1-d4/v1.0/index.html", "s1-d4/v1.0/cover/index.html"]) {
+  const html = `/s1-test/v1.0/files/${NAME}.html`, pdf = `/s1-test/v1.0/files/${NAME}.pdf`;
+  for (const page of ["s1-test/index.html", "s1-test/v1.0/index.html", "s1-test/v1.0/cover/index.html"]) {
     const h = read(page);
     const toHtml = links(h, new RegExp(`href="?${html}`)), toPdf = links(h, new RegExp(`href="?${pdf}`));
     assert.ok(toHtml.length >= 1 && toPdf.length >= 1, page);
@@ -61,21 +61,21 @@ test("下载入口：译本首页和版本页是卡片，章节版本条、版�
     assert.match(h, new RegExp(`${(downloads.pdf.bytes / 1048576).toFixed(1)} MB`), `${page} 显示 PDF 大小`);
   }
   // 首页卡片下面给出 sha256；版本表多一列「全文下载」
-  assert.match(read("s1-d4/index.html"), new RegExp(downloads.pdf.sha256.slice(0, 12)));
-  assert.match(read("s1-d4/index.html"), /class="?s1-dl-col/);
+  assert.match(read("s1-test/index.html"), new RegExp(downloads.pdf.sha256.slice(0, 12)));
+  assert.match(read("s1-test/index.html"), /class="?s1-dl-col/);
   // 版本页只有卡片，不再重复一行
-  assert.doesNotMatch(read("s1-d4/v1.0/index.html"), /class="?s1-dl-line/);
+  assert.doesNotMatch(read("s1-test/v1.0/index.html"), /class="?s1-dl-line/);
 });
 
 test("未发布的版本：模板生成单文件 full.html，入口只给 HTML", () => {
-  const h = read("s1-d4/v0.9/full.html");
+  const h = read("s1-test/v0.9/full.html");
   assert.match(h, /<html[^>]* data-standalone/);
   assert.match(h, /<meta name="?robots"? content="?noindex/);
   assert.equal(h.split("人工没有检查、也没有能力检查译文与原文的一致性").length - 1, 2, "首末各一份完整声明");
   assert.doesNotMatch(h, /<(img|script|iframe)[^>]+src="?(https?:|\/\/|\/)/);
   assert.doesNotMatch(h, /<link[^>]+rel="?stylesheet/);
-  const page = read("s1-d4/v0.9/index.html");
-  assert.ok(links(page, /href="?\/s1-d4\/v0\.9\/full\.html/).length >= 1);
+  const page = read("s1-test/v0.9/index.html");
+  assert.ok(links(page, /href="?\/s1-test\/v0\.9\/full\.html/).length >= 1);
   assert.doesNotMatch(page, /v0\.9\/files\//);
 });
 
@@ -92,7 +92,7 @@ for (const [name, opts] of [["手机", devices["iPhone 13"]], ["电脑", { viewp
     const page = await ctx.newPage();
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    for (const p of ["/s1-d4/", "/s1-d4/v1.0/", "/s1-d4/v1.0/cover/", `/s1-d4/v1.0/files/${NAME}.html`, "/s1-d4/v0.9/full.html"]) {
+    for (const p of ["/s1-test/", "/s1-test/v1.0/", "/s1-test/v1.0/cover/", `/s1-test/v1.0/files/${NAME}.html`, "/s1-test/v0.9/full.html"]) {
       await page.goto(server.url + p, { waitUntil: "load" });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), p);
     }
@@ -104,7 +104,7 @@ for (const [name, opts] of [["手机", devices["iPhone 13"]], ["电脑", { viewp
 test("全屏阅读：目录面板底部有下载链接，不另加按钮", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
-  await page.goto(server.url + "/s1-d4/v1.0/cover/?read=1", { waitUntil: "load" });
+  await page.goto(server.url + "/s1-test/v1.0/cover/?read=1", { waitUntil: "load" });
   const dl = page.locator(".s1-ibar-panel .s1-ibar-dl a");
   assert.equal(await dl.count(), 2);
   assert.equal(await dl.first().isVisible(), false);
@@ -120,7 +120,7 @@ test("PaperMod 契约：译本样式用到的 CSS 变量和页面结构都还在
   const vars = ["--border", "--secondary", "--primary", "--radius", "--entry", "--gap", "--theme", "--main-width", "--code-bg"];
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
-  await page.goto(server.url + "/s1-d4/v1.0/cover/", { waitUntil: "load" });
+  await page.goto(server.url + "/s1-test/v1.0/cover/", { waitUntil: "load" });
   for (const theme of ["light", "dark"]) {
     await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
     const missing = await page.evaluate((vs) => vs.filter((v) => !getComputedStyle(document.documentElement).getPropertyValue(v).trim()), vars);
@@ -131,7 +131,7 @@ test("PaperMod 契约：译本样式用到的 CSS 变量和页面结构都还在
   const [orig, col] = await page.evaluate(() => [document.querySelector(".s1-original")?.getBoundingClientRect().width ?? 0,
     parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--main-width"))]);
   assert.ok(orig > col + 200, `原版版式宽 ${orig}px，主题正文栏 ${col}px`);
-  await page.goto(server.url + "/s1-d4/v1.0/cover/?read=1", { waitUntil: "load" });
+  await page.goto(server.url + "/s1-test/v1.0/cover/?read=1", { waitUntil: "load" });
   await page.locator(".s1-ibar").waitFor({ state: "visible" });
   for (const sel of ["header.header", "footer.footer", ".top-link"]) assert.equal(await page.locator(sel).isVisible(), false, `全屏阅读时 ${sel} 应隐藏`);
   await ctx.close();
