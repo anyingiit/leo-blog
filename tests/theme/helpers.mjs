@@ -40,7 +40,7 @@ export const cdn = {
 
 const types = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".mjs": "text/javascript",
   ".json": "application/json", ".xml": "application/xml", ".txt": "text/plain", ".webp": "image/webp", ".png": "image/png",
-  ".jpg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".woff": "font/woff", ".ttf": "font/ttf" };
+  ".jpg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".woff": "font/woff", ".ttf": "font/ttf", ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".mp4": "video/mp4" };
 
 function file(path) {
   let f = path;

@@ -3,7 +3,7 @@
   原样发布到 /films/<名字>/play/，只在 index.html 里插入两样东西：
   - 桥接脚本 assets/js/film-bridge.js（深浅色、Esc、高度，经 postMessage 传给博客）；
   - noindex 和指向短片页的 canonical（搜索引擎收录短片页，不收录裸播放器）。
-  poster.png/jpg 不发布，缩成 WebP 当封面。content/films/<名字>/ 是短片页（博客页头页尾、导语、文字稿），可选。
+  poster.png/jpg 不发布，缩成 WebP 当封面；有 poster.en.png/jpg 时英文页用它（封面上有中文字时，见 docs/films.md）。content/films/<名字>/ 是短片页（博客页头页尾、导语、文字稿），可选。
   参数：dict "name" 短片名 "page" 当前页面。返回 dict：play、page（短片页，没有时为空）、poster、width、height、title、minutes、lang。
 */ -}}
 {{- $name := .name -}}
@@ -31,7 +31,8 @@
   {{- end -}}
 {{- end -}}
 {{- $poster := dict -}}
-{{- with or (resources.Get (printf "films/%s/poster.png" $name)) (resources.Get (printf "films/%s/poster.jpg" $name)) -}}
+{{- $suffix := cond (and $ctx (ne $ctx.Lang site.Sites.Default.Language.Lang)) (printf ".%s" ($ctx.Lang | default "")) "" -}}
+{{- with or (resources.Get (printf "films/%s/poster%s.png" $name $suffix)) (resources.Get (printf "films/%s/poster%s.jpg" $name $suffix)) (resources.Get (printf "films/%s/poster.png" $name)) (resources.Get (printf "films/%s/poster.jpg" $name)) -}}
   {{- $img := .Process "resize 1280x webp q85" -}}
   {{- $poster = dict "src" $img.RelPermalink "width" $img.Width "height" $img.Height -}}
 {{- end -}}

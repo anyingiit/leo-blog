@@ -1,14 +1,14 @@
 ---
 title: "Anthropic's Money and Power"
 date: 2026-10-27T12:00:00Z
-minutes: 13
+minutes: 15
 filmLang: zh
 ShowReadingTime: false
 ShowWordCount: false
 description: "An animated short: how five share classes, the Long-Term Benefit Trust, the Founder LLC and a 7-seat board check one another."
 ---
 
-How do the five share classes in the prospectus (A / N / T / F / E), the Long-Term Benefit Trust (LTBT), the Founder LLC and the 7-seat board check and balance one another? This roughly 13-minute animation takes it apart in an order engineers will find familiar: the data structure, the permission table, the board, the checks and balances, and finally how it evolves over time. The narration and on-screen text are in Chinese; the full English transcript is below. Space plays and pauses, ← → step through the lines; on a phone, turn it sideways or tap “全屏” (full screen).
+How do the five share classes in the prospectus (A / N / T / F / E), the Long-Term Benefit Trust (LTBT), the Founder LLC and the 7-seat board check and balance one another? This roughly 15-minute animation takes it apart in an order engineers will find familiar: the data structure, the permission table, the board, the checks and balances, and finally how it evolves over time. On this page it plays in English, with English narration, captions and diagrams (the original is in Chinese); the full transcript is below. Space plays and pauses, ← → step through the lines; on a phone, turn it sideways or tap “Full screen”.
 
 Based on the sections of Anthropic's S-1 prospectus on its governance structure and objectives, description of capital stock, management and related risk factors. It is a structural explainer made for personal study, not investment advice; the prospectus text governs.
 

@@ -18,7 +18,7 @@ export function build() {
 }
 
 const types = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".xml": "application/xml",
-  ".webp": "image/webp", ".mp4": "video/mp4", ".m4a": "audio/mp4", ".png": "image/png", ".jpg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml" };
+  ".webp": "image/webp", ".mp4": "video/mp4", ".m4a": "audio/mp4", ".mp3": "audio/mpeg", ".png": "image/png", ".jpg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml" };
 
 // 站点 baseURL 是正式域名，页面里的绝对地址指向它；测试只用相对路径访问
 export function serve(dir) {

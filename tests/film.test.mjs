@@ -170,9 +170,7 @@ for (const [name, viewport] of [["电脑", { width: 1280, height: 800 }], ["手�
 }
 
 test("真实短片在手机横屏全窗口放映时，画面占屏幕一半以上，控制条在屏幕内", async () => {
-  const notes = readdirSync(join(root, "content/notes")).filter((d) => existsSync(join(root, "content/notes", d, "index.md")) && readFileSync(join(root, "content/notes", d, "index.md"), "utf8").includes("{{< film"));
-  for (const d of notes) {
-    const slug = readFileSync(join(root, "content/notes", d, "index.md"), "utf8").match(/^slug:\s*(\S+)/m)?.[1] ?? d;
+  for (const [slug] of filmNotes()) {
     const { page, ctx } = await open(`/notes/${slug}/`, { viewport: { width: 844, height: 390 } });
     await page.click(".film-open");
     const frame = page.frameLocator(".film-dialog iframe");
@@ -185,6 +183,58 @@ test("真实短片在手机横屏全窗口放映时，画面占屏幕一半以�
     assert.ok(r.svg >= r.vh / 2, `${slug}：画面高 ${r.svg}，窗口高 ${r.vh}`);
     assert.ok(r.bottom <= r.vh, `${slug}：控制条底边 ${r.bottom} 超出窗口 ${r.vh}`);
     await ctx.close();
+  }
+});
+
+// 引用了短片的真实文章（中文 index.md 里有 film 短代码），返回 [slug, 短片名]
+const filmNotes = () => readdirSync(join(root, "content/notes")).flatMap((d) => {
+  const f = join(root, "content/notes", d, "index.md");
+  const md = existsSync(f) ? readFileSync(f, "utf8") : "";
+  const name = md.match(/\{\{<\s*film\s+name="([^"]+)"/)?.[1];
+  return name ? [[md.match(/^slug:\s*(\S+)/m)?.[1] ?? d, name]] : [];
+});
+
+test("真实短片在英文页里放英文版：地址带 lang=en，画面、字幕、按钮都没有中文，配音按英文文件加载", async () => {
+  for (const [slug, name] of filmNotes()) {
+    const filmLang = readFileSync(join(root, "content/films", name, "index.en.md"), "utf8").match(/^filmLang:\s*(\S+)/m)?.[1];
+    if (filmLang === "en") continue;
+    const { page, ctx, errors } = await open(`/en/notes/${slug}/`, { viewport: { width: 1280, height: 800 } });
+    const audio = [];
+    page.on("response", (r) => { if (/\.(mp3|m4a|mp4|ogg|opus|wav)$/.test(new URL(r.url()).pathname)) audio.push([new URL(r.url()).pathname, r.status()]); });
+    await page.click(".film-open");
+    assert.match(await page.locator(".film-dialog iframe").getAttribute("src"), /[?&]lang=en\b/);
+    const frame = film(page);
+    await frame.locator("svg").first().waitFor();
+    await page.locator(".film-dialog iframe").focus();
+    await frame.locator("body").press("Space");
+    await frame.locator("body").evaluate(() => new Promise((r) => setTimeout(r, 1500)));
+    const cjk = await frame.locator("body").evaluate(() => {
+      const re = /[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]/;
+      const out = [];
+      for (const el of document.querySelectorAll("body *")) {
+        if (!el.getClientRects().length || getComputedStyle(el).visibility === "hidden") continue;
+        for (const n of el.childNodes) if (n.nodeType === 3 && re.test(n.textContent)) out.push(n.textContent.trim().slice(0, 40));
+        for (const a of ["aria-label", "title"]) if (re.test(el.getAttribute(a) || "")) out.push(`${a}: ${el.getAttribute(a)}`);
+      }
+      return out.concat(re.test(document.title) ? [`title: ${document.title}`] : []);
+    });
+    assert.deepEqual(cjk, [], `${name} 英文版里还有中文`);
+    assert.ok(audio.length > 0, `${name} 播放后没有加载配音`);
+    for (const [p, status] of audio) {
+      assert.match(p, /\/en\//, `英文版加载了中文配音 ${p}`);
+      assert.ok(status < 400, `${p} 返回 ${status}`);
+    }
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+});
+
+test("短片有 poster.en.png/jpg 时，英文页的封面卡片用英文封面，中文页用原封面", () => {
+  for (const [slug, name] of filmNotes()) {
+    if (!["png", "jpg"].some((e) => existsSync(join(root, "assets/films", name, `poster.en.${e}`)))) continue;
+    const poster = (p) => read(p).match(new RegExp(`/films/${name}/(poster[^"'\\s]*\\.webp)`))?.[1];
+    assert.match(poster(`en/notes/${slug}/index.html`) ?? "", /^poster\.en_/);
+    assert.match(poster(`notes/${slug}/index.html`) ?? "", /^poster_/);
   }
 });
 
