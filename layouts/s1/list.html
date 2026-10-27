@@ -10,28 +10,30 @@
   {{- $m := partial "s1/meta.html" . }}
   <header class="page-header s1-header">
     <div class="s1-crumb"><a href="{{ $m.root.RelPermalink }}">{{ $m.root.Title }}</a></div>
-    <h1>{{ $m.root.Title }} {{ .Params.version }}</h1>
+    <h1>{{ .Params.version }} 目录</h1>
   </header>
   {{- partial "s1/versionbar.html" (dict "page" .) }}
   {{- partial "s1/notice.html" (dict "v" . "full" false) }}
   {{- if eq $mode "book" }}
   <div class="s1-book">
     <nav class="s1-booktoc" aria-label="目录">
-      <details open><summary>目录</summary>
+      <details><summary>目录（{{ len (where .Params.chapters "included" true) }} 章）</summary>
       <ol>{{ range .Params.chapters }}<li>{{ if .included }}<a href="#ch-{{ .slug }}">{{ .title }}</a>{{ else }}<span class="s1-missing">{{ .title }}</span>{{ end }}</li>{{ end }}</ol>
       </details>
     </nav>
     {{- range .Pages.ByWeight }}
     <section id="ch-{{ path.Base (strings.TrimSuffix "/" .RelPermalink) }}" class="s1-book-ch">
-      {{- partial "s1/original.html" . }}
+      {{- partial "s1/original.html" (dict "page" . "book" true) }}
     </section>
     {{- end }}
   </div>
   {{- else }}
   {{- partial "s1/toc.html" . }}
   {{- end }}
+  {{- partial "s1/rights.html" . }}
 {{- else }}
   {{- $m := dict "latest" (index .Sections.ByWeight 0) }}
+  {{- with .Params.latest }}{{ with $.GetPage . }}{{ $m = dict "latest" . }}{{ end }}{{ end }}
   <header class="page-header s1-header">
     <h1>{{ .Title }}</h1>
     {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
@@ -57,6 +59,7 @@
     </tbody>
   </table>
   <p class="s1-small">历史版本只增不改：每个版本有自己的固定网址，发布后内容不再变动。</p>
+  {{- partial "s1/rights.html" . }}
 {{- end }}
 {{- partial "s1/script.html" . }}
 {{- end }}

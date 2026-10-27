@@ -1,11 +1,12 @@
-{{- /* 版本目录：导入工具把全部章节写进版本 front matter（含页码），没导入的章节灰显 */ -}}
-{{- $v := . -}}
+{{- /* 版本目录。参数是版本页，或 dict "v" 版本页 "current" 当前章节；导入工具把全部章节写进版本 front matter（含页码），没导入的章节灰显 */ -}}
+{{- $v := . }}{{ $cur := "" -}}
+{{- if reflect.IsMap . }}{{ $v = .v }}{{ $cur = .current }}{{ end -}}
 <ol class="s1-toc">
-  {{- range .Params.chapters }}
-  <li>
+  {{- range $v.Params.chapters }}
+  <li{{ if eq .slug $cur }} aria-current="page"{{ end }}>
     {{- if .included }}<a href="{{ $v.RelPermalink }}{{ .slug }}/">{{ .title }}</a>{{ else }}<span class="s1-missing">{{ .title }}</span>{{ end }}
     <small>第 {{ index .pages 0 }}{{ if ne (index .pages 0) (index .pages 1) }}–{{ index .pages 1 }}{{ end }} 页</small>
   </li>
   {{- end }}
 </ol>
-{{- if .Params.excerpt }}<p class="s1-small">灰色章节是预览里没有导入的部分。</p>{{ end }}
+{{- if $v.Params.excerpt }}<p class="s1-small">灰色章节是预览里没有导入的部分。</p>{{ end }}

@@ -11,11 +11,11 @@
     <li><strong>原文采集时间：</strong>{{ $cap.UTC.Format "2006-01-02 15:04" }} UTC（北京时间 {{ ($cap.UTC.Add (time.ParseDuration "8h")).Format "2006-01-02 15:04" }}）。<strong>原文：</strong><a href="{{ $p.source }}" rel="noopener">SEC EDGAR</a>。<strong>译本版本：</strong>{{ $p.version }}（{{ $v.Date.Format "2006-01-02" }} 定稿）。</li>
     <li>这是一份初步招股说明书，信息不完整，且可能已被后续修订。一切以 SEC 网站上最新的英文原文为准。</li>
     <li>本文仅供学习参考，不构成任何投资建议、要约或要约邀请。译者不对译文的准确性、完整性及任何使用后果承担任何责任，读者据此作出的一切决定及其后果均由读者自行承担。</li>
-    <li>原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 及相应权利人所有。如权利人认为本文不宜公开，请联系我，我会立即删除。</li>
+    <li>原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 及相应权利人所有。如权利人认为本文不宜公开，请{{ with site.Params.s1Contact }}发邮件到 <a href="mailto:{{ . }}">{{ . }}</a>{{ else }}联系我（联系方式待定）{{ end }}，我会立即删除。</li>
   </ul>
   {{- else }}
   <details>
-    <summary><strong>非官方 AI 译本</strong>，未经人工核对译文，仅供参考，不构成投资建议，后果自负；以 <a href="{{ $p.source }}" rel="noopener">SEC 英文原文</a>为准。版权归原权利人。<span class="s1-more">完整声明</span></summary>
+    <summary><strong>非官方 AI 译本</strong>，与 Anthropic 无关，译文未经人工核对。这是初步招股说明书，可能已被修订，以 <a href="{{ $p.source }}" rel="noopener">SEC 英文原文</a>为准。仅供参考，不构成投资建议，后果自负。版权归原权利人。<span class="s1-more">完整声明</span></summary>
     {{- partial "s1/notice.html" (dict "v" $v "full" true) }}
   </details>
   {{- end }}

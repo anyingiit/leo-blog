@@ -65,6 +65,8 @@ def slug_for(i, c, used):
     s = next((SLUGS[t] for t in c["titles"] if t in SLUGS), None)
     if i == 0:
         s = "cover"
+    elif c["titles"] == ["Anthropic, PBC"]:  # 财务报表部分的扉页
+        s = "financial-statements-cover"
     s = s or f"part-{i + 1:02d}"
     base, n = s, 2
     while s in used:  # 例如两份会计师报告
@@ -84,6 +86,7 @@ def to_hugo_md(text, img_names):
     text = PAGE_MARK.sub(lambda m: "{{< s1-page %s >}}" % m.group(1), text)
     text = re.sub(r"<(/?sup|br\s*/?)>", lambda m: '{{< s1-raw "<%s>" >}}' % m.group(1).replace(" ", ""), text)
     text = re.sub(r"(?<!\\)\$", r"\\$", text)  # 美元金额不能被当成公式（docs/testing.md）
+    text = text.replace("\\(", "(").replace("\\[", "&#91;")  # \( \[ 也是站点的公式定界符
     return text
 
 
@@ -135,11 +138,12 @@ def main():
     if a.pages:
         lo, hi = map(int, a.pages.split("-"))
 
-    vdir = os.path.join(a.root, a.version)
-    if os.path.exists(vdir):
-        if not a.force:
-            sys.exit(f"{vdir} 已存在：历史版本只增不改，新版本请换一个 --version（或加 --force 重写）")
-        shutil.rmtree(vdir)
+    final = os.path.join(a.root, a.version)
+    if os.path.exists(final) and not a.force:
+        sys.exit(f"{final} 已存在：历史版本只增不改，新版本请换一个 --version（或加 --force 重写）")
+    # 先写到临时目录，全部成功（包括配图检查）后再换上去，中途失败不会留下半个版本
+    vdir = final + ".tmp"
+    shutil.rmtree(vdir, ignore_errors=True)
     os.makedirs(vdir)
 
     used, img_names, toc = set(), set(), []
@@ -157,7 +161,8 @@ def main():
         cdir = os.path.join(vdir, slug)
         os.makedirs(cdir)
         with open(os.path.join(cdir, "index.md"), "w", encoding="utf-8") as f:
-            f.write(front({"title": title, "weight": i + 1, "pages": [c["page"], c["last_page"]]}))
+            f.write(front({"title": title, "weight": i + 1, "pages": [c["page"], c["last_page"]],
+                           "description": f"Anthropic, PBC {a.form} 非官方中文译本（AI 翻译，未经人工核对）{a.version} · {title}"}))
             f.write(to_hugo_md(body, img_names))
         with open(os.path.join(cdir, "original.html"), "w", encoding="utf-8") as f:
             f.write(to_fragment(pages[c["page"] - 1:c["last_page"]], img_names))
@@ -178,7 +183,8 @@ def main():
                    if id_to_slug.get(m.group(1), t["slug"]) != t["slug"] else m.group(0), s)
         open(p, "w", encoding="utf-8").write(s)
 
-    meta = {"title": f"{a.form} 中文译本 {a.version}", "version": a.version, "form": a.form, "filed": a.filed,
+    meta = {"title": f"{a.form} 非官方中文译本 {a.version}",
+            "description": f"Anthropic, PBC {a.form}（{a.filed} 提交）的非官方中文译本 {a.version}，AI 翻译，未经人工核对", "version": a.version, "form": a.form, "filed": a.filed,
             "captured": a.captured, "source": a.source, "date": a.date or a.filed, "notes": a.notes,
             "weight": a.weight, "excerpt": bool(a.pages), "chapters": toc}
     for kv in a.extra:
@@ -187,19 +193,26 @@ def main():
     with open(os.path.join(vdir, "_index.md"), "w", encoding="utf-8") as f:
         f.write(front(meta))
 
-    os.makedirs(a.assets, exist_ok=True)
     dirs = [os.path.expanduser(d) for d in a.images]
+    copies = []
     for name in sorted(img_names):
         src = next((os.path.join(d, name) for d in dirs if os.path.exists(os.path.join(d, name))), None)
         if not src:
-            sys.exit(f"找不到配图 {name}")
+            sys.exit(f"找不到配图 {name}（{vdir} 留着方便排查，正式目录没有改动）")
         dst = os.path.join(a.assets, name)
         if os.path.exists(dst):
             same = hashlib.sha256(open(dst, "rb").read()).digest() == hashlib.sha256(open(src, "rb").read()).digest()
             if not same:
                 sys.exit(f"{dst} 已存在且内容不同：旧版本还在用它，请给新图换个文件名")
             continue
+        copies.append((src, dst))
+    os.makedirs(a.assets, exist_ok=True)
+    for src, dst in copies:
         shutil.copyfile(src, dst)
+    if os.path.exists(final):
+        shutil.rmtree(final)
+    os.rename(vdir, final)
+    vdir = final
     print(f"写入 {vdir}：{sum(t['included'] for t in toc)}/{len(toc)} 章，{len(img_names)} 张配图")
 
 

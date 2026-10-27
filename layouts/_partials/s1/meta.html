@@ -1,6 +1,8 @@
-{{- /* 取当前页所属的译本版本（版本目录的 _index）和译本首页；返回 dict */ -}}
+{{- /* 当前页所属的译本版本（版本目录的 _index）和译本首页；最新版由首页的 params.latest 指定，没写就取 weight 最小的 */ -}}
 {{- $v := . -}}
 {{- if .IsPage }}{{ $v = .Parent }}{{ end -}}
 {{- $root := $v.Parent -}}
 {{- $versions := $root.Sections.ByWeight -}}
-{{- return dict "version" $v "root" $root "versions" $versions "latest" (index $versions 0) -}}
+{{- $latest := index $versions 0 -}}
+{{- with $root.Params.latest }}{{ with $root.GetPage . }}{{ $latest = . }}{{ end }}{{ end -}}
+{{- return dict "version" $v "root" $root "versions" $versions "latest" $latest -}}

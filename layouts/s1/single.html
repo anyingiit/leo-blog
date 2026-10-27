@@ -1,7 +1,8 @@
 {{- /*
   S-1 译本的一章。params.s1mode（在译本首页用 cascade 设置）：
   original 原版版式（original.html，按屏宽缩放）；reflow 重排版（index.md，站点正文样式）；
-  both 两者都输出，读者切换，选择记在本机
+  both 两者都有，读者切换（选择记在本机；没选过时电脑默认原版、手机默认重排），
+  原版放在 <template> 里，选了才插入页面，图片也才下载
 */ -}}
 {{- define "main" }}
 {{- $mode := .Params.s1mode | default "original" }}
@@ -17,7 +18,7 @@
   </header>
   {{- partial "s1/versionbar.html" (dict "page" .) }}
   {{- partial "s1/notice.html" (dict "v" $v "full" false) }}
-  <details class="s1-chtoc"><summary>章节目录</summary>{{ partial "s1/toc.html" $v }}</details>
+  <details class="s1-chtoc"><summary>章节目录</summary>{{ partial "s1/toc.html" (dict "v" $v "current" $slug) }}</details>
   {{- if eq $mode "both" }}
   <div class="s1-switch" role="group" aria-label="版式">
     <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
@@ -25,10 +26,13 @@
   </div>
   {{- end }}
   {{- if in (slice "reflow" "both") $mode }}
-  <div class="post-content s1-reflow" data-view="reflow">{{ .Content }}</div>
+  <div class="post-content md-content s1-reflow" data-view="reflow">{{ .Content }}</div>
   {{- end }}
-  {{- if in (slice "original" "both") $mode }}
-  <div class="s1-original" data-view="original"{{ if eq $mode "both" }} hidden{{ end }}>{{ partial "s1/original.html" . }}</div>
+  {{- if eq $mode "original" }}
+  <div class="s1-original" data-view="original">{{ partial "s1/original.html" (dict "page" .) }}</div>
+  {{- else if eq $mode "both" }}
+  <div class="s1-original" data-view="original" hidden></div>
+  <template class="s1-original-tpl">{{ partial "s1/original.html" (dict "page" .) }}</template>
   {{- end }}
   <nav class="paginav s1-paginav">
     {{- range $i, $c := $chs }}
@@ -38,6 +42,7 @@
       {{- end }}
     {{- end }}
   </nav>
+  {{- partial "s1/rights.html" . }}
 </article>
 {{- partial "s1/script.html" . }}
 {{- end }}
