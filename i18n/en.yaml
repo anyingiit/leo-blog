@@ -20,7 +20,7 @@
 - id: bl_view
   translation: "View"
 - id: bl_both
-  translation: "Side by side"
+  translation: "Both"
 - id: bl_original
   translation: "Original"
 - id: bl_expand_all

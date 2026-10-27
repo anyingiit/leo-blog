@@ -7,7 +7,7 @@ bilingualMode: toggle
 previewLabel: "方案 C：中文 / 对照 / 原文 切换（默认中文）"
 originalTitle: The Bitter Lesson
 author: Rich Sutton（理查德·萨顿）
-published: 2019-03-13
+originalDate: 2019-03-13
 source: http://www.incompleteideas.net/IncIdeas/BitterLesson.html
 captured: 2026-10-27T13:41:31Z
 version: v1.0

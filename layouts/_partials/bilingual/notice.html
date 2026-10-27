@@ -4,7 +4,7 @@
   <p class="bl-notice-line">
     {{- if eq .Language.Lang "zh" }}
     {{ $p.method | default "机器翻译" }}，未经人工逐句校对，以原文为准。
-    {{- with $p.source }}<a href="{{ . }}" rel="noopener">阅读原文 ↗</a>{{ end }}
+    {{- with $p.source }} <a href="{{ . }}" rel="noopener">阅读原文 ↗</a>{{ end }}
     {{- else }}
     {{ $p.method | default "Machine translation" }}, not reviewed sentence by sentence; the original prevails.
     {{- with $p.source }} <a href="{{ . }}" rel="noopener">Read the original ↗</a>{{ end }}
@@ -14,7 +14,7 @@
     <summary>{{ i18n "bl_about" }}</summary>
     {{- if eq .Language.Lang "zh" }}
     <ul>
-      <li>原文：{{ with $p.originalTitle }}《{{ . }}》{{ end }}{{ with $p.author }}，{{ . }}{{ end }}{{ with $p.published }}，{{ time.Format ":date_long" . }}发表{{ end }}{{ with $p.source }}，<a href="{{ . }}" rel="noopener">{{ . }}</a>{{ end }}</li>
+      <li>原文：{{ with $p.originalTitle }}《{{ . }}》{{ end }}{{ with $p.author }}，{{ . }}{{ end }}{{ with $p.originalDate }}，{{ time.Format ":date_long" . }}发表{{ end }}{{ with $p.source }}，<a href="{{ . }}" rel="noopener">{{ . }}</a>{{ end }}</li>
       <li>翻译方式：{{ $p.methodDetail | default $p.method }}</li>
       {{- with $p.captured }}<li>原文采集时间：{{ time.Format "2006-01-02 15:04 MST" . }}</li>{{ end }}
       {{- with $p.version }}<li>译文版本：{{ . }}{{ with $p.notes }}（{{ . }}）{{ end }}</li>{{ end }}
@@ -23,7 +23,7 @@
     </ul>
     {{- else }}
     <ul>
-      <li>Original: {{ with $p.originalTitle }}“{{ . }}”{{ end }}{{ with $p.author }}, {{ . }}{{ end }}{{ with $p.published }}, {{ time.Format ":date_long" . }}{{ end }}{{ with $p.source }}, <a href="{{ . }}" rel="noopener">{{ . }}</a>{{ end }}</li>
+      <li>Original: {{ with $p.originalTitle }}“{{ . }}”{{ end }}{{ with $p.author }}, {{ . }}{{ end }}{{ with $p.originalDate }}, {{ time.Format ":date_long" . }}{{ end }}{{ with $p.source }}, <a href="{{ . }}" rel="noopener">{{ . }}</a>{{ end }}</li>
       <li>Method: {{ $p.methodDetailEn | default $p.method }}</li>
       {{- with $p.captured }}<li>Original captured: {{ time.Format "2006-01-02 15:04 MST" . }}</li>{{ end }}
       {{- with $p.version }}<li>Version: {{ . }}</li>{{ end }}

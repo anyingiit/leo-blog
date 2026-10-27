@@ -7,7 +7,7 @@ bilingualMode: alt
 previewLabel: "方案 A：逐段交替（原文在上）"
 originalTitle: The Bitter Lesson
 author: Rich Sutton（理查德·萨顿）
-published: 2019-03-13
+originalDate: 2019-03-13
 source: http://www.incompleteideas.net/IncIdeas/BitterLesson.html
 captured: 2026-10-27T13:41:31Z
 version: v1.0

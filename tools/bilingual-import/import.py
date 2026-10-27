@@ -29,7 +29,8 @@ def read(path):
 def inline_md(node):
     """把一段 DOM 转成行内 Markdown（只保留斜体、粗体、链接、代码）。"""
     if isinstance(node, NavigableString):
-        return re.sub(r"[*_`\[\]]", lambda m: "\\" + m.group(0), str(node))
+        # 转义 Markdown 和本站公式的特殊字符：* _ ` [ ] $ <
+        return re.sub(r"[*_`\[\]$<]", lambda m: "&lt;" if m.group(0) == "<" else "\\" + m.group(0), str(node))
     if not isinstance(node, Tag) or WRAPPER in (node.get("class") or []):
         return ""
     inner = "".join(inline_md(c) for c in node.children)
@@ -48,9 +49,12 @@ def inline_md(node):
 
 
 def clean(text):
-    text = text.replace("\xa0", " ")
+    # 原文里 LaTeX 风格的引号 ``…" 换成弯引号
+    text = re.sub(r"\\`\\`(.*?)\"", "“\\1”", text.replace("\xa0", " "))
     text = re.sub(r"[ \t\r]*\n[ \t\r]*", "\n", text)
     paras = [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n{2,}", text)]
+    # 段首的「1984.」「- 」「# 」「> 」不能被当成列表、标题或引用
+    paras = [re.sub(r"^(\d+)\.(\s)", r"\1\\.\2", re.sub(r"^([-+#>])(\s)", r"\\\1\2", p)) for p in paras]
     return "\n\n".join(p for p in paras if p)
 
 
@@ -89,7 +93,7 @@ def extract(soup):
             elif child.name == "img":
                 flush()
                 pairs.append({"kind": "img", "src": child.get("src", ""), "alt": child.get("alt", "")})
-            elif child.name in ("em", "i", "strong", "b", "a", "code") or "font-style" in (child.get("style") or "") and not child.find(class_=WRAPPER):
+            elif (child.name in ("em", "i", "strong", "b", "a", "code") or "font-style" in (child.get("style") or "")) and not child.find(class_=WRAPPER):
                 buf_kind = buf_kind or kind_of(child)
                 buf.append(inline_md(child))
             elif child.name == "br":

@@ -7,7 +7,7 @@ enStub: true
 previewLabel: "Option D: fold · English page: link to the original"
 originalTitle: The Bitter Lesson
 author: Rich Sutton
-published: 2019-03-13
+originalDate: 2019-03-13
 source: http://www.incompleteideas.net/IncIdeas/BitterLesson.html
 captured: 2026-10-27T13:41:31Z
 version: v1.0

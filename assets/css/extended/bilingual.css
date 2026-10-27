@@ -1,48 +1,60 @@
 /* 双语对照译文（layouts/bilingual/single.html） */
 .bl-original-title { margin-top: 6px; color: var(--secondary); font-size: 18px; font-style: italic; }
+.bl-meta > span { white-space: nowrap; }
 .bl-notice { margin: 0 0 28px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--entry); font-size: 14px; color: var(--secondary); line-height: 1.7; }
 .bl-notice-line { margin: 0; }
-.bl-notice-line a { margin-inline-start: 6px; color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.bl-notice-line a { white-space: nowrap; color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
 .bl-notice-more summary { margin-top: 4px; cursor: pointer; width: fit-content; }
 .bl-notice-more ul { margin: 8px 0 0; padding-inline-start: 18px; }
 .bl-notice-more li { margin: 2px 0; }
 .bl-notice-more a { word-break: break-all; text-decoration: underline; }
 
+/* 正文：中文和本站普通文章同字号同行高；原文略小、次要色 */
 .bl-body { position: relative; }
 .bl-pair { position: relative; margin: 0 0 1.6em; }
 .bl-body .bl-pair p, .bl-body .bl-pair h2, .bl-body .bl-pair h3, .bl-body .bl-pair blockquote { margin: 0; }
-.bl-body .bl-en { font-size: 0.93em; line-height: 1.7; color: var(--secondary); }
-.bl-body .bl-zh { line-height: 1.85; color: var(--content); }
+.bl-body .bl-en { font-size: 0.94em; color: var(--secondary); }
 .bl-body .bl-en + .bl-zh, .bl-body .bl-zh + .bl-en { margin-top: 0.55em; }
-.bl-anchor { position: absolute; inset-inline-start: -1.2em; top: 0; opacity: 0; color: var(--secondary); text-decoration: none; font-size: 14px; }
+.bl-anchor { position: absolute; inset-inline-start: -1.4em; top: 0; padding: 0 4px; opacity: 0; color: var(--secondary); text-decoration: none; font-size: 15px; user-select: none; }
 .bl-pair:hover .bl-anchor, .bl-anchor:focus { opacity: 1; }
+@media (hover: none) { .bl-anchor { display: none; } }
 .bl-img img { margin: 0 auto; }
 
 /* 切换条 */
-.bl-switch { display: flex; gap: 0; width: fit-content; margin: 0 0 24px; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; font-size: 14px; }
+.bl-switch { display: flex; width: fit-content; margin: 0 0 24px; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; font-size: 14px; background: var(--theme); }
 .bl-switch button { padding: 5px 16px; color: var(--secondary); background: none; cursor: pointer; }
 .bl-switch button + button { border-inline-start: 1px solid var(--border); }
-.bl-switch button[aria-pressed="true"] { color: var(--theme); background: var(--primary); }
-.bl-switch-fold { border-radius: var(--radius); }
+.bl-switch button[aria-pressed="true"] { color: var(--primary); background: var(--tertiary); font-weight: 500; }
+@media (max-width: 600px) { .bl-switch button { padding: 8px 18px; } }
+.bl-mode-toggle:not(.bl-js) .bl-switch, .bl-mode-best:not(.bl-js) .bl-switch { display: none; }
 .bl-switch-fold button.on { color: var(--primary); }
 
-/* toggle：中文 / 对照 / 原文；不开脚本时 data-mode=both */
-.bl-toggle[data-mode="zh"] .bl-en, .bl-toggle[data-mode="en"] .bl-zh { display: none; }
-.bl-toggle[data-mode="en"] .bl-en { font-size: 1em; color: var(--content); }
-.bl-toggle[data-mode="zh"] .bl-zh + .bl-en, .bl-toggle[data-mode="en"] .bl-en { margin-top: 0; }
+/* 中文 / 对照 / English */
+.bl-article[data-mode="zh"] .bl-en, .bl-article[data-mode="en"] .bl-zh { display: none; }
+.bl-article[data-mode="en"] .bl-en { font-size: 1em; color: var(--content); }
+.bl-article[data-mode="zh"] .bl-body .bl-en + .bl-zh, .bl-article[data-mode="en"] .bl-body .bl-zh + .bl-en { margin-top: 0; }
+/* best：切换条吸顶，读到中间也能切换；往下读时收起，往上滑时出现，不长期盖住正文 */
+.bl-mode-best .bl-switch { position: sticky; top: 8px; z-index: 5; transition: transform 0.2s ease, opacity 0.2s ease; }
+.bl-mode-best .bl-switch.bl-stuck { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12); }
+.bl-mode-best .bl-switch.bl-away { transform: translateY(calc(-100% - 12px)); opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .bl-mode-best .bl-switch { transition: none; } }
 
 /* fold：逐段展开原文 */
-.bl-fold { margin-top: 0.3em; }
-.bl-fold summary { display: inline-block; font-size: 13px; color: var(--secondary); cursor: pointer; list-style: none; padding: 0 8px; border: 1px solid var(--border); border-radius: 999px; }
-.bl-fold summary::-webkit-details-marker { display: none; }
-.bl-fold[open] summary { margin-bottom: 0.4em; }
-.bl-fold .bl-en { padding-inline-start: 12px; border-inline-start: 2px solid var(--border); }
+details.bl-orig { margin-top: 0.3em; }
+details.bl-orig > summary { display: inline-block; width: auto; font-size: 13px; color: var(--secondary); cursor: pointer; list-style: none; padding: 1px 10px; border: 1px solid var(--tertiary); border-radius: 999px; }
+details.bl-orig > summary::-webkit-details-marker { display: none; }
+details.bl-orig[open] > summary { margin-bottom: 0.4em; }
+details.bl-orig > .bl-en { padding-inline-start: 12px; border-inline-start: 2px solid var(--border); }
 
-/* side：电脑上左右并排，正文栏加宽到页头导航的宽度（1024px 减两侧留白） */
+/* 并排：side 始终并排，best 只在「对照」档并排；整篇加宽到页头宽度，各块共用一条左缘 */
 @media (min-width: 1024px) {
-  .bl-side .bl-body { width: min(calc(var(--nav-width) - 2 * var(--gap)), calc(100vw - 2 * var(--gap))); left: 50%; transform: translateX(-50%); }
-  .bl-side .bl-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
-  .bl-side .bl-body .bl-en + .bl-zh { margin-top: 0; }
-  .bl-side .bl-body .bl-en { font-size: 0.95em; }
+  .bl-mode-side, .bl-mode-best[data-mode="both"] { --bl-w: min(var(--nav-width), calc(100vw - 2 * var(--gap))); }
+  .bl-mode-side > *, .bl-mode-best[data-mode="both"] > :not(script) { margin-inline: calc((100% - var(--bl-w)) / 2); }
+  .bl-mode-best[data-mode="both"] > .bl-switch { margin-inline-start: calc((100% - var(--bl-w)) / 2); }
+  .bl-mode-side .bl-pair, .bl-mode-best[data-mode="both"] .bl-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; }
+  .bl-mode-side .bl-body .bl-en + .bl-zh, .bl-mode-best[data-mode="both"] .bl-body .bl-zh + .bl-en { margin-top: 0; }
+  .bl-mode-side .bl-zh { order: -1; }
+  .bl-mode-side .bl-pair > *, .bl-mode-best[data-mode="both"] .bl-pair > * { line-height: 1.75; }
 }
+
 .bl-preview-label { display: inline-block; margin-bottom: 8px; padding: 2px 10px; border-radius: 999px; background: #c62828; color: #fff; font-size: 13px; }
