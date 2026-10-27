@@ -7,6 +7,7 @@
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
 | `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 用量」） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
@@ -67,7 +68,15 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 
 **验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
 
-**CI 用量**：私有仓库的 GitHub 托管运行机按分钟计费，每个任务单独向上取整到整分钟，免费额度用完后任务分不到运行机、两秒就失败（2026-10-27 遇到过）。所以任务按"计费分钟"而不是按"并行度"拆：几十秒的检查（action 锁定、测试覆盖、构建、image-i18n）合在 Lint and build 一个任务里；浏览器测试每个浏览器一个任务，拉 Playwright 镜像（约 50 秒）和取整各只算两次。改动前每次运行约 20 计费分钟（10 个任务），改动后约 13 分钟，测试内容不变。新增任务前先想想能不能放进现有任务。
+**CI 用量**：私有仓库的 GitHub 托管运行机按分钟计费，每个任务单独向上取整到整分钟，免费额度用完后任务分不到运行机、两秒就失败（2026-10-27 遇到过）。所以 CI 按两条原则安排：
+
+1. 任务按"计费分钟"而不是按"并行度"拆。几十秒的检查（action 锁定、测试覆盖、构建、image-i18n）合在 Lint and build 一个任务里；浏览器测试每个浏览器一个任务，拉 Playwright 镜像（约 50 秒）和取整各只算两次。
+2. 只跳过输入没有变、已经在完全相同的文件上通过过的测试，拿不准就全跑（`tests/ci-plan.mjs`，单元测试 `tests/ci-plan.test.mjs`）：
+   - 只改 `content/`、`docs/`、根目录 `.md` 时，跳过 WebKit 任务和视觉测试，站点回归测试照跑。主题测试的本站只用 `tests/theme/site-fixture` 里的固定文章构建，不读 `content/`，文档也不进入任何构建，所以视觉测试的输入和 main 完全相同。发文章是最常见的改动，这类运行只要约 3 分钟。
+   - 合并 PR 产生的 main 提交，文件树和 PR 分支最后一个提交完全相同（PR 合并前已包含最新 main，几乎总是如此），而那个提交的 PR CI 已经通过时，main 上不再重复跑。
+   - 手动运行（Run workflow）、拿不到改动列表、或者改到上面以外的任何文件，都全跑。
+
+一次全量运行约 13 计费分钟（原来 10 个任务约 20 分钟），测试内容不变。新增任务或让主题测试读取新目录前，先对照这两条。
 
 ## 本地运行
 

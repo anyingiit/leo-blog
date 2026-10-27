@@ -26,15 +26,49 @@ concurrency:
 
 jobs:
   # 按分钟计费、每个任务向上取整到整分钟，所以几十秒就跑完的检查合并成一个任务（docs/testing.md「CI 用量」）
+  # 它也决定这次要跑哪些浏览器测试（tests/ci-plan.mjs）：只跳过输入没变、已在相同文件上通过过的测试
   lint:
     name: Lint and build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read # 读 PR 改了哪些文件
+      actions: read # 查 PR 提交的 CI 是否已通过
+    outputs:
+      regression: ${{ steps.plan.outputs.regression }}
+      visual: ${{ steps.plan.outputs.visual }}
+      browsers: ${{ steps.plan.outputs.browsers }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           submodules: recursive
+          fetch-depth: 2 # main 上的合并提交要和它的两个父提交比较
+
+      # 放在最前面：后面的检查失败也不影响浏览器测试照常决定和运行。查询出错一律按全跑处理
+      - name: Decide which tests to run
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          tested=""
+          if [ "$EVENT" = pull_request ]; then
+            files="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename')" || files=""
+          elif [ "$EVENT" = push ]; then
+            files="$(git diff --name-only HEAD^1 HEAD)" || files=""
+            # 合并 PR 的提交：文件树和 PR 分支最后一个提交相同，而那个提交的 PR CI 已经通过 → 这棵树已经测过
+            if p2="$(git rev-parse -q --verify 'HEAD^2')" && [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$p2^{tree}")" ]; then
+              n="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$p2&event=pull_request&status=success" \
+                --jq '[.workflow_runs[] | select(.path == ".github/workflows/ci.yml")] | length')" || n=0
+              [ "${n:-0}" -gt 0 ] && tested="--tested" && echo "合并提交的文件树与 $p2 相同，且 $p2 的 PR CI 已通过"
+            fi
+          else
+            files=""
+          fi
+          printf '%s\n' "$files" | node tests/ci-plan.mjs $tested
 
       - name: Check that actions are pinned to full commit SHAs
         shell: bash
@@ -84,6 +118,9 @@ jobs:
   # 站点整体检查 site.test.mjs、CI 覆盖检查 ci-coverage.test.mjs。
   visual:
     name: Browser tests (${{ matrix.browser }})
+    needs: lint
+    # Lint and build 失败也照跑；拿不到计划时按全跑
+    if: ${{ !cancelled() && needs.lint.outputs.browsers != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
@@ -91,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, webkit]
+        browser: ${{ fromJSON(needs.lint.outputs.browsers || '["chromium","webkit"]') }}
     env:
       # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium 任务里跑一次
       PROJECTS: --project=${{ matrix.browser }}-desktop --project=${{ matrix.browser }}-tablet --project=${{ matrix.browser }}-phone${{ matrix.browser == 'chromium' && ' --project=output' || '' }}
@@ -110,21 +147,21 @@ jobs:
 
       # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠和页头语言切换（见 tests/README.md）
       - name: Run regression tests
-        if: matrix.browser == 'chromium'
+        if: matrix.browser == 'chromium' && needs.lint.outputs.regression != 'false'
         working-directory: tests
         run: |
           npm ci
           npm test
 
       - name: Install test dependencies
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && needs.lint.outputs.visual != 'false' }}
         run: npm ci
 
       # 记录 CPU 型号：零容差截图如果在不同型号的机器上出现差异，可以据此排查。
       # 回归测试失败也照常跑，一次运行就能看到全部问题
       - name: Run visual and behavior tests
         id: tests
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && needs.lint.outputs.visual != 'false' }}
         env:
           REPEAT: ${{ inputs.repeat_each || 1 }}
         run: |
@@ -158,7 +195,7 @@ jobs:
   baselines:
     name: Publish regenerated baselines
     needs: visual
-    if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    if: failure() && needs.visual.result == 'failure' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
