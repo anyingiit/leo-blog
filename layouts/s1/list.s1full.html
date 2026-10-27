@@ -35,6 +35,7 @@ a { color: #0b57d0; }
 .dl-toc li { break-inside: avoid; }
 .dl-toc small { color: #57606a; margin-inline-start: 6px; }
 .dl-toc .missing { color: #8c959f; }
+.dl-ch { position: absolute; margin: 0; font-size: 1px; line-height: 1px; color: transparent; } /* 只给 PDF 书签和读屏用 */
 .dl-rights { max-width: 860px; margin: 0 auto; padding: 8px 16px 40px; font-size: 13px; color: #57606a; }
 .s1-sheets { overflow-x: auto; padding: 4px 0; }
 .s1-sheets-inner { width: 836px; margin: 0 auto; color: #000; }
@@ -74,6 +75,7 @@ a { color: #0b57d0; }
 <main>
 {{- range .Pages.ByWeight }}
 <section id="ch-{{ path.Base (strings.TrimSuffix "/" .RelPermalink) }}">
+  <h2 class="dl-ch">{{ .Title }}</h2>
   {{- partial "s1/original.html" (dict "page" . "book" true "inline" true) }}
 </section>
 {{- end }}
