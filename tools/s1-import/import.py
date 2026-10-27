@@ -37,6 +37,7 @@ SLUGS = {
 }
 PAGE_MARK = re.compile(r"<!-- 原文第 (\d+) 页[^>]*-->")
 PAGE_START = '<div style="--justify:justify;'
+IMAGE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
 
 
 def chapters(md):
@@ -53,6 +54,15 @@ def chapters(md):
         else:
             merged.append({"titles": [h["title"]], "start": h["start"], "page": h["page"]})
     merged[0]["start"] = 0  # 第一个标题之前的内容（封面）归第一章
+    # 章首前一页只有图片的，是这一章的整页分隔图（原文目录的章节锚点就在分隔图上），归入这一章
+    ends = {int(m.group(1)): m.end() for m in PAGE_MARK.finditer(md)}  # 第 n 页的内容在第 n-1 页标记和第 n 页标记之间
+    for c in merged[1:]:
+        p = c["page"] - 1
+        if p - 1 not in ends or p not in ends:
+            continue
+        page = md[ends[p - 1]:ends[p]]
+        if "![" in page and not IMAGE.sub("", PAGE_MARK.sub("", page)).strip():
+            c["page"], c["start"] = p, ends[p - 1]
     last_page = marks[-1][0] if marks else 1
     for i, c in enumerate(merged):
         nxt = merged[i + 1] if i + 1 < len(merged) else None

@@ -49,7 +49,10 @@ a { color: #0b57d0; }
 @page { size: 612pt 810pt; margin: 0 0 18pt 0;
   @bottom-center { content: "非官方 AI 译本 {{ $p.version }} · 与 Anthropic 无关，译文一致性未经人工核对，以 SEC 英文原文为准 · 第 " counter(page) " / " counter(pages) " 页";
     font: 7pt/1 "Noto Sans CJK SC", "PingFang SC", sans-serif; color: #555; vertical-align: middle; } }
+/* 原文有 6 页是横版（792×612pt，主要股东表、部分财务报表），单独用横版纸，否则 Chromium 会把整份文档缩小到放得下最宽的一页 */
+@page landscape { size: 792pt 630pt; }
 @media print {
+  .s1-sheet[style*="width:792pt"] { page: landscape; }
   body { background: #fff; }
   .dl-banner { display: none; }
   .dl-cover { max-width: none; height: 792pt; padding: 48pt 54pt; break-after: page; overflow: hidden; font-size: 11pt; }

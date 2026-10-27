@@ -25,5 +25,22 @@ class Superscript(unittest.TestCase):
             self.assertIn(text.replace("$", "\\$"), out)
 
 
+class Chapters(unittest.TestCase):
+    MD = ("# 封面\n\n文字\n\n<!-- 原文第 1 页 / page 1 -->\n\n"
+          "![](<图片中文版/divider.jpg>)\n\n<!-- 原文第 2 页 / page 2 -->\n\n"
+          "# 风险因素\n\n正文\n\n<!-- 原文第 3 页 / page 3 -->\n\n"
+          "![](<图片中文版/chart.jpg>)\n\n图注\n\n<!-- 原文第 4 页 / page 4 -->\n\n"
+          "# 业务\n\n正文\n\n<!-- 原文第 5 页 / page 5 -->\n")
+
+    def test_divider_page_joins_next_chapter(self):
+        # 章首前一页只有图片（整页分隔图，原文目录的章节锚点在上面）：归入后一章
+        cover, risk, biz = imp.chapters(self.MD)
+        self.assertEqual((cover["page"], cover["last_page"]), (1, 1))
+        self.assertEqual((risk["page"], risk["last_page"]), (2, 4))
+        self.assertTrue(self.MD[risk["start"]:risk["end"]].lstrip().startswith("![](<图片中文版/divider.jpg>)"))
+        # 图片加文字的页不是分隔图，留在原章
+        self.assertEqual((biz["page"], biz["last_page"]), (5, 5))
+
+
 if __name__ == "__main__":
     unittest.main()

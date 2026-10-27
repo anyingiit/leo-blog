@@ -1,7 +1,7 @@
 ---
 title: "摊薄"
 weight: 12
-pages: [140, 143]
+pages: [140, 142]
 description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 摊薄"
 ---
 
@@ -66,8 +66,3 @@ description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一�
 如果任何尚未行使的A类普通股购买期权获行使、RSU获结算或根据我们的股权激励计划授予新的奖励，参与本次发行的投资者将受到进一步摊薄。
 
 {{< s1-page 142 >}}
-
-![原文配图](translations/anthropic-s1/img/a2026-10x24mdaa.jpg)
-
-{{< s1-page 143 >}}
-

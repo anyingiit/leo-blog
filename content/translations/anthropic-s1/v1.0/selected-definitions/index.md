@@ -1,7 +1,7 @@
 ---
 title: "部分术语释义"
 weight: 2
-pages: [12, 15]
+pages: [12, 14]
 description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 部分术语释义"
 ---
 
@@ -90,8 +90,3 @@ description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一�
 “**token（词元）**”指AI模型将其处理的数据（包括文本、图像、音频及视频）转换而成的数值单位，其数量因所应用的模型和分词器而异。token是语言模型的最小单个单位，可对应于单词、子词、字符或字节。分词器是模型的组件，负责将客户输入转换为模型所处理的token序列，再将处理后的token转换为向客户提供的输出。
 
 {{< s1-page 14 >}}
-
-![原文配图](translations/anthropic-s1/img/a2026-10x24prospectusa.jpg)
-
-{{< s1-page 15 >}}
-

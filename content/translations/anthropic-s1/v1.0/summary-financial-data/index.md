@@ -1,7 +1,7 @@
 ---
 title: "合并财务及其他数据概要"
 weight: 5
-pages: [33, 37]
+pages: [33, 36]
 description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一致性未经人工核对）v1.0 · 合并财务及其他数据概要"
 ---
 
@@ -99,8 +99,3 @@ description: "Anthropic, PBC S-1 非官方中文译本（AI 翻译，译文一�
 {{< s1-page 35 >}}
 
 {{< s1-page 36 >}}
-
-![原文配图](translations/anthropic-s1/img/a2026-10x24riska.jpg)
-
-{{< s1-page 37 >}}
-
