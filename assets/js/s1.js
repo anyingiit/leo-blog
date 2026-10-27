@@ -1,6 +1,6 @@
 // S-1 译本：
 // - 原版页面按容器宽度缩放（首屏的缩放由 original.html 里的内联脚本先设好）；加宽方案允许放大到 1.4 倍
-// - 方案 C 的重排/原版切换（记住选择；没选过时宽屏默认原版、窄屏默认重排；切换时停在同一原文页）
+// - 方案 C 的重排/原版切换（宽屏、窄屏分别记住选择；没选过时宽屏默认原版、窄屏默认重排；切换时停在同一原文页）
 // - 沉浸阅读：网址带 ?read=1 时隐藏站点外壳，只留正文和细顶栏（目录、页码、翻章、版式、缩放、退出）。
 //   宽屏进入时切到原版；窄屏（手机）原版字太小，保持当前版式，可在顶栏切换。退出时回到进入前的版式。
 //   缩放记在本机；Esc 退出；[ ] 翻章；g 或点页码跳页；浏览器后退退出沉浸
@@ -96,34 +96,42 @@
   };
   const pageEl = ibar?.querySelector(".s1-ibar-page");
   const toggleBtn = ibar?.querySelector("[data-toggle-view]");
+  const fitBtn = ibar?.querySelector('[data-zoom="fit"]');
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual"; // 阅读位置由这里管理
   const updateBar = () => {
     if (!immersive()) return;
     if (pageEl) { const p = currentPage(); pageEl.textContent = p ? `${p} / ${pageEl.dataset.total}` : ""; }
     if (toggleBtn) toggleBtn.textContent = view() === "original" ? "重排版" : "原版";
+    if (fitBtn) {
+      const box = original?.querySelector(".s1-sheets");
+      fitBtn.textContent = box?.offsetParent ? Math.round((zoom === "fit" ? fitScale(box) : zoom) * 100) + "%" : "适应";
+      fitBtn.title = zoom === "fit" ? "当前：适应宽度" : "恢复适应宽度";
+    }
   };
   // push：从页面上的按钮进入时记一条历史，浏览器"后退"就是退出沉浸
   const enter = (push) => {
-    const hp = /^#p-(\d+)$/.exec(location.hash);
+    const hp = /^#page-(\d+)$/.exec(location.hash);
     const pos = hp ? { page: +hp[1], frac: 0 } : currentPos();
     before = view();
     if (!phone() || !reflow) show("original", false);
     document.body.classList.add("s1-immersive");
     ibar.hidden = false;
-    if (push) history.pushState({ s1read: 1 }, "", readURL(true)); else history.replaceState(history.state, "", readURL(true));
+    const u = readURL(true);
+    if (hp) u.hash = ""; // 跳页用过就去掉，免得以后再进入时又被拉回这一页
+    if (push) history.pushState({ s1read: 1 }, "", u); else history.replaceState(history.state, "", u);
     fit();
     if (pos && (hp || pos.page !== firstPage || pos.frac)) goPos(pos); else scrollTo(0, 0);
     updateBar();
     ibar.focus({ preventScroll: true });
   };
   const exit = (fromHistory) => {
+    // 从页面按钮进入的（记过一条历史）：退出就是后退一步，真正的退出在 popstate 里做
+    if (!fromHistory && history.state?.s1read) return history.back();
     const pos = currentPos();
     document.body.classList.remove("s1-immersive");
     ibar.hidden = true;
     for (const d of ibar.querySelectorAll("details[open]")) d.open = false;
-    if (!fromHistory) {
-      if (history.state?.s1read) return history.back(); // popstate 再调回来
-      history.replaceState(null, "", readURL(false));
-    }
+    if (!fromHistory) history.replaceState(null, "", readURL(false));
     if (before && before !== view()) show(before, false);
     fit();
     goPos(pos);
@@ -155,7 +163,7 @@
     if (here) { goPos({ page: n, frac: 0 }); return updateBar(); }
     for (const li of ibar.querySelectorAll(".s1-toc li[data-from]")) {
       const a = li.querySelector("a");
-      if (a && n >= +li.dataset.from && n <= +li.dataset.to) { location.href = a.pathname + "?read=1#p-" + n; return; }
+      if (a && n >= +li.dataset.from && n <= +li.dataset.to) { location.href = a.pathname + "?read=1#page-" + n; return; }
     }
     pageEl.animate?.([{ color: "#dc2626" }, { color: "" }], 800); // 没导入的页
   };
@@ -211,13 +219,13 @@
     sw.addEventListener("click", (e) => {
       const b = e.target.closest("button");
       if (!b) return;
-      try { localStorage.setItem("s1-view", b.dataset.view); } catch {}
+      try { localStorage.setItem(narrow() ? "s1-view-narrow" : "s1-view", b.dataset.view); } catch {}
       show(b.dataset.view, true);
     });
   }
   if (sw) {
     let saved = null;
-    try { saved = localStorage.getItem("s1-view"); } catch {}
+    try { saved = localStorage.getItem(narrow() ? "s1-view-narrow" : "s1-view"); } catch {}
     // 原版目录里的跨章链接（#id）只在原版里有目标
     const hash = decodeURIComponent(location.hash.slice(1));
     const wantOriginal = hash && !document.getElementById(hash) && tpl?.content.getElementById(hash);

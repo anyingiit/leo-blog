@@ -18,7 +18,7 @@
   <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
   {{- /* 沉浸阅读的顶栏：只在沉浸模式下显示，保留"非官方"标记和声明入口 */}}
   {{- $total := index (index (last 1 $v.Params.chapters) 0).pages 1 }}
-  <div class="s1-ibar" role="toolbar" aria-label="沉浸阅读" tabindex="-1" hidden>
+  <div class="s1-ibar" role="toolbar" aria-label="全屏阅读" tabindex="-1" hidden>
     <a class="s1-ibar-tag" href="{{ $m.root.RelPermalink }}" title="完整声明在译本首页">非官方 AI 译本</a>
     <details class="s1-ibar-toc">
       <summary title="章节目录"><span class="s1-ibar-title">{{ .Title }}</span> ▾</summary>
@@ -37,7 +37,7 @@
       <button type="button" data-zoom="fit" title="适应宽度">适应</button>
       <button type="button" data-zoom="in" aria-label="放大" title="放大">+</button>
     </span>
-    <button type="button" class="s1-ibar-exit" data-exit title="退出沉浸阅读（Esc）">退出</button>
+    <button type="button" class="s1-ibar-exit" data-exit title="退出全屏阅读（Esc）">✕ 退出</button>
   </div>
   {{- end }}
   <header class="post-header s1-header">
@@ -49,10 +49,12 @@
   {{- partial "s1/notice.html" (dict "v" $v "full" false) }}
   <details class="s1-chtoc"><summary>章节目录</summary>{{ partial "s1/toc.html" (dict "v" $v "current" $slug) }}</details>
   {{- if eq $mode "both" }}
-  <div class="s1-switch" role="group" aria-label="版式">
-    <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
-    <button type="button" data-view="original" aria-pressed="false">原版版式</button>
-    {{- if $imm }}<a class="s1-read-link" href="?read=1" data-enter>沉浸阅读 ⤢</a>{{ end }}
+  <div class="s1-switchbar">
+    <div class="s1-switch" role="group" aria-label="版式">
+      <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
+      <button type="button" data-view="original" aria-pressed="false">原版版式</button>
+    </div>
+    {{- if $imm }}<a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>{{ end }}
   </div>
   {{- end }}
   {{- if in (slice "reflow" "both") $mode }}

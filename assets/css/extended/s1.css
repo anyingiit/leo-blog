@@ -34,8 +34,9 @@
 .s1-versions th, .s1-versions td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: start; }
 .s1-chtoc { margin: 8px 0 16px; font-size: 15px; }
 .s1-chtoc summary { cursor: pointer; color: var(--secondary); }
-.s1-switch { position: sticky; top: 8px; z-index: 6; display: flex; width: fit-content; border: 1px solid var(--border); border-radius: var(--radius);
-  overflow: hidden; margin: 4px auto 16px; background: var(--theme); box-shadow: 0 2px 8px rgb(0 0 0 / .08); }
+.s1-switchbar { position: sticky; top: 8px; z-index: 6; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px; margin: 4px auto 16px; }
+.s1-switch { display: flex; width: fit-content; border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; margin: 0; background: var(--theme); box-shadow: 0 2px 8px rgb(0 0 0 / .08); }
 .s1-switch button { padding: 6px 14px; font: inherit; font-size: 14px; border: 0; background: none; color: var(--secondary); cursor: pointer; }
 .s1-switch button + button { border-inline-start: 1px solid var(--border); }
 .s1-switch button:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
@@ -87,20 +88,21 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 
 /* 沉浸阅读（params.s1immersive，网址带 ?read=1）：隐藏站点外壳，只留正文和一条细顶栏。
    原版放大后整页横向滚动（滚动条在窗口底部，而不是整章容器的最底下） */
-.s1-read-link { display: flex; align-items: center; padding: 6px 14px; font-size: 14px; border-inline-start: 1px solid var(--border); color: var(--primary); }
+.s1-read-link { display: flex; align-items: center; padding: 6px 14px; font-size: 14px; border: 1px solid var(--primary); border-radius: var(--radius); background: var(--theme); color: var(--primary) !important; box-shadow: 0 2px 8px rgb(0 0 0 / .08); }
+.s1-read-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .s1-ibar { display: none; }
-body.s1-immersive { padding-top: 48px; }
-html:has(body.s1-immersive) { scroll-padding-top: 56px; }
+body.s1-immersive { padding-top: 52px; }
+html:has(body.s1-immersive) { scroll-padding-top: 60px; }
 body.s1-immersive :is(.header, .footer, .top-link, .s1-chapter > :not(.s1-original, .s1-ibar, .s1-reflow)) { display: none !important; }
 body.s1-immersive .main { max-width: none !important; padding: 0; margin: 0; }
 body.s1-immersive .s1-original { width: auto !important; margin: 0 !important; max-width: none !important; }
-body.s1-immersive .s1-sheets { border-radius: 0; margin: 0; min-height: calc(100vh - 48px); overflow: visible; width: max-content; min-width: 100%; }
+body.s1-immersive .s1-sheets { border-radius: 0; margin: 0; min-height: calc(100vh - 52px); overflow: visible; width: max-content; min-width: 100%; }
 body.s1-immersive .s1-reflow { max-width: var(--main-width) !important; margin: 0 auto !important; padding: 16px var(--gap) 48px; }
-body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-index: 50; height: 48px; max-width: none !important; margin: 0 !important;
+body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-index: 50; height: 52px; max-width: none !important; margin: 0 !important;
   display: flex; align-items: center; gap: 10px; padding: 0 12px; background: var(--theme); border-bottom: 1px solid var(--border);
   font-size: 14px; white-space: nowrap; }
 .s1-ibar:focus { outline: none; }
-.s1-ibar a, .s1-ibar button, .s1-ibar summary { min-height: 40px; display: inline-flex; align-items: center; }
+.s1-ibar a, .s1-ibar button, .s1-ibar summary { min-height: 44px; display: inline-flex; align-items: center; }
 .s1-ibar-tag { color: #9a6700; font-weight: 600; }
 [data-theme="dark"] .s1-ibar-tag { color: #e3b341; }
 .s1-ibar-toc { flex: 1; min-width: 0; display: flex; align-items: center; }
@@ -108,7 +110,7 @@ body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-i
 .s1-ibar-toc summary { cursor: pointer; list-style: none; color: var(--secondary); max-width: 100%; }
 .s1-ibar-toc summary::-webkit-details-marker { display: none; }
 .s1-ibar-title { overflow: hidden; text-overflow: ellipsis; }
-.s1-ibar-toc .s1-toc { position: fixed; top: 52px; inset-inline-start: 8px; width: min(440px, calc(100vw - 16px)); max-height: 70vh; overflow: auto; margin: 0;
+.s1-ibar-toc .s1-toc { position: fixed; top: 56px; inset-inline-start: 8px; width: min(440px, calc(100vw - 16px)); max-height: 70vh; overflow: auto; margin: 0;
   padding: 10px 12px 10px 32px; background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius);
   box-shadow: 0 6px 18px rgb(0 0 0 / .15); white-space: normal; line-height: 1.6; }
 .s1-ibar-toc .s1-toc a, .s1-ibar-toc .s1-toc span { min-height: 0; display: inline; }
@@ -117,7 +119,9 @@ body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-i
 .s1-ibar-nav a { padding: 0 8px; }
 .s1-ibar-zoom { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .s1-ibar button { font: inherit; font-size: 14px; border: 0; background: none; color: var(--primary); padding: 0 12px; cursor: pointer; justify-content: center; }
-.s1-ibar-zoom button { min-width: 40px; }
+.s1-ibar-zoom button { min-width: 44px; }
+.s1-ibar [data-zoom="fit"] { min-width: 56px; font-variant-numeric: tabular-nums; }
+.s1-ibar .s1-ibar-exit { border: 1px solid var(--border); border-radius: var(--radius); }
 .s1-ibar [data-toggle-view] { border: 1px solid var(--border); border-radius: var(--radius); }
 .s1-ibar-zoom button + button { border-inline-start: 1px solid var(--border); }
 .s1-ibar button:focus-visible, .s1-ibar a:focus-visible, .s1-ibar summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
@@ -126,7 +130,7 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-ibar-lbl { display: none; }
   .s1-ibar .s1-ibar-page { font-size: 12px; padding: 0 2px; }
   body.s1-immersive .s1-chapter > .s1-ibar { gap: 6px; padding: 0 6px; }
-  .s1-ibar-nav a { min-width: 40px; justify-content: center; padding: 0; }
+  .s1-ibar-nav a { min-width: 44px; justify-content: center; padding: 0; }
   .s1-ibar button { padding: 0 8px; }
 }
 @media (max-width: 480px) { .s1-ibar-tag { font-size: 12px; white-space: normal; line-height: 1.2; width: 4em; } }
