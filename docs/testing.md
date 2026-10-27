@@ -11,7 +11,7 @@
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Regression tests |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Regression tests |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Test → Test image-i18n |
-| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动 | Regression tests |
+| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Regression tests |
 | `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Test → Test s1-import |
 | `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Visual (浏览器-设备)，6 个任务 |
 | `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Visual (浏览器-设备)，6 个任务 |

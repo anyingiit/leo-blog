@@ -112,3 +112,26 @@ test("全屏阅读：目录面板底部有下载链接，不另加按钮", async
   assert.equal(await page.locator(".s1-ibar > .s1-dl-line, .s1-ibar > .s1-dl-menu").count(), 0);
   await ctx.close();
 });
+
+// 和 PaperMod 的「契约」：译本页的自定义样式只依赖主题的这些 CSS 变量和类名（tests 之外的说明见 docs/testing.md）。
+// 升级主题后这里失败，说明译本页的样式要跟着改；构建本身不会因此失败，所以要靠测试发现
+test("PaperMod 契约：译本样式用到的 CSS 变量和页面结构都还在", async () => {
+  const vars = ["--border", "--secondary", "--primary", "--radius", "--entry", "--gap", "--theme", "--main-width", "--code-bg"];
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(server.url + "/s1-d4/v1.0/cover/", { waitUntil: "load" });
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
+    const missing = await page.evaluate((vs) => vs.filter((v) => !getComputedStyle(document.documentElement).getPropertyValue(v).trim()), vars);
+    assert.deepEqual(missing, [], `${theme} 主题缺少 CSS 变量`);
+  }
+  for (const sel of ["header.header", "main.main", "footer.footer", ".top-link"]) assert.equal(await page.locator(sel).count(), 1, sel);
+  // 宽版：原版版式比主题的正文栏宽；全屏阅读：主题的页头、页脚、返回顶部都隐藏
+  const [orig, col] = await page.evaluate(() => [document.querySelector(".s1-original")?.getBoundingClientRect().width ?? 0,
+    parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--main-width"))]);
+  assert.ok(orig > col + 200, `原版版式宽 ${orig}px，主题正文栏 ${col}px`);
+  await page.goto(server.url + "/s1-d4/v1.0/cover/?read=1", { waitUntil: "load" });
+  await page.locator(".s1-ibar").waitFor({ state: "visible" });
+  for (const sel of ["header.header", "footer.footer", ".top-link"]) assert.equal(await page.locator(sel).isVisible(), false, `全屏阅读时 ${sel} 应隐藏`);
+  await ctx.close();
+});
