@@ -1,6 +1,6 @@
 // 主题交互和兼容性：在每个项目（Chromium/WebKit × 电脑/平板/手机）里实际操作页面
 import { test, expect } from "@playwright/test";
-import { connect, settle, fullPage } from "./helpers.mjs";
+import { connect, settle, fullPage, repaint } from "./helpers.mjs";
 
 const SITE = "http://blog.test", EXAMPLE = "http://example.test";
 
@@ -193,6 +193,7 @@ test("短文图集灯箱：打开、切换、关闭", async ({ browser }, info) 
   await expect(box.locator(".zoom-count")).toHaveText("1 / 4");
   await box.locator("img").evaluate((img) => img.complete ? img.decode() : new Promise((ok) => { img.onload = () => img.decode().then(ok); }));
   await settle(page);
+  await repaint(page);
   await expect(page).toHaveScreenshot("site-lightbox.png");
   await page.keyboard.press("ArrowRight");
   await expect(box.locator(".zoom-count")).toHaveText("2 / 4");
@@ -250,6 +251,7 @@ test("键盘焦点：导航菜单的焦点框", async ({ browser }, info) => {
   expect(await link.evaluate((el) => el.matches(":focus-visible"))).toBe(true);
   // 截图范围在链接四周各留 8px。浏览器默认的焦点框会被 PaperMod 菜单的 overflow-x: auto 裁掉一部分（主题本身如此），基准图记录的就是这个现状
   const box = await link.boundingBox();
+  await repaint(page);
   await expect(page).toHaveScreenshot("site-focus-menu.png", { clip: { x: box.x - 8, y: Math.max(0, box.y - 8), width: box.width + 16, height: box.height + 16 } });
   await context.close();
 });
@@ -262,6 +264,7 @@ test("键盘焦点：短文图片的焦点框", async ({ browser }, info) => {
   await img.focus();
   expect(await img.evaluate((el) => el.matches(":focus-visible"))).toBe(true);
   const box = await img.boundingBox();
+  await repaint(page);
   await expect(page).toHaveScreenshot("site-focus-image.png", { clip: { x: Math.max(0, box.x - 8), y: box.y - 8, width: Math.min(box.width + 16, page.viewportSize().width), height: 40 } });
   await context.close();
 });
