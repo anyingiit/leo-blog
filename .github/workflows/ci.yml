@@ -25,14 +25,16 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # 按分钟计费、每个任务向上取整到整分钟，所以几十秒就跑完的检查合并成一个任务（docs/testing.md「CI 用量」）
   lint:
-    name: Lint
+    name: Lint and build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          submodules: recursive
 
       - name: Check that actions are pinned to full commit SHAs
         shell: bash
@@ -56,43 +58,46 @@ jobs:
 
       # 每个测试文件都必须在本文件里执行，新加的测试忘了接进 CI 会在这里失败（docs/testing.md）
       - name: Check that CI runs every test file
+        if: ${{ !cancelled() }}
         run: node tests/ci-coverage.mjs
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: recursive
 
       # build.sh 自己安装锁定版本的 Hugo，与 Cloudflare Pages 构建完全一致
       - name: Build site
+        if: ${{ !cancelled() }}
         run: bash build.sh
 
       # 英文配图脚本的回归测试，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）
       - name: Test image-i18n
+        if: ${{ !cancelled() }}
         run: |
           python3 -m venv /tmp/venv
           /tmp/venv/bin/pip install --quiet -r tools/image-i18n/requirements.txt
           /tmp/venv/bin/python -m unittest discover -s tools/image-i18n -v
 
-  # 两个浏览器测试任务都在 Playwright 官方镜像里运行（按 digest 锁定）：浏览器和系统依赖已装好，不用每次下载安装，
+  # 浏览器测试在 Playwright 官方镜像里运行（按 digest 锁定）：浏览器和系统依赖已装好，不用每次下载安装，
   # 截图基准也在同一镜像里生成，换机器不会因字体渲染不同而误报。
-
-  # 站点回归测试：tests/ 下所有 *.test.mjs（node --test 自动发现），包括图片处理和短文栏目（tests/README.md）、
-  # 站点整体检查 site.test.mjs、CI 覆盖检查 ci-coverage.test.mjs
-  regression:
-    name: Regression tests
+  # 每个浏览器一个任务，三种设备在任务内依次跑：拉镜像（约 50 秒）和取整只算两次，而不是六次（docs/testing.md「CI 用量」）。
+  #
+  # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）× 电脑/平板/手机，
+  # 各自在浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
+  # chromium 任务还跑站点回归测试：tests/ 下所有 *.test.mjs（node --test 自动发现），包括图片处理和短文栏目（tests/README.md）、
+  # 站点整体检查 site.test.mjs、CI 覆盖检查 ci-coverage.test.mjs。
+  visual:
+    name: Browser tests (${{ matrix.browser }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium 任务里跑一次
+      PROJECTS: --project=${{ matrix.browser }}-desktop --project=${{ matrix.browser }}-tablet --project=${{ matrix.browser }}-phone${{ matrix.browser == 'chromium' && ' --project=output' || '' }}
     defaults:
       run:
-        working-directory: tests
+        working-directory: tests/theme
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -103,44 +108,23 @@ jobs:
       - name: Trust the checkout
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Install test dependencies
-        run: npm ci
-
-      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠、图集和页头语言切换（见 tests/README.md）
+      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠和页头语言切换（见 tests/README.md）
       - name: Run regression tests
-        run: npm test
-
-  # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）× 电脑/平板/手机，6 个任务并行，
-  # 各自在浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
-  visual:
-    name: Visual (${{ matrix.browser }}-${{ matrix.device }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, webkit]
-        device: [desktop, tablet, phone]
-    env:
-      # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium-desktop 里跑一次
-      PROJECTS: --project=${{ matrix.browser }}-${{ matrix.device }}${{ matrix.browser == 'chromium' && matrix.device == 'desktop' && ' --project=output' || '' }}
-    defaults:
-      run:
-        working-directory: tests/theme
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          submodules: recursive
+        if: matrix.browser == 'chromium'
+        working-directory: tests
+        run: |
+          npm ci
+          npm test
 
       - name: Install test dependencies
+        if: ${{ !cancelled() }}
         run: npm ci
 
-      # 记录 CPU 型号：零容差截图如果在不同型号的机器上出现差异，可以据此排查
+      # 记录 CPU 型号：零容差截图如果在不同型号的机器上出现差异，可以据此排查。
+      # 回归测试失败也照常跑，一次运行就能看到全部问题
       - name: Run visual and behavior tests
         id: tests
+        if: ${{ !cancelled() }}
         env:
           REPEAT: ${{ inputs.repeat_each || 1 }}
         run: |
@@ -158,13 +142,15 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.tests.outcome == 'failure'
         with:
-          name: visual-${{ matrix.browser }}-${{ matrix.device }}
-          # 只带本任务自己生成的基准目录（output 只有 chromium-desktop 跑），合并多个任务的产物时不会用旧文件覆盖新文件
+          name: visual-${{ matrix.browser }}
+          # 只带本任务自己生成的基准目录（output 只有 chromium 跑），合并多个任务的产物时不会用旧文件覆盖新文件
           path: |
             tests/theme/test-results-failed/
             tests/theme/playwright-report/
-            tests/theme/__snapshots__/${{ matrix.browser }}-${{ matrix.device }}/
-            ${{ matrix.browser == 'chromium' && matrix.device == 'desktop' && 'tests/theme/__snapshots__/output/' || '' }}
+            tests/theme/__snapshots__/${{ matrix.browser }}-desktop/
+            tests/theme/__snapshots__/${{ matrix.browser }}-tablet/
+            tests/theme/__snapshots__/${{ matrix.browser }}-phone/
+            ${{ matrix.browser == 'chromium' && 'tests/theme/__snapshots__/output/' || '' }}
           retention-days: 14
 
   # 把各视觉任务重新生成的基准图合并推到 ci-baselines/pr-<编号> 分支（只在同仓库 PR 的视觉任务失败时运行）。

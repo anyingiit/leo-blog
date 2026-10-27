@@ -6,17 +6,17 @@
 
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
-| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Regression tests |
-| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests |
-| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Regression tests |
-| `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Regression tests |
+| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Test → Test image-i18n |
-| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Visual (chromium-desktop) |
-| `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint |
+| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium) |
+| `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint and build |
 
 ## `tests/site.test.mjs` 检查的内容
 
@@ -45,9 +45,9 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 
 **网络状态**：正常；图片一直没有响应（检查加载前的版面）；CDN 不可用（KaTeX 样式、Mermaid 加载失败时的降级显示）；Slow 3G（400ms 延迟、约 50KB/s，检查布局偏移 CLS ≤ 0.1，且最终渲染与正常网络逐像素一致）。CLS 只有 Chromium 能测。"图片一直没有响应"在 WebKit 上只检查页面能稳定、Mermaid 图表照常画出，不截图：WebKit 截图前要等整页 load，图片不回来就永远截不了。
 
-**运行环境**：CI 的 Visual 任务固定在 Playwright 官方镜像 `mcr.microsoft.com/playwright:v1.63.0-noble`（按 digest 锁定）里运行，基准图 `tests/theme/__snapshots__/` 也是在这个镜像里生成的。不同机器的字体和渲染不同，本地截图和基准不一致是正常的，以 CI 为准。浏览器 × 设备共 6 个任务并行，非视觉的输出快照只在 chromium-desktop 任务里跑。
+**运行环境**：CI 的浏览器测试任务固定在 Playwright 官方镜像 `mcr.microsoft.com/playwright:v1.63.0-noble`（按 digest 锁定）里运行，基准图 `tests/theme/__snapshots__/` 也是在这个镜像里生成的。不同机器的字体和渲染不同，本地截图和基准不一致是正常的，以 CI 为准。每个浏览器一个任务（两个任务并行），三种设备在任务内依次跑；非视觉的输出快照只在 chromium 任务里跑。
 
-**改了样式、需要更新基准图时**：推送后 CI 的 Visual 任务会失败，失败的任务在同一镜像里重新生成有变化或缺失的基准图，并上传名为 `visual-<浏览器>-<设备>` 的产物，里面有每张图的期望/实际/差异对比（`test-results-failed/`、`playwright-report/`）和新基准（`__snapshots__/`）。同仓库的 PR 还会由 `Publish regenerated baselines` 任务把所有新基准合并推到 `ci-baselines/pr-<编号>` 分支（这个任务只有它有写权限，不执行仓库代码）。逐张确认差异都是预期的改动后取回提交：
+**改了样式、需要更新基准图时**：推送后 CI 的 Browser tests 任务会失败，失败的任务在同一镜像里重新生成有变化或缺失的基准图，并上传名为 `visual-<浏览器>` 的产物，里面有每张图的期望/实际/差异对比（`test-results-failed/`、`playwright-report/`）和新基准（`__snapshots__/`）。同仓库的 PR 还会由 `Publish regenerated baselines` 任务把所有新基准合并推到 `ci-baselines/pr-<编号>` 分支（这个任务只有它有写权限，不执行仓库代码）。逐张确认差异都是预期的改动后取回提交：
 
 ```bash
 git fetch origin ci-baselines/pr-<编号>
@@ -66,6 +66,8 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 不用 Playwright 自带的 `fullPage: true`：它在截图过程中另画视口以外的部分，`repaint` 管不到，放慢后同样会截出不同结果。
 
 **验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
+
+**CI 用量**：私有仓库的 GitHub 托管运行机按分钟计费，每个任务单独向上取整到整分钟，免费额度用完后任务分不到运行机、两秒就失败（2026-10-27 遇到过）。所以任务按"计费分钟"而不是按"并行度"拆：几十秒的检查（action 锁定、测试覆盖、构建、image-i18n）合在 Lint and build 一个任务里；浏览器测试每个浏览器一个任务，拉 Playwright 镜像（约 50 秒）和取整各只算两次。改动前每次运行约 20 计费分钟（10 个任务），改动后约 13 分钟，测试内容不变。新增任务前先想想能不能放进现有任务。
 
 ## 本地运行
 

@@ -15,4 +15,4 @@ npm test
 
 - `lang-switch.test.mjs`：页头语言切换（`layouts/_partials/header.html`、`lang_switch_url.html`）跳到当前页的对应语言版本，没有时退到最近的上级页；检查主题拷贝只差一处、各类页面的去向、全站每一页，以及 Chromium 和 WebKit 下的真实点击。详见 [docs/language-switch.md](../docs/language-switch.md)。
 
-CI（`.github/workflows/ci.yml` 的 Regression tests）在每个 PR 上运行。新增展示规则时，先在 `fixtures` 里加一篇能复现的短文，再加对应断言。
+CI（`.github/workflows/ci.yml` 里 Browser tests (chromium) 任务的 Run regression tests 步骤）在每个 PR 上运行。新增展示规则时，先在 `fixtures` 里加一篇能复现的短文，再加对应断言。
