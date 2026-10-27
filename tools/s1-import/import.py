@@ -18,7 +18,7 @@
 配图复制到 assets/translations/anthropic-s1/img/，同名图片内容不同时报错，不会悄悄覆盖旧版本用的图。
 已存在的版本目录不会被覆盖（历史版本只增不改），除非加 --force。
 """
-import argparse, hashlib, json, os, re, shutil, sys, urllib.parse
+import argparse, hashlib, json, os, re, shutil, sys, tempfile, urllib.parse
 
 # 章节标题 → 网址里的英文名（S-1 的标准章节）；没收录的用序号
 SLUGS = {
@@ -142,9 +142,7 @@ def main():
     if os.path.exists(final) and not a.force:
         sys.exit(f"{final} 已存在：历史版本只增不改，新版本请换一个 --version（或加 --force 重写）")
     # 先写到临时目录，全部成功（包括配图检查）后再换上去，中途失败不会留下半个版本
-    vdir = final + ".tmp"
-    shutil.rmtree(vdir, ignore_errors=True)
-    os.makedirs(vdir)
+    vdir = tempfile.mkdtemp(prefix=f"s1-import-{a.version}-")  # 不放在 content 里，失败时不会被当成一个版本发布
 
     used, img_names, toc = set(), set(), []
     all_ch = chapters(md)
@@ -187,6 +185,9 @@ def main():
             "description": f"Anthropic, PBC {a.form}（{a.filed} 提交）的非官方中文译本 {a.version}，AI 翻译，未经人工核对", "version": a.version, "form": a.form, "filed": a.filed,
             "captured": a.captured, "source": a.source, "date": a.date or a.filed, "notes": a.notes,
             "weight": a.weight, "excerpt": bool(a.pages), "chapters": toc}
+    # 版本页和章节不进首页 RSS、站内搜索（site.RegularPages），仍在本版本的 .Pages 里
+    meta["build"] = {"list": "local"}
+    meta["cascade"] = {"build": {"list": "local"}}
     for kv in a.extra:
         k, v = kv.split("=", 1)
         meta[k] = v
@@ -211,7 +212,7 @@ def main():
         shutil.copyfile(src, dst)
     if os.path.exists(final):
         shutil.rmtree(final)
-    os.rename(vdir, final)
+    shutil.move(vdir, final)
     vdir = final
     print(f"写入 {vdir}：{sum(t['included'] for t in toc)}/{len(toc)} 章，{len(img_names)} 张配图")
 

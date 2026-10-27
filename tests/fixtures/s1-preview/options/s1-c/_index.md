@@ -9,10 +9,8 @@ cascade:
   - type: s1
     params:
       s1mode: both
-    build:
-      list: local
   - target:
-      path: "/s1-c/v0.9/**"
+      path: "{/s1-c/v0.9,/s1-c/v0.9/**}"
     params:
       robotsNoIndex: true
 menus:

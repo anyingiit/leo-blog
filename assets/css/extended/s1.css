@@ -56,7 +56,7 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 .s1-sheets { background: var(--code-bg); border-radius: var(--radius); padding: 1px 0; margin: 0 auto 16px; overflow-x: auto; }
 .s1-sheets-inner { width: 836px; margin: 0 auto; color: #000; }
 .s1-sheet { box-shadow: 0 1px 4px rgb(0 0 0 / .15); margin-block: 12px !important; }
-.dark .s1-sheet { filter: brightness(.88); }
+[data-theme="dark"] .s1-sheet { filter: brightness(.88); }
 .s1-sheet a { color: #0000ee; text-decoration: underline; box-shadow: none; }
 @media (max-width: 880px) {
   .s1-sheets { margin-inline: calc(var(--gap) * -1); border-radius: 0; }
