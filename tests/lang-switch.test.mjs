@@ -25,6 +25,7 @@ after(async () => { for (const b of Object.values(browsers)) await b?.close(); s
 // 读出一页的语言、页头切换链接、<head> 里的 hreflang 互链；跳转页（别名）返回 null
 async function inspect(html) {
   if (/<meta http-equiv="?refresh/.test(html)) return null; // 别名页一加载就会跳走，不读
+  if (/<html[^>]* data-standalone/.test(html)) return null; // 供下载的独立文件（S-1 完整 HTML），没有站点页头
   await dom.setContent(html, { waitUntil: "domcontentloaded" });
   return dom.evaluate(() => {
     return {

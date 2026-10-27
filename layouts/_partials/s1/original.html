@@ -1,0 +1,32 @@
+{{- /*
+  原版版式：输出一章的 original.html（导入工具从译文 HTML 里切出的整页），
+  图片占位 s1img:<文件名> 换成 assets/translations/anthropic-s1/img/ 里同名图片转出的 WebP（最宽 1224px，即 612pt 的 1.5 倍），懒加载。
+  参数 dict "page" 章节页 "book" 是否整本一页（整本时跨章链接 ../章/#id 改成页内 #id），
+  "inline" 图片内嵌成 data URI、不加缩放脚本（下载用的单文件完整 HTML，见 layouts/s1/list.s1full.html）。
+  紧跟着的内联脚本在首次绘制前按屏宽设好缩放，避免页面跳动。
+*/ -}}
+{{- $page := .page -}}
+{{- $html := "" -}}
+{{- with $page.Resources.Get "original.html" }}{{ $html = .Content }}{{ end -}}
+{{- range uniq (findRESubmatch `s1img:([^"]+)` $html) -}}
+  {{- $name := index . 1 -}}
+  {{- with resources.Get (printf "translations/anthropic-s1/img/%s" $name) -}}
+    {{- $img := . -}}
+    {{- /* 内嵌时用 JPEG：Chrome 打印 PDF 会原样保留 JPEG，WebP 会被解码成无损位图，PDF 大十倍 */ -}}
+    {{- $fmt := cond (eq $.inline true) "jpg q80" "webp q80" -}}
+    {{- if gt .Width 1224 }}{{ $img = .Process (printf "resize 1224x %s" $fmt) }}{{ else }}{{ $img = .Process $fmt }}{{ end -}}
+    {{- $src := $img.RelPermalink }}{{ if $.inline }}{{ $src = printf "data:%s;base64,%s" $img.MediaType.Type ($img.Content | base64Encode) }}{{ end -}}
+    {{- $html = replace $html (printf "s1img:%s" $name) $src -}}
+  {{- else -}}
+    {{- errorf "%s: 找不到配图 %s" $page.File.Path $name -}}
+  {{- end -}}
+{{- end -}}
+{{- if not .inline }}{{ $html = replace $html "<img " `<img loading="lazy" decoding="async" ` }}{{ end -}}
+{{- if .book }}{{ $html = replaceRE `href="\.\./[^/"]+/#` `href="#` $html }}{{ end -}}
+{{- $html = replaceRE `<div style="--justify:justify;` `<div class="s1-sheet" style="--justify:justify;` $html -}}
+<div class="s1-sheets" data-first-page="{{ index $page.Params.pages 0 | default 1 }}">
+  <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>
+</div>
+{{- if not .inline }}
+<script>(b=>{const s=Math.min(b.closest("[data-wide]")?1.4:1,b.clientWidth/836);if(s!==1)b.firstElementChild.style.zoom=s.toFixed(4)})(document.currentScript.previousElementSibling)</script>
+{{- end }}

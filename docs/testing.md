@@ -12,6 +12,11 @@
 | `tests/film.test.mjs` | 短片（见 [films.md](films.md)）：播放器原样发布并只插入桥接脚本、noindex、canonical；封面卡片是链接、没有脚本也能打开短片页；全窗口放映的沙箱、深浅色同步、返回键/Esc/关闭、修饰键点击不拦截；短片页按短片高度撑开；真实短片不引用外部样式和脚本、手机横屏画面够大；英文页放英文版（无中文、英文配音、英文封面）；卡片下的「播放短片」「阅读文字稿」按钮、Tab 顺序、从对话框去短片页后的返回；打开即开播、焦点在画面、背景不滚动、关掉再打开返回键按一下就关、记住进度、片尾「重看」；真实短片没有动画帧时照样往下放 | Regression tests |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Regression tests |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Test → Test image-i18n |
+| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Regression tests |
+| `tests/s1-links.test.mjs` | S-1 译本和译文栏目的每个链接：站内地址存在、`#片段` 有对应 id、不意外指回本页、中英文页只在该跨的地方跨、外链格式、原版 444 个跨章交叉引用、封面目录章节名落在同名章节、冻结 HTML 离线可跳；冻结 PDF 的书签和 477 个页内链接指向正确页（pypdf）；Chromium 和 WebKit 实点菜单、语言切换、翻章、全屏阅读目录/跳页/页码、下载、版本菜单 | Regression tests |
+| `tests/s1-behavior.test.mjs` | S-1 译本的用户行为清单（113 条，见各测试名）：栏目与导航、译本首页/版本页/章节页、重排与原版的默认/记忆/切换时停在同一页、缩放、沉浸阅读的进入退出（按钮、Esc、后退）、页码与跳页（含跳到下一章）、翻章、目录面板、缩放记忆、本机存储被禁用时照常可用；Chromium 和 WebKit | Regression tests |
+| `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Test → Test s1-import |
+| `tools/s1-import/test_import.py` | 导入脚本 `import.py` 把译文 Markdown 转成 Hugo 正文：脚注标记保留为上标，被误包进 `<sup>` 的整句、中文、点线引导符去掉上标；章首前只有图片的整页分隔图归入后一章；导入新版本时内容变了的同名配图加内容哈希另存，旧版本仍用原图 | Test → Test s1-import |
 | `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面（含短片封面、短片页、全窗口放映），Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Visual (浏览器-设备)，6 个任务 |
 | `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Visual (浏览器-设备)，6 个任务 |
 | `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Visual (浏览器-设备)，6 个任务 |

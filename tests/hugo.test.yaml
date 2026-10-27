@@ -6,10 +6,23 @@ module:
       target: content
     - source: tests/fixtures/content
       target: content
+    # S-1 译本模板的测试样例（tests/s1.test.mjs，也出现在预览站 /s1-test/）：15 页节选，v0.9 是演示用的历史版本（还没发布下载文件）
+    - source: tests/fixtures/s1-preview/options
+      target: content
     - source: assets
       target: assets
     - source: tests/fixtures/assets
       target: assets
+    - source: tests/fixtures/s1-preview/assets
+      target: assets
+    - source: tests/fixtures/s1-preview/versions/v1.0
+      target: content/s1-test/v1.0
+    - source: tests/fixtures/s1-preview/versions/v0.9
+      target: content/s1-test/v0.9
+    - source: tests/fixtures/s1-preview/versions/v1.0/cover
+      target: content/s1-test/v0.9/cover
+    - source: tests/fixtures/s1-preview/versions/v1.0/selected-definitions
+      target: content/s1-test/v0.9/selected-definitions
 # 所有测试短文都在第一页，正式短文变多也不会把它们挤到下一页
 pagination:
   pagerSize: 100

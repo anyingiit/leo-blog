@@ -1,0 +1,51 @@
+{{- /*
+  S-1 译本的栏目页，两层：
+  - 译本首页（content/<译本>/_index.md）：完整声明、最新版目录、全部版本与更新记录
+  - 版本页（<译本>/<版本>/_index.md，由 tools/s1-import 生成）：该版本的目录
+  全文下载（完整 HTML、PDF）：译本首页和版本页是卡片，版本表每个版本一列（layouts/_partials/s1/downloads.html）
+*/ -}}
+{{- define "main" }}
+{{- if .Params.version }}
+  {{- $m := partial "s1/meta.html" . }}
+  <header class="page-header s1-header">
+    <div class="s1-crumb"><a href="{{ $m.root.RelPermalink }}">{{ $m.root.Title }}</a></div>
+    <h1>{{ .Params.version }} 目录</h1>
+  </header>
+  {{- partial "s1/versionbar.html" (dict "page" .) }}
+  {{- partial "s1/notice.html" (dict "v" . "full" false) }}
+  {{- partial "s1/downloads.html" (dict "v" . "style" "cards") }}
+  {{- partial "s1/toc.html" . }}
+  {{- partial "s1/rights.html" . }}
+{{- else }}
+  {{- $m := dict "latest" (index .Sections.ByWeight 0) }}
+  {{- with .Params.latest }}{{ with $.GetPage . }}{{ $m = dict "latest" . }}{{ end }}{{ end }}
+  <header class="page-header s1-header">
+    <h1>{{ .Title }}</h1>
+    {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+  </header>
+  {{- partial "s1/notice.html" (dict "v" $m.latest "full" true) }}
+  <div class="s1-cta">
+    <a class="s1-btn" href="{{ $m.latest.RelPermalink }}{{ (index (where $m.latest.Params.chapters "included" true) 0).slug }}/">开始阅读最新版 {{ $m.latest.Params.version }}</a>
+    <a href="{{ $m.latest.Params.source }}" rel="noopener">英文原文（SEC）</a>
+  </div>
+  {{- partial "s1/downloads.html" (dict "v" $m.latest "style" "cards") }}
+  {{- .Content }}
+  <h2>目录（{{ $m.latest.Params.version }}）</h2>
+  {{- partial "s1/toc.html" $m.latest }}
+  <h2 id="versions">全部版本</h2>
+  <table class="s1-versions">
+    <thead><tr><th>译本版本</th><th>对应原文</th><th>原文采集</th><th>说明</th><th class="s1-dl-col">全文下载</th></tr></thead>
+    <tbody>
+    {{- range .Sections.ByWeight }}
+      <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $m.latest }} <span class="s1-vtag s1-latest">最新</span>{{ end }}</td>
+        <td>{{ .Params.form }}（{{ .Params.filed }} 提交）</td>
+        <td>{{ (time.AsTime .Params.captured).UTC.Format "2006-01-02 15:04" }} UTC</td>
+        <td>{{ .Params.notes }}</td><td class="s1-dl-col">{{ partial "s1/downloads.html" (dict "v" . "style" "line") }}</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+  <p class="s1-small">历史版本只增不改：每个版本有自己的固定网址，发布后内容不再变动。</p>
+  {{- partial "s1/rights.html" . }}
+{{- end }}
+{{- partial "s1/script.html" . }}
+{{- end }}

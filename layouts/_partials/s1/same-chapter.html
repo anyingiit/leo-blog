@@ -1,0 +1,4 @@
+{{- /* 另一个版本里的同一章；那个版本没有这一章时回到它的目录 */ -}}
+{{- $u := .v.RelPermalink -}}
+{{- with .slug }}{{ with $.v.GetPage . }}{{ $u = .RelPermalink }}{{ end }}{{ end -}}
+{{- return $u -}}
