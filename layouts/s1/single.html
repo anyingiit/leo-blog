@@ -8,7 +8,7 @@
 {{- $v := $m.version }}
 {{- $chs := where $v.Params.chapters "included" true }}
 {{- $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
-<article class="post-single s1-chapter s1-mode-both" data-vroot="{{ $v.RelPermalink }}" data-first-page="{{ index .Params.pages 0 }}" data-wide data-immersive>
+<article class="post-single s1-chapter s1-mode-both" data-vroot="{{ $v.RelPermalink }}" data-first-page="{{ index .Params.pages 0 }}" data-last-page="{{ index .Params.pages 1 }}" data-wide data-immersive>
   {{- /* 带 ?read=1 打开时先进入沉浸样式，避免先显示普通页面再跳变 */}}
   <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
   {{- /* 沉浸阅读的顶栏：只在沉浸模式下显示，保留"非官方"标记和声明入口 */}}

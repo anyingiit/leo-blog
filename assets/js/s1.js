@@ -2,7 +2,7 @@
 // - 原版页面按容器宽度缩放（首屏的缩放由 original.html 里的内联脚本先设好）；加宽方案允许放大到 1.4 倍
 // - 方案 C 的重排/原版切换（宽屏、窄屏分别记住选择；没选过时宽屏默认原版、窄屏默认重排；切换时停在同一原文页）
 // - 沉浸阅读：网址带 ?read=1 时隐藏站点外壳，只留正文和细顶栏（目录、页码、翻章、版式、缩放、退出）。
-//   宽屏进入时切到原版；窄屏（手机）原版字太小，保持当前版式，可在顶栏切换。退出时回到进入前的版式。
+//   进入时保持读者当前的版式，可在顶栏切换。退出时回到进入前的版式。
 //   缩放记在本机；Esc 退出；[ ] 翻章；g 或点页码跳页；浏览器后退退出沉浸
 // - 版本菜单点别处时收起
 (() => {
@@ -49,11 +49,13 @@
   // 阅读位置 = 原文页码 + 在这一页里读到的比例，切换版式、缩放、进出沉浸时保持
   const TOP = () => (immersive() ? 60 : 80); // 沉浸阅读里和 s1.css 的 scroll-padding-top 一致，锚点跳到的页算作当前页
   const firstPage = +(chapter?.dataset.firstPage || 0) || null;
+  const lastPage = +(chapter?.dataset.lastPage || 0) || Infinity;
   const pageBlocks = () => {
     // [{page, el}]，按顺序；重排版第一页从正文开头算
     if (original && !original.hidden) return [...original.querySelectorAll(".s1-sheet")].map((el) => ({ page: +el.dataset.page, el }));
     if (!reflow) return [];
-    return [{ page: firstPage, el: reflow }, ...[...reflow.querySelectorAll(".s1-pg")].map((el) => ({ page: +el.dataset.page + 1, el }))];
+    // 「原文第 N 页」分隔线在第 N 页末尾，后面是第 N+1 页；本章最后一条分隔线之后已不属于本章
+    return [{ page: firstPage, el: reflow }, ...[...reflow.querySelectorAll(".s1-pg")].map((el) => ({ page: +el.dataset.page + 1, el })).filter((b) => b.page <= lastPage)];
   };
   const blockTop = (b) => b.el.getBoundingClientRect().top;
   const blockEnd = (bs, i) => (i + 1 < bs.length ? blockTop(bs[i + 1]) : bs[i].el.closest(".s1-original, .s1-reflow").getBoundingClientRect().bottom);
@@ -87,7 +89,6 @@
   // ---------- 沉浸阅读 ----------
   const view = () => (original && !original.hidden ? "original" : "reflow");
   const narrow = () => !matchMedia("(min-width: 900px)").matches; // 没选过版式时，窄屏默认重排
-  const phone = () => !matchMedia("(min-width: 600px)").matches; // 手机上原版字太小，沉浸时也保持重排
   let before = null; // 进入沉浸前的版式
   const readURL = (on) => {
     const u = new URL(location.href);
