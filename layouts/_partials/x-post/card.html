@@ -1,0 +1,23 @@
+{{- /* 自建静态卡片：仿 X 版式，颜色全部取博客主题变量，深浅色自动跟随。 */ -}}
+{{- $p := .p -}}
+<figure class="xc{{ if eq $p.kind "retweet" }} is-rt{{ end }}">
+  {{- with $p.retweeted_by }}<div class="xc-rt">⟲ {{ .name }} {{ i18n "x_retweeted" | default "转发了" }}</div>{{ end }}
+  <header class="xc-head">
+    <span class="xc-av" aria-hidden="true">{{ substr $p.author.name 0 1 }}</span>
+    <span class="xc-who"><b>{{ $p.author.name }}</b><span>@{{ $p.author.handle }}</span></span>
+    <a class="xc-x" href="{{ $p.url }}" rel="nofollow noopener" target="_blank" aria-label="{{ i18n "x_view" | default "在 X 上查看" }}">𝕏</a>
+  </header>
+  <div class="xc-text" lang="{{ $p.lang }}">{{ partial "x-post/text.html" $p.text }}</div>
+  {{- partial "x-post/media.html" (dict "media" $p.media "class" "xc-media" "w" 900) -}}
+  {{- with $p.quoted }}
+  <blockquote class="xc-quoted" cite="{{ .url }}">
+    <div class="xc-qhead"><span class="xc-av sm" aria-hidden="true">{{ substr .author.name 0 1 }}</span><b>{{ .author.name }}</b><span>@{{ .author.handle }} · {{ time.Format ":date_medium" .date }}</span></div>
+    <div lang="{{ .lang }}">{{ partial "x-post/text.html" .text }}</div>
+  </blockquote>
+  {{- end }}
+  <figcaption class="xc-foot">
+    <time datetime="{{ $p.date }}">{{ time.Format ":date_long" $p.date }}</time>
+    {{- with $p.views }}<span>· {{ . }} {{ i18n "x_views" | default "次浏览" }}</span>{{ end }}
+    <a href="{{ $p.url }}" rel="nofollow noopener" target="_blank">{{ i18n "x_view" | default "在 X 上查看" }} ↗</a>
+  </figcaption>
+</figure>

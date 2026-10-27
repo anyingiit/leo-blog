@@ -1,0 +1,33 @@
+{{- /* 融合方案（评审 2 提出）：外框照短文卡片 .note-entry，作者行一行写完，被引用推文用底色区分，
+       图片按宽高比等高成行、截图不裁切、可点击放大，底部只留一个“在 X 上查看”。 */ -}}
+{{- $p := .p -}}
+{{- $view := i18n "x_view" | default "在 X 上查看" -}}
+<article class="xf" lang="{{ $p.lang }}">
+  {{- with $p.retweeted_by }}<p class="xf-rt">{{ .name }} {{ i18n "x_retweeted" | default "转发了" }}</p>{{ end }}
+  <header class="xf-head">
+    <span class="xf-av" aria-hidden="true">{{ substr $p.author.name 0 1 }}</span>
+    <span class="xf-name">{{ $p.author.name }}</span>
+    <span class="xf-meta">@{{ $p.author.handle }} · <time datetime="{{ $p.date }}">{{ time.Format ":date_medium" $p.date }}</time></span>
+  </header>
+  <div class="xf-text">{{ partial "x-post/paras.html" $p.text }}</div>
+  {{- with $p.media }}
+  <div class="xf-media n-{{ len . }}">
+    {{- range . }}
+      {{- $f := . }}{{ $alt := "" }}{{ if reflect.IsMap . }}{{ $f = .file }}{{ $alt = .alt }}{{ end }}
+      {{- with resources.Get (printf "x-media/%s" $f) -}}
+        {{- $full := .Process (printf "resize %dx webp q85" (cond (gt .Width 1600) 1600 .Width)) -}}
+        {{- $img := .Process (printf "resize %dx webp q82" (cond (gt .Width 900) 900 .Width)) -}}
+        {{- $ar := div (float $img.Width) $img.Height -}}
+        <img class="{{ cond (eq .MediaType.SubType "png") "shot" "photo" }}" src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}" style="--ar:{{ printf "%.4f" $ar }}" data-zoom="{{ $full.RelPermalink }}" alt="{{ $alt }}" loading="lazy" decoding="async">
+      {{- end -}}
+    {{- end }}
+  </div>
+  {{- end }}
+  {{- with $p.quoted }}
+  <blockquote class="xf-quoted" cite="{{ .url }}" lang="{{ .lang }}">
+    <p class="xf-qhead"><span class="xf-name">{{ .author.name }}</span> <span class="xf-meta">@{{ .author.handle }} · <time datetime="{{ .date }}">{{ time.Format ":date_medium" .date }}</time></span></p>
+    {{ partial "x-post/paras.html" .text }}
+  </blockquote>
+  {{- end }}
+  <p class="xf-foot"><a href="{{ $p.url }}" rel="nofollow noopener" target="_blank">{{ $view }} ↗</a></p>
+</article>

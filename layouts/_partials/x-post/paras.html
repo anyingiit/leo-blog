@@ -1,0 +1,4 @@
+{{- /* 推文正文按空行分段，段内换行保留为 <br>。参数是字符串。 */ -}}
+{{- range split . "\n\n" -}}
+<p>{{ partial "x-post/text.html" (trim . "\n") }}</p>
+{{- end -}}

@@ -1,0 +1,10 @@
+{{- /* 自建紧凑链接卡：一行作者、两行摘要、右侧缩略图，整张卡链接到 X。 */ -}}
+{{- $p := .p -}}
+{{- $body := $p.text -}}{{- with $p.quoted }}{{ $body = printf "%s ⟶ @%s：%s" $p.text .author.handle .text }}{{ end -}}
+<a class="xk" href="{{ $p.url }}" rel="nofollow noopener" target="_blank">
+  <span class="xk-main">
+    <span class="xk-src">𝕏 <b>{{ $p.author.name }}</b> @{{ $p.author.handle }}{{ with $p.retweeted_by }} · {{ i18n "x_retweet" | default "转发" }}{{ end }} · {{ time.Format ":date_medium" $p.date }}</span>
+    <span class="xk-text" lang="{{ $p.lang }}">{{ $body }}</span>
+  </span>
+  {{- with $p.media }}{{ with resources.Get (printf "x-media/%s" (index . 0)) }}{{ $t := .Process "fill 160x160 webp q80" }}<img class="xk-thumb" src="{{ $t.RelPermalink }}" width="80" height="80" alt="" loading="lazy">{{ end }}{{ end }}
+</a>

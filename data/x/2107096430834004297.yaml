@@ -1,0 +1,15 @@
+# 引用：我的评论 + 被引用的 @dhh 原推
+id: "2107096430834004297"
+kind: quote
+url: https://x.com/Name11216161228/status/2107096430834004297
+author: { name: HMI, handle: Name11216161228 }
+date: 2026-10-05T13:11:51Z
+lang: en
+text: "I gave it some thought, and it works."
+views: 29
+quoted:
+  url: https://x.com/dhh/status/2107067651310625250
+  author: { name: DHH, handle: dhh }
+  date: 2026-10-05T11:17:30Z
+  lang: en
+  text: "You don't have to commit your entire life to optimism, just try it on for a week. Start thinking \"what if it all worked out?\" and \"what a time to be alive!\". Then compare your state of mind to the week before filled with pessimism and doomer nonsense."

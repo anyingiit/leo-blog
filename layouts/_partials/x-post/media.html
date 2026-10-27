@@ -1,0 +1,13 @@
+{{- /* 图片：assets/x-media/ 里的原图在构建时转成 WebP。参数 dict "media" 列表 "class" 外层类名 "w" 宽度 */ -}}
+{{- with .media -}}
+<div class="{{ $.class }} n-{{ len . }}">
+  {{- range . -}}
+    {{- with resources.Get (printf "x-media/%s" .) -}}
+      {{- $img := .Process (printf "resize %dx webp q82" (cond (gt .Width ($.w | default 900)) ($.w | default 900) .Width)) -}}
+      <img src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}" alt="" loading="lazy" decoding="async">
+    {{- else -}}
+      {{- warnf "x-post: assets/x-media/%s 不存在" . -}}
+    {{- end -}}
+  {{- end -}}
+</div>
+{{- end -}}

@@ -1,0 +1,10 @@
+# 转发：内容属于 @dhh
+id: "2097080909413691550"
+kind: retweet
+url: https://x.com/Name11216161228/status/2097080909413691550  # 我这次转发的链接，X 会跳到原推
+retweeted_by: { name: HMI, handle: Name11216161228 }
+author: { name: DHH, handle: dhh }
+date: 2026-09-07T21:53:45Z  # 转发时间（存档里没有原推时间）
+lang: zh
+text: "你好中国 👋 https://zh.omarchy.org"
+media: [2097080909413691550-HRo5HGlXgAEaM7C.png]
