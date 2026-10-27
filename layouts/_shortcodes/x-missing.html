@@ -1,2 +1,2 @@
-{{- $x := .Page.Params.x -}}
+{{- $x := .Page.Params.x }}{{ with .Get "id" }}{{ $x = index $.Page.Params.xs . }}{{ end -}}
 <p class="x-missing">另有 {{ $x.missing }} 个视频或图片，<a href="{{ $x.url }}" rel="nofollow noopener noreferrer" target="_blank">在 X 上查看 ↗</a></p>

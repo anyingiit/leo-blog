@@ -27,4 +27,46 @@
 .xpv-a { padding: 0.25rem 0.625rem; border-radius: 999px; color: var(--primary); }
 .xpv-a.cur { background: var(--primary); color: var(--theme); }
 body:has(.xpv) { padding-bottom: 3.5rem; }
-@media (max-width: 760px) { .xpv-l { display: none; } }
+@media (max-width: 1100px) { .xpv-l { display: none; } }
+
+/* 推文时间线 /x/（方案五、七、八） */
+.xt-months { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.75rem; font-size: 0.875rem; }
+.xt-months a { padding: 0.125rem 0.625rem; border-radius: 999px; background: var(--code-bg); color: var(--secondary); }
+.post-content.xt { margin-top: 1rem; }
+.post-content .xt-month { margin: 2.25rem 0 0.25rem; font-size: 1rem; color: var(--secondary); font-weight: 600; scroll-margin-top: 1rem; }
+.post-content .xt-month:first-child { margin-top: 0; }
+.xt-e { padding: 1rem 0; border-bottom: 1px solid var(--border); }
+.post-content .xt-e p { margin: 0; }
+.post-content .xt-meta { font-size: 0.8125rem; color: var(--secondary); margin-bottom: 0.375rem; }
+.post-content .xt-meta a, .post-content .xt-time { color: inherit; box-shadow: none; text-decoration: none; }
+.post-content .xt-meta a:hover, .post-content .xt-time:hover { color: var(--primary); text-decoration: underline; }
+.xt-text { line-height: 1.8; overflow-wrap: anywhere; }
+.post-content .xt-text p + p { margin-top: 0.6em; }
+.xt-long:not(.is-open) .xt-text { max-height: 11em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
+.xt-more { margin-top: 0.25rem; padding: 0; border: 0; background: none; color: var(--secondary); font-size: 0.875rem; cursor: pointer; }
+.xt-more:hover { color: var(--primary); text-decoration: underline; }
+.post-content .xt .xf-media { max-width: 32rem; }
+.post-content .xt .xf-media.n-1 img { flex: none; width: min(100%, calc(18rem * var(--ar))); }
+.post-content .xt .xf-quoted { max-width: 36rem; }
+.xt-rt { display: flex; gap: 0.5rem; align-items: baseline; padding: 0.5rem 0; font-size: 0.875rem; color: var(--secondary); }
+.xt-rt-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.post-content .xt-rt a { color: var(--secondary); box-shadow: none; }
+.post-content .xt-rt-t a { color: var(--content); font-weight: 500; }
+
+/* 月记（方案六） */
+.post-content .x-day { margin: 1.75rem 0 0.25rem; font-size: 0.8125rem; color: var(--secondary); }
+.post-content .x-day:first-child { margin-top: 0; }
+.post-content .x-day a { color: inherit; box-shadow: none; }
+.x-rts { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.875rem; color: var(--secondary); }
+.post-content .x-rts-h { margin: 0 0 0.25rem; font-weight: 600; }
+.post-content .x-rts ul { margin: 0; padding-left: 1.25rem; }
+.post-content .x-rts li { margin: 0.125rem 0; }
+
+/* 首页“最近在 X”（方案八） */
+.xt-recent { margin: 0 0 var(--gap); padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.875rem; }
+.xt-recent-h { display: flex; justify-content: space-between; margin-bottom: 0.375rem; font-size: 0.875rem; color: var(--secondary); font-weight: 600; }
+.xt-recent-h a { font-weight: 400; }
+.xt-recent ul { margin: 0; padding: 0; list-style: none; }
+.xt-recent li a { display: flex; gap: 0.75rem; padding: 0.25rem 0; color: var(--content); }
+.xt-recent time { flex: none; color: var(--secondary); }
+.xt-recent li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

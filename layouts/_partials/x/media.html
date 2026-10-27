@@ -1,8 +1,11 @@
-{{- /* 推文图片（页面文件夹里的文件名列表），按宽高比等高成一行，可点击放大。参数：dict "page" "files"。 */ -}}
+{{- /* 推文图片，按宽高比等高成一行，可点击放大。参数：dict "page"（可省，图片在页面文件夹里）"files"（文件名列表）；
+       没有 page 时从 assets/x-media 取（推文时间线）。 */ -}}
 {{- with .files }}
 <div class="xf-media n-{{ len . }}">
   {{- range . }}
-    {{- with $.page.Resources.Get . }}
+    {{- $f := . }}{{ $r := "" }}{{ with $.page }}{{ $r = .Resources.Get $f }}{{ end }}
+    {{- if not $r }}{{ $r = resources.Get (printf "x-media/%s" $f) }}{{ end }}
+    {{- with $r }}
       {{- $img := .Filter images.AutoOrient -}}
       {{- $full := $img.Process (printf "resize %dx webp q85" (cond (gt $img.Width 1600) 1600 $img.Width)) -}}
       {{- $sm := $img.Process (printf "resize %dx webp q85" (cond (gt $img.Width 900) 900 $img.Width)) -}}

@@ -1,0 +1,19 @@
+# 整站预览：方案 8（只在预览分支上用，见 build.sh）
+params:
+  xpreview: { cur: 8 }
+module:
+  mounts:
+    - { source: content, target: content }
+    - { source: x-preview/out/v8/x, target: content/x }
+    - { source: assets, target: assets }
+    - { source: x-preview/src/media, target: assets/x-media }
+    - { source: x-preview/out/v8/data, target: data }
+languages:
+  zh:
+    menu:
+      main:
+        - { name: 短文, url: /notes/, weight: 5 }
+        - { name: 推文, url: /x/, weight: 6 }
+        - { name: 归档, url: /archives/, weight: 10 }
+        - { name: 标签, url: /tags/, weight: 20 }
+        - { name: 搜索, url: /search/, weight: 30 }

@@ -1,0 +1,26 @@
+{{- /* 主题原样，只在整站预览方案八里多一块“最近在 X”（简介下面三行，点进 /x/）。 */ -}}
+{{- with site.Params.homeInfoParams }}
+<article class="first-entry home-info">
+    <header class="entry-header">
+        <h1>{{ .Title | markdownify }}</h1>
+    </header>
+    <div class="entry-content md-content">
+        {{ $opts := dict "display" "block" }}
+        {{ .Content | $.Page.RenderString $opts }}
+    </div>
+    <footer class="entry-footer">
+        {{ partial "social_icons.html" (dict "align" site.Params.homeInfoParams.AlignSocialIconsTo) }}
+    </footer>
+</article>
+{{- end -}}
+{{- if eq (int (site.Params.xpreview.cur | default 0)) 8 }}
+<section class="xt-recent" aria-label="最近在 X">
+  <h2 class="xt-recent-h">最近在 X <a href="{{ "x/" | relLangURL }}">全部推文 →</a></h2>
+  <ul>
+  {{- range first 3 (where site.Data.xtl "kind" "ne" "retweet") }}
+    {{- $d := time .date }}
+    <li><a href="{{ "x/" | relLangURL }}#t{{ .id }}"><time>{{ $d | time.Format "1月2日" }}</time><span>{{ replaceRE `https?://\S+` "" (index .parts 0).text | truncate 80 }}</span></a></li>
+  {{- end }}
+  </ul>
+</section>
+{{- end }}

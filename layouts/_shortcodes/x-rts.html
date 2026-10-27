@@ -1,0 +1,9 @@
+{{- /* 月记末尾：这个月的转发，每条一行。 */ -}}
+<div class="x-rts">
+<p class="x-rts-h">这个月还转发了</p>
+<ul>
+{{- range .Page.Params.xrts }}{{ with index $.Page.Params.xs . }}
+<li><a href="{{ .other.url }}" rel="nofollow noopener noreferrer" target="_blank">@{{ .other.handle }}</a>：{{ (replaceRE `https?://\S+` "" .other.text) | truncate 60 }}</li>
+{{- end }}{{ end }}
+</ul>
+</div>

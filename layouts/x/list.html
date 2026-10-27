@@ -1,0 +1,27 @@
+{{- /* 推文栏目（/x/）：时间线，数据来自 data/xtl.json，按月分组，最新的在上面。不进首页、不进短文、不出 RSS。 */ -}}
+{{- define "main" }}
+{{- $tl := site.Data.xtl }}
+<header class="page-header">
+  <h1>{{ .Title }}</h1>
+  {{- with .Description }}<div class="post-description">{{ . | markdownify }}</div>{{ end }}
+  {{- $months := slice }}{{ range $tl }}{{ $m := (time .date).Format "2006-01" }}{{ if not (in $months $m) }}{{ $months = $months | append $m }}{{ end }}{{ end }}
+  <nav class="xt-months" aria-label="按月份跳转">{{ range $months }}{{ $t := time (printf "%s-01" .) }}<a href="#m{{ . }}">{{ $t.Year }}年{{ int $t.Month }}月</a>{{ end }}</nav>
+</header>
+<div class="post-content md-content xt">
+  {{- $cur := "" }}
+  {{- range $tl }}
+    {{- $m := (time .date).Format "2006-01" }}
+    {{- if ne $m $cur }}{{ $cur = $m }}{{ $t := time .date }}<h2 class="xt-month" id="m{{ $m }}">{{ $t.Year }}年{{ int $t.Month }}月</h2>{{ end }}
+    {{- partial "x/entry.html" . }}
+  {{- end }}
+</div>
+<script>
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".xt-more");
+  if (!b) return;
+  const open = b.closest(".xt-long").classList.toggle("is-open");
+  b.textContent = open ? "收起" : "展开全文";
+  b.setAttribute("aria-expanded", String(open));
+});
+</script>
+{{- end }}
