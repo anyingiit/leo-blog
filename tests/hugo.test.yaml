@@ -5,6 +5,13 @@ module:
       target: content
     - source: tests/fixtures/content
       target: content
+    # 双语对照译文的版式预览（仅预览站）
+    - source: tests/fixtures/bilingual-preview/content
+      target: content
+    - source: tests/fixtures/bilingual-preview/static
+      target: static
+    - source: static
+      target: static
 # 所有测试短文都在第一页，正式短文变多也不会把它们挤到下一页
 pagination:
   pagerSize: 100

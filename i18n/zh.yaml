@@ -14,3 +14,20 @@
   translation: "查看图片 %d / %d"
 - id: zoom_more
   translation: "，还有 %d 张"
+# 双语对照译文（layouts/bilingual/）
+- id: bl_published
+  translation: "原文发表于"
+- id: bl_view
+  translation: "显示方式"
+- id: bl_both
+  translation: "对照"
+- id: bl_original
+  translation: "原文"
+- id: bl_expand_all
+  translation: "展开全部原文"
+- id: bl_collapse_all
+  translation: "收起全部原文"
+- id: bl_link_para
+  translation: "链接到第"
+- id: bl_about
+  translation: "关于这篇译文"

@@ -1,0 +1,102 @@
+{{- /*
+  双语对照译文（沉浸式翻译导出的「原文段落 + 译文段落」），段落对存在同目录的 pairs.yaml（tools/bilingual-import/import.py 生成）。
+  版式由 front matter 的 bilingualMode 决定：
+    alt    原文、译文逐段交替（和沉浸式翻译一致）
+    side   电脑上左右并排、逐段对齐，正文栏加宽；手机退回逐段交替
+    toggle 「中文 / 对照 / 原文」三档切换，默认中文，记住读者的选择；不开脚本时显示对照
+    fold   默认只显示中文，每段末尾「原文」可逐段展开，也可一键全部展开
+  英文页（.en.md）设 enStub: true 时只放说明和原文链接，不重复原文全文。
+*/ -}}
+{{- define "main" }}
+{{- $data := dict }}
+{{- $res := .Resources.Get "pairs.yaml" }}
+{{- if not $res }}{{ range .AllTranslations }}{{ with .Resources.Get "pairs.yaml" }}{{ $res = . }}{{ end }}{{ end }}{{ end }}
+{{- with $res }}{{ $data = . | transform.Unmarshal }}{{ end }}
+{{- $mode := .Params.bilingualMode | default "toggle" }}
+{{- $zh := eq .Language.Lang "zh" }}
+<article class="post-single bl-article bl-{{ $mode }}" data-mode="{{ cond (eq $mode "toggle") "both" $mode }}">
+  <header class="post-header">
+    {{- with .Params.previewLabel }}<div class="bl-preview-label">{{ . }}</div>{{ end }}
+    <h1 class="post-title">{{ .Title }}</h1>
+    {{- with .Params.originalTitle }}<div class="bl-original-title" lang="en">{{ . }}</div>{{ end }}
+    <div class="post-meta bl-meta">
+      {{- with .Params.author }}<span>{{ . }}</span>{{ end }}
+      {{- with .Params.published }}&nbsp;·&nbsp;<span>{{ i18n "bl_published" }} {{ time.Format ":date_long" . }}</span>{{ end }}
+      {{- partial "translation_list.html" . -}}
+    </div>
+  </header>
+  {{- partial "bilingual/notice.html" . }}
+
+  {{- if .Params.enStub }}
+  <div class="post-content md-content">{{ .Content }}</div>
+  {{- else }}
+  {{- if eq $mode "toggle" }}
+  <div class="bl-switch" role="group" aria-label="{{ i18n "bl_view" }}">
+    <button type="button" data-set="zh">中文</button>
+    <button type="button" data-set="both">{{ i18n "bl_both" }}</button>
+    <button type="button" data-set="en">English</button>
+  </div>
+  {{- else if eq $mode "fold" }}
+  <div class="bl-switch bl-switch-fold"><button type="button" data-expand-all>{{ i18n "bl_expand_all" }}</button></div>
+  {{- end }}
+  <div class="post-content bl-body">
+    {{- range $i, $p := $data.pairs }}
+    {{- $n := add $i 1 }}
+    {{- if eq $p.kind "img" }}
+    <figure class="bl-pair bl-img" id="p{{ $n }}"><img src="{{ $p.src }}" alt="{{ $p.alt }}" loading="lazy"></figure>
+    {{- else }}
+    {{- $tag := cond (in (slice "h1" "h2") $p.kind) "h2" (cond (in (slice "h3" "h4") $p.kind) "h3" (cond (eq $p.kind "quote") "blockquote" "p")) }}
+    <div class="bl-pair bl-{{ $p.kind }}" id="p{{ $n }}">
+      {{- $en := printf "<%s class=\"bl-en\" lang=\"en\">%s</%s>" $tag ($p.en | markdownify) $tag }}
+      {{- $cn := printf "<%s class=\"bl-zh\" lang=\"zh-CN\">%s</%s>" $tag ($p.zh | default "" | markdownify) $tag }}
+      {{- if eq $mode "alt" }}{{ $en | safeHTML }}{{ $cn | safeHTML }}
+      {{- else if eq $mode "side" }}{{ $en | safeHTML }}{{ $cn | safeHTML }}
+      {{- else if eq $mode "fold" }}{{ $cn | safeHTML }}<details class="bl-fold"><summary>{{ i18n "bl_original" }}</summary>{{ $en | safeHTML }}</details>
+      {{- else }}{{ $cn | safeHTML }}{{ $en | safeHTML }}{{ end }}
+      <a class="bl-anchor" href="#p{{ $n }}" aria-label="{{ i18n "bl_link_para" }} {{ $n }}">#</a>
+    </div>
+    {{- end }}
+    {{- end }}
+  </div>
+  {{- if .Content }}<div class="post-content md-content bl-afterword">{{ .Content }}</div>{{ end }}
+  {{- end }}
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      {{- range (.GetTerms "tags") }}<li><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></li>{{ end }}
+    </ul>
+  </footer>
+</article>
+{{- if eq $mode "toggle" }}
+<script>
+(function () {
+  var a = document.querySelector(".bl-article"), key = "bl-mode";
+  function set(m) {
+    a.dataset.mode = m;
+    a.querySelectorAll(".bl-switch [data-set]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.set === m); });
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(key); } catch (e) {}
+  set(saved || {{ cond $zh "zh" "both" }});
+  a.querySelector(".bl-switch").addEventListener("click", function (e) {
+    var m = e.target.closest("[data-set]");
+    if (!m) return;
+    set(m.dataset.set);
+    try { localStorage.setItem(key, m.dataset.set); } catch (e) {}
+  });
+})();
+</script>
+{{- else if eq $mode "fold" }}
+<script>
+(function () {
+  var b = document.querySelector("[data-expand-all]");
+  b.addEventListener("click", function () {
+    var all = document.querySelectorAll(".bl-fold"), open = !b.classList.contains("on");
+    all.forEach(function (d) { d.open = open; });
+    b.classList.toggle("on", open);
+    b.textContent = open ? {{ i18n "bl_collapse_all" }} : {{ i18n "bl_expand_all" }};
+  });
+})();
+</script>
+{{- end }}
+{{- end }}

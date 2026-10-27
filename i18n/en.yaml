@@ -14,3 +14,20 @@
   translation: "View image %d of %d"
 - id: zoom_more
   translation: ", %d more"
+# Bilingual translations (layouts/bilingual/)
+- id: bl_published
+  translation: "Published"
+- id: bl_view
+  translation: "View"
+- id: bl_both
+  translation: "Side by side"
+- id: bl_original
+  translation: "Original"
+- id: bl_expand_all
+  translation: "Show all original paragraphs"
+- id: bl_collapse_all
+  translation: "Hide all original paragraphs"
+- id: bl_link_para
+  translation: "Link to paragraph"
+- id: bl_about
+  translation: "About this translation"
