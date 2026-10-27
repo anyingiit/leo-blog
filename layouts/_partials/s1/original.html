@@ -23,4 +23,4 @@
 <div class="s1-sheets" data-first-page="{{ index $page.Params.pages 0 | default 1 }}">
   <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>
 </div>
-<script>(b=>{const s=Math.min(1,b.clientWidth/836);if(s<1)b.firstElementChild.style.zoom=s.toFixed(4)})(document.currentScript.previousElementSibling)</script>
+<script>(b=>{const s=Math.min(b.closest("[data-wide]")?1.4:1,b.clientWidth/836);if(s!==1)b.firstElementChild.style.zoom=s.toFixed(4)})(document.currentScript.previousElementSibling)</script>

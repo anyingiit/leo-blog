@@ -71,3 +71,33 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 .s1-rights { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--secondary); }
 .s1-reflow table { display: block; overflow-x: auto; font-size: 14px; }
 .s1-reflow img { height: auto; }
+
+/* 加宽（params.s1wide）：原版页面跳出 720px 正文栏，最宽 1240px，页面按宽度放大（最多 1.4 倍，见 s1.js） */
+.s1-chapter[data-wide] { --s1-box: min(100vw - 32px, 1240px); }
+body:has(.s1-chapter[data-wide]) .main { max-width: calc(var(--main-width) + var(--gap) * 2) !important; }
+.s1-chapter[data-wide] .s1-original:not([hidden]) { width: var(--s1-box); margin-inline: calc((100% - var(--s1-box)) / 2); max-width: none !important; }
+.s1-chapter[data-wide] .s1-sheets { margin-inline: 0; }
+.s1-chapter[data-wide] .s1-sheets-inner { margin: 0 auto; }
+
+/* 沉浸阅读（params.s1immersive，网址带 ?read=1）：只留原版页面和一条细顶栏 */
+.s1-read-link { display: flex; align-items: center; padding: 6px 14px; font-size: 14px; border-inline-start: 1px solid var(--border); color: var(--primary); }
+.s1-ibar { display: none; }
+body.s1-immersive { padding-top: 44px; }
+body.s1-immersive :is(.header, .footer, .top-link, .s1-chapter > :not(.s1-original, .s1-ibar)) { display: none !important; }
+body.s1-immersive .main { max-width: none !important; padding: 0; margin: 0; }
+body.s1-immersive .s1-original { width: auto !important; margin: 0 !important; max-width: none !important; }
+body.s1-immersive .s1-sheets { border-radius: 0; margin: 0; min-height: calc(100vh - 44px); }
+body.s1-immersive .s1-ibar { position: fixed; inset: 0 0 auto; z-index: 50; height: 44px; display: flex; align-items: center; gap: 12px;
+  padding: 0 12px; background: var(--theme); border-bottom: 1px solid var(--border); font-size: 14px; white-space: nowrap; }
+.s1-ibar-tag { color: #9a6700; font-weight: 600; }
+.s1-ibar-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--secondary); }
+.s1-ibar-nav { display: flex; gap: 10px; }
+.s1-ibar-zoom { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.s1-ibar button { font: inherit; font-size: 14px; border: 0; background: none; color: var(--primary); padding: 4px 10px; cursor: pointer; }
+.s1-ibar-zoom button + button { border-inline-start: 1px solid var(--border); }
+.s1-ibar button:focus-visible, .s1-ibar a:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+@media (max-width: 640px) {
+  .s1-ibar-title { display: none; }
+  body.s1-immersive .s1-ibar { gap: 8px; padding: 0 8px; }
+  .s1-ibar button { padding: 4px 8px; }
+}

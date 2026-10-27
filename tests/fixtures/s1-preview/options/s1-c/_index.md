@@ -1,6 +1,6 @@
 ---
 title: "Anthropic S-1 非官方中文译本"
-description: "Anthropic, PBC 首次公开发行注册声明（Form S-1）的非官方中文译本，AI 翻译，未经人工核对 · 预览：方案C：重排版+原版切换"
+description: "Anthropic, PBC 首次公开发行注册声明（Form S-1）的非官方中文译本，AI 翻译，未经人工核对 · 预览：方案C：现在的版本（对照）"
 type: s1
 latest: v1.0
 params:
@@ -16,5 +16,5 @@ cascade:
 menus:
   main:
     name: "译文C"
-    weight: 3
+    weight: 1
 ---

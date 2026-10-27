@@ -10,7 +10,28 @@
 {{- $v := $m.version }}
 {{- $chs := where $v.Params.chapters "included" true }}
 {{- $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
-<article class="post-single s1-chapter s1-mode-{{ $mode }}">
+{{- $wide := .Params.s1wide }}
+{{- $imm := .Params.s1immersive }}
+<article class="post-single s1-chapter s1-mode-{{ $mode }}"{{ if $wide }} data-wide{{ end }}{{ if $imm }} data-immersive{{ end }}>
+  {{- if $imm }}
+  {{- /* 沉浸阅读的顶栏：只在沉浸模式下显示，保留"非官方"标记和声明入口 */}}
+  <div class="s1-ibar" hidden>
+    <a class="s1-ibar-tag" href="{{ $m.root.RelPermalink }}" title="完整声明在译本首页">非官方 AI 译本</a>
+    <span class="s1-ibar-title">{{ .Title }}</span>
+    <span class="s1-ibar-nav">
+      {{- range $i, $c := $chs }}{{ if eq $c.slug $slug }}
+        {{- if gt $i 0 }}{{ with index $chs (sub $i 1) }}<a href="../{{ .slug }}/?read=1" data-key="ArrowLeft" title="上一章：{{ .title }}">‹ 上一章</a>{{ end }}{{ end }}
+        {{- if lt (add $i 1) (len $chs) }}{{ with index $chs (add $i 1) }}<a href="../{{ .slug }}/?read=1" data-key="ArrowRight" title="下一章：{{ .title }}">下一章 ›</a>{{ end }}{{ end }}
+      {{- end }}{{ end }}
+    </span>
+    <span class="s1-ibar-zoom" role="group" aria-label="缩放">
+      <button type="button" data-zoom="out" aria-label="缩小">−</button>
+      <button type="button" data-zoom="fit">适应宽度</button>
+      <button type="button" data-zoom="in" aria-label="放大">+</button>
+    </span>
+    <button type="button" class="s1-ibar-exit" data-exit>退出</button>
+  </div>
+  {{- end }}
   <header class="post-header s1-header">
     <div class="s1-crumb"><a href="{{ $m.root.RelPermalink }}">{{ $m.root.Title }}</a> › <a href="{{ $v.RelPermalink }}">{{ $v.Params.version }} 目录</a></div>
     <h1 class="post-title">{{ .Title }}</h1>
@@ -23,6 +44,7 @@
   <div class="s1-switch" role="group" aria-label="版式">
     <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
     <button type="button" data-view="original" aria-pressed="false">原版版式</button>
+    {{- if $imm }}<a class="s1-read-link" href="?read=1" data-enter>沉浸阅读 ⤢</a>{{ end }}
   </div>
   {{- end }}
   {{- if in (slice "reflow" "both") $mode }}
