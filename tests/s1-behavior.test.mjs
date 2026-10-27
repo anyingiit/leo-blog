@@ -681,8 +681,12 @@ for (const engine of ENGINES) {
     await tab.waitForURL((u) => u.pathname === V + chapters[3].slug + "/", { waitUntil: "commit" });
     assert.equal(new URL(tab.url()).search, "");
     await tab.close();
+    // WebKit 里新标签页抢走焦点后 Control 可能仍算按着（之后的 Esc 被当成 Ctrl+Esc 忽略、点链接又开新标签页），回到本页并松开
+    await page.bringToFront();
+    await page.keyboard.up("Control");
     assert.equal(new URL(page.url()).pathname, V + "cover/");
     await page.keyboard.press("Escape"); // 关面板
+    await until(page, () => !document.querySelector(".s1-ibar-toc[open]"));
     await page.locator(".s1-ibar-tag").click();
     await waitPath(page, R);
     await s.done();
