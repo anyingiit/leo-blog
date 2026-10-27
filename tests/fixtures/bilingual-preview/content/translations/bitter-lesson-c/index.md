@@ -17,4 +17,6 @@ methodDetailEn: Machine-translated paragraph by paragraph with the Immersive Tra
 tags: [AI, 译文]
 summary: Rich Sutton 2019 年的短文：七十年 AI 研究最大的教训是，利用算力的通用方法最终胜出。中英逐段对照。
 robotsNoIndex: true
+ShowReadingTime: false
+ShowWordCount: false
 ---

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial project structure.
 - 「短文」栏目（`content/notes/`，`/notes/`）：随笔、感想与长文分开，首页和归档只列长文。
+- 「译文」栏目（`/translations/`）：Anthropic S-1 非官方中文译本全文 v1.0，原版版式 / 重排版切换、全屏阅读、历史版本，完整 HTML 和 PDF 直链下载（`tools/s1-import/`）。
 
 ### Changed
 

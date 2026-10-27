@@ -131,7 +131,7 @@ test("返回顶部：滚动后出现，点击回到顶部", async ({ browser }, 
 test("导航菜单：每一项都能打开", async ({ browser }, info) => {
   const { context, page } = await open(browser, info, SITE + "/");
   const items = await page.locator("#menu a").evaluateAll((as) => as.map((a) => [a.textContent.trim(), a.getAttribute("href")]));
-  expect(items.map((i) => i[0])).toEqual(["短文", "归档", "标签", "搜索"]);
+  expect(items.map((i) => i[0])).toEqual(["短文", "译文", "归档", "标签", "搜索"]);
   for (const [, href] of items) expect((await page.goto(href)).status(), href).toBe(200);
   await context.close();
 });

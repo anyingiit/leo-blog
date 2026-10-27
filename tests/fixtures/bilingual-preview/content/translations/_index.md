@@ -1,7 +1,0 @@
----
-title: 译文
-description: 别人的好文章，翻成中文放在这里。译文均为非官方译文，以原文为准。
-cascade:
-  ShowReadingTime: false
-  ShowWordCount: false
----

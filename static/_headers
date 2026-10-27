@@ -1,0 +1,7 @@
+# Cloudflare Pages 响应头（https://developers.cloudflare.com/pages/configuration/headers/）
+# S-1 译本的全文下载文件（<版本>/files/，见 tools/s1-import/release.py）不进搜索引擎：
+# 搜索结果里只出现带完整声明的在线页面；robots.txt 不屏蔽这些文件，否则爬虫读不到这个响应头
+/:root/:version/files/*
+  X-Robots-Tag: noindex
+/:section/:root/:version/files/*
+  X-Robots-Tag: noindex

@@ -1,4 +1,5 @@
 404.html
+_headers
 archives/index.html
 assets/css/stylesheet.<hash>.css
 assets/js/search.<hash>.js
@@ -51,6 +52,9 @@ en/tags/test/page/1/index.html
 en/tags/testing/index.html
 en/tags/testing/index.xml
 en/tags/testing/page/1/index.html
+en/translations/index.html
+en/translations/index.xml
+en/translations/page/1/index.html
 index.html
 index.json
 index.xml
@@ -180,5 +184,8 @@ tags/测试/page/1/index.html
 tags/随笔/index.html
 tags/随笔/index.xml
 tags/随笔/page/1/index.html
+translations/index.html
+translations/index.xml
+translations/page/1/index.html
 zh/index.html
 zh/sitemap.xml

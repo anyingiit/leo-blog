@@ -1,0 +1,39 @@
+{{- /*
+  全文下载链接（完整 HTML 和 PDF），都是直链，不设任何门槛。dict "v" 版本页 "style" 样式 "label" 前缀：
+  cards  两张卡片（译本首页、版本页）
+  line   一行文字链接（章节页版本条、全屏阅读的目录面板、版本表）
+  文件来自版本页 front matter 的 downloads（tools/s1-import/release.py 发布时冻结，记有大小和 sha256）；
+  还没发布的版本只有构建时生成的 full.html（s1full 输出），没有 PDF。
+  HTML 默认在浏览器里打开（最适合读），PDF 直接下载（不在网页里内嵌预览）。
+*/ -}}
+{{- $v := .v -}}
+{{- $ver := $v.Params.version -}}
+{{- $html := dict }}{{ $pdf := dict -}}
+{{- with $v.Params.downloads }}
+  {{- /* 完整 HTML 在内容目录里存成 .html.raw（.html 会被 Hugo 当成文章），这里以 .html 的名字发布到版本目录的 files/ 下 */}}
+  {{- with .html }}{{ with $v.Resources.Get .file }}{{ $name := strings.TrimSuffix ".raw" (path.Base .Name) }}{{ with resources.Copy (path.Join (strings.TrimPrefix "/" $v.RelPermalink) "files" $name) . }}{{ $html = dict "url" .RelPermalink "name" $name }}{{ end }}{{ end }}{{ $html = merge $html (dict "size" (printf "%.1f MB" (div (float .bytes) 1048576)) "sha" .sha256) }}{{ end }}
+  {{- with .pdf }}{{ with $v.Resources.Get .file }}{{ $pdf = dict "url" .RelPermalink "name" (path.Base .Name) }}{{ end }}{{ $pdf = merge $pdf (dict "size" (printf "%.1f MB" (div (float .bytes) 1048576)) "sha" .sha256) }}{{ end }}
+{{- else }}
+  {{- with $v.OutputFormats.Get "s1full" }}{{ $html = dict "url" .RelPermalink "name" (printf "anthropic-s1-zh-unofficial-%s.html" $ver) }}{{ end }}
+{{- end }}
+{{- if $html.url }}
+{{- if eq .style "cards" }}
+<div class="s1-dl-cards" aria-label="全文下载">
+  <div class="s1-dl-card">
+    <div class="s1-dl-kind">完整 HTML{{ with $html.size }} <small>{{ . }}</small>{{ end }}</div>
+    <p>原版版式，单个文件，图片内嵌。</p>
+    <p class="s1-dl-acts"><a href="{{ $html.url }}" target="_blank" rel="noopener">在浏览器打开 ↗</a><a href="{{ $html.url }}" download="{{ $html.name }}">下载 .html ↓</a></p>
+  </div>
+  {{- with $pdf.url }}
+  <div class="s1-dl-card">
+    <div class="s1-dl-kind">PDF <small>{{ $pdf.size }}</small></div>
+    <p>与原文逐页对应，带章节书签。</p>
+    <p class="s1-dl-acts"><a href="{{ . }}" download="{{ $pdf.name }}">下载 .pdf ↓</a></p>
+  </div>
+  {{- end }}
+  {{- with $pdf.sha }}<p class="s1-dl-sha">SHA-256：HTML <code title="{{ $html.sha }}">{{ substr $html.sha 0 12 }}…</code> PDF <code title="{{ . }}">{{ substr . 0 12 }}…</code></p>{{ end }}
+</div>
+{{- else }}
+<span class="s1-dl-line">{{ with .label }}<span class="s1-dl-label">{{ . }}</span>{{ end }}<a href="{{ $html.url }}" target="_blank" rel="noopener" title="完整 HTML">HTML ↗{{ with $html.size }} <small>{{ . }}</small>{{ end }}</a>{{ with $pdf.url }}<a href="{{ . }}" download="{{ $pdf.name }}" title="PDF">PDF ↓ <small>{{ $pdf.size }}</small></a>{{ end }}</span>
+{{- end }}
+{{- end }}

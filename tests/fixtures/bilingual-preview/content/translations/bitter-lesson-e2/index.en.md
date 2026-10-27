@@ -14,4 +14,6 @@ version: v1.0
 method: Machine translation (Immersive Translate)
 methodDetailEn: Machine-translated paragraph by paragraph with the Immersive Translate browser extension; layout checked only, not proofread.
 tags: [AI, Translations]
+ShowReadingTime: false
+ShowWordCount: false
 ---

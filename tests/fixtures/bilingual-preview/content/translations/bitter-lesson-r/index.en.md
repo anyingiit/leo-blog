@@ -15,6 +15,8 @@ method: Machine translation (Immersive Translate)
 methodDetailEn: Machine-translated paragraph by paragraph with the Immersive Translate browser extension; layout checked only, not proofread.
 tags: [AI, Translations]
 summary: A Chinese translation of Rich Sutton's 2019 essay. The original is on the author's site.
+ShowReadingTime: false
+ShowWordCount: false
 ---
 
 This page hosts a Chinese translation of Rich Sutton's 2019 essay *The Bitter Lesson*. The English original is on the author's website, and that is the place to read it: [incompleteideas.net/IncIdeas/BitterLesson.html](http://www.incompleteideas.net/IncIdeas/BitterLesson.html).
