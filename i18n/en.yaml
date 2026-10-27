@@ -14,3 +14,15 @@
   translation: "View image %d of %d"
 - id: zoom_more
   translation: ", %d more"
+- id: film_play
+  translation: Play the film
+- id: film_kind
+  translation: Animated short
+- id: film_minutes
+  translation: "about %d min"
+- id: film_voice
+  translation: narrated
+- id: film_page
+  translation: Film page & transcript
+- id: film_transcript
+  translation: Transcript

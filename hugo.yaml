@@ -24,6 +24,7 @@ permalinks:
   page:
     posts: /posts/:slug/
     notes: /notes/:slug/
+    films: /films/:contentbasename/
 
 params:
   env: production

@@ -54,3 +54,24 @@
 /* 视频（render-image.html 输出的 <video>）：按封面宽高比占位；单篇页最高 80vh，短文时间线里和图片一样最高 24rem */
 .md-content video { display: block; width: min(100%, calc(80vh * var(--ar, 1.7778))); height: auto; margin: 1rem 0; background: #000; border-radius: 4px; }
 .note-entry .post-content video { width: min(100%, calc(24rem * var(--ar, 1.7778))); }
+/* 短片（docs/films.md）：正文里的封面卡片（链接到短片页）+ 全窗口放映 + 短片页的宽幅播放器 */
+.film { margin: 1.5rem 0; }
+.film-open { position: relative; display: block; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #0f1522; box-shadow: none !important; }
+.film-open img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; margin: 0 !important; transition: opacity .2s; }
+.film-open:hover img { opacity: .85; }
+.film-open:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.film-play { position: absolute; left: .75rem; bottom: .75rem; display: flex; align-items: center; gap: .5rem; padding: .4rem .9rem .4rem .7rem; color: #fff; font-size: .9rem; font-weight: 600; background: rgb(0 0 0 / .65); border-radius: 999px; }
+.film-play::before { content: ""; border-style: solid; border-width: .45rem 0 .45rem .75rem; border-color: transparent transparent transparent #fff; }
+.film-cover figcaption { display: flex; flex-wrap: wrap; gap: .25rem .75rem; align-items: baseline; margin-top: .5rem; font-size: .875rem; color: var(--secondary); text-align: left; }
+.film-cover figcaption strong { color: var(--primary); font-weight: 600; font-size: 1rem; }
+.film-cover figcaption span { font-weight: 400; }
+.film-dialog { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0f1522; display: none; flex-direction: column; }
+.film-dialog[open] { display: flex; }
+.film-dialog::backdrop { background: rgb(0 0 0 / .7); }
+.film-bar { display: flex; align-items: center; gap: 1rem; padding: .5rem 1rem; padding-top: max(.5rem, env(safe-area-inset-top)); background: var(--theme); border-bottom: 1px solid var(--border); color: var(--primary); font-size: .9rem; }
+.film-name { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.film-tab { color: var(--secondary); white-space: nowrap; }
+.film-close { width: 2.25rem; height: 2.25rem; font-size: 1.5rem; line-height: 1; color: var(--primary); background: var(--code-bg); border: 1px solid var(--border); border-radius: 50%; cursor: pointer; }
+.film-dialog iframe { flex: 1; width: 100%; border: 0; }
+.film-stage { --w: min(1000px, 100vw - 2 * var(--gap)); width: var(--w); margin: 0 0 var(--gap) calc(50% - var(--w) / 2); }
+.film-stage iframe { display: block; width: 100%; height: calc(var(--w) * 9 / 16 + 200px); border: 0; background: transparent; }

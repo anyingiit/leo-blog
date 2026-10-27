@@ -1,0 +1,18 @@
+{{- /*
+  短片封面卡片（docs/films.md）：{{< film name="短片名" >}}。
+  卡片本身是指向短片页的普通链接，没有脚本、在 RSS 里也能点开；有脚本时点它在全窗口对话框里放映（extend_footer.html）。
+*/ -}}
+{{- $f := partial "film.html" (dict "name" (.Get "name") "page" .Page) -}}
+{{- $minutes := or (.Get "minutes") $f.minutes -}}
+{{- $meta := slice (i18n "film_kind") -}}
+{{- with $minutes }}{{ $meta = $meta | append (printf (i18n "film_minutes") (int .)) }}{{ end -}}
+{{- $meta = $meta | append (i18n "film_voice") -}}
+{{- $play := $f.play -}}
+{{- if and $f.lang (ne $f.lang .Page.Lang) }}{{ $play = printf "%s?lang=%s" $play .Page.Lang }}{{ end -}}
+<figure class="film film-cover">
+<a class="film-open" href="{{ or $f.page $f.play }}" data-play="{{ $play }}" data-title="{{ $f.title }}" aria-label="{{ i18n "film_play" }}：{{ $f.title }}">
+{{- with $f.poster }}<img src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="" loading="lazy" decoding="async" class="in-text">{{ end -}}
+<span class="film-play" aria-hidden="true">{{ i18n "film_play" }}</span>
+</a>
+<figcaption><strong>{{ $f.title }}</strong><span>{{ delimit $meta " · " }}</span></figcaption>
+</figure>

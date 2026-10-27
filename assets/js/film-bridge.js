@@ -1,0 +1,23 @@
+// 注入到每部短片页面（layouts/_partials/film.html 在构建时插入），短片本身不用改。
+// 短片在沙箱 iframe 里运行，和博客不同源；博客与短片之间只通过 postMessage 交换这几条消息：
+//   博客 → 短片：{type:"film:theme", theme:"light"|"dark"}  设到 <html data-theme>
+//   短片 → 博客：{type:"film:ready"}、{type:"film:size", height}、{type:"film:escape"}
+// 地址带 ?embed=fit（全窗口放映）或 ?embed=page（短片页）时给 <html> 加 data-embed，短片可以据此只显示播放器（可选，不支持也能放映）。
+(() => {
+  const root = document.documentElement;
+  const embed = new URLSearchParams(location.search).get("embed");
+  if (embed !== null) root.setAttribute("data-embed", embed || "fit");
+  if (parent === window) return;
+  const send = (m) => parent.postMessage(m, "*");
+  addEventListener("message", (e) => {
+    if (e.source !== parent || !e.data) return;
+    if (e.data.type === "film:theme" && /^(light|dark)$/.test(e.data.theme)) root.dataset.theme = e.data.theme;
+  });
+  addEventListener("keydown", (e) => { if (e.key === "Escape") send({ type: "film:escape" }); });
+  let last = 0;
+  // 量 <html> 自身的高度：scrollHeight 不会小于 iframe 当前的高度，播放器只能变高不能变矮
+  const size = () => { const h = Math.ceil(root.getBoundingClientRect().height); if (h !== last) { last = h; send({ type: "film:size", height: h }); } };
+  addEventListener("DOMContentLoaded", () => { size(); new ResizeObserver(size).observe(document.body); });
+  addEventListener("load", size);
+  send({ type: "film:ready" });
+})();

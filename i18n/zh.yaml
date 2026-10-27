@@ -14,3 +14,15 @@
   translation: "查看图片 %d / %d"
 - id: zoom_more
   translation: "，还有 %d 张"
+- id: film_play
+  translation: 播放短片
+- id: film_kind
+  translation: 动画短片
+- id: film_minutes
+  translation: "约 %d 分钟"
+- id: film_voice
+  translation: 有配音
+- id: film_page
+  translation: 短片页、文字稿
+- id: film_transcript
+  translation: 文字稿

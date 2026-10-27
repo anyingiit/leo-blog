@@ -121,3 +121,62 @@
   }
 })();
 </script>
+{{- /*
+  3. 短片（docs/films.md）：
+     - 正文里的封面卡片（_shortcodes/film.html）是指向短片页的链接；有脚本时普通点击改为在全窗口对话框里放映，
+       返回键、Esc、关闭按钮都关掉对话框、留在原文原处；关闭时卸载短片，声音随之停止。
+     - 短片页（films/single.html）里的播放器按短片报来的高度撑开。
+     短片放在沙箱 iframe 里（和博客不同源），双方只通过 postMessage 交换深浅色、高度和 Esc（assets/js/film-bridge.js）。
+*/ -}}
+<script>
+(() => {
+  const openers = document.querySelectorAll(".film-open[data-play]");
+  const frames = document.querySelectorAll("iframe.film-frame");
+  if (!openers.length && !frames.length) return;
+  const root = document.documentElement;
+  const theme = () => root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const all = () => [...document.querySelectorAll("iframe.film-frame")];
+  const tell = (f) => f.contentWindow?.postMessage({ type: "film:theme", theme: theme() }, "*");
+  new MutationObserver(() => all().forEach(tell)).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  let box, frame, link, opener;
+  addEventListener("message", (e) => {
+    const f = all().find((x) => x.contentWindow === e.source);
+    if (!f || !e.data) return;
+    if (e.data.type === "film:ready") tell(f);
+    if (e.data.type === "film:size" && f !== frame && e.data.height > 0) f.style.height = Math.min(e.data.height, 4000) + "px";
+    if (e.data.type === "film:escape" && f === frame) box.close();
+  });
+  for (const f of frames) f.addEventListener("load", () => tell(f));
+  if (!openers.length) return;
+  const build = () => {
+    box = document.createElement("dialog");
+    box.className = "film-dialog";
+    box.innerHTML = '<div class="film-bar"><span class="film-name"></span><a class="film-tab">{{ i18n "film_page" }}</a><button type="button" class="film-close" aria-label="{{ i18n "zoom_close" }}">×</button></div>' +
+      '<iframe class="film-frame" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay" allowfullscreen></iframe>';
+    frame = box.querySelector("iframe"); link = box.querySelector(".film-tab");
+    box.querySelector(".film-close").onclick = () => box.close();
+    box.addEventListener("close", () => {
+      frame.src = "about:blank";
+      document.body.style.overflow = "";
+      if (history.state?.film) history.back();
+      opener?.focus();
+    });
+    document.body.append(box);
+  };
+  // 返回键：先关短片，不离开文章
+  addEventListener("popstate", () => { if (box?.open) { history.replaceState(null, ""); box.close(); } });
+  for (const a of openers) a.addEventListener("click", (e) => {
+    if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (!box) build();
+    opener = a;
+    box.querySelector(".film-name").textContent = a.dataset.title;
+    box.setAttribute("aria-label", a.dataset.title);
+    link.href = a.href; frame.title = a.dataset.title;
+    frame.src = a.dataset.play + (a.dataset.play.includes("?") ? "&" : "?") + "embed=fit";
+    document.body.style.overflow = "hidden";
+    history.pushState({ film: a.dataset.title }, "");
+    box.showModal();
+  });
+})();
+</script>

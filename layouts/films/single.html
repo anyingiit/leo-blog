@@ -1,0 +1,35 @@
+{{- /*
+  短片页 /films/<名字>/（docs/films.md）：博客的页头页尾，标题、日期，然后是宽幅播放器，再往下是 Markdown 写的导语和文字稿。
+  播放器是沙箱 iframe（?embed=page），高度由短片报来（extend_footer.html）；没有脚本时按 16:9 加控制条的估计高度显示。
+  短片的名字取自 bundle 目录名，对应 assets/films/<名字>/。
+*/ -}}
+{{- define "main" }}
+{{- $name := .Params.film | default .File.ContentBaseName -}}
+{{- $f := partial "film.html" (dict "name" $name "page" .) -}}
+{{- $play := $f.play -}}
+{{- if and $f.lang (ne $f.lang .Lang) }}{{ $play = printf "%s?lang=%s&embed=page" $play .Lang }}{{ else }}{{ $play = printf "%s?embed=page" $play }}{{ end -}}
+<article class="post-single film-single">
+  <header class="post-header">
+    {{ partial "breadcrumbs.html" . }}
+    <h1 class="post-title">{{ .Title }}</h1>
+    {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+    <div class="post-meta">
+      {{- partial "post_meta.html" . -}}
+      {{- with $f.minutes }}&nbsp;·&nbsp;{{ printf (i18n "film_minutes") (int .) }}{{ end -}}
+      {{- partial "translation_list.html" . -}}
+    </div>
+  </header>
+  <div class="film-stage">
+    <iframe class="film-frame" src="{{ $play }}" title="{{ .Title }}" loading="lazy"
+      sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay" allowfullscreen></iframe>
+  </div>
+  {{- if .Content }}
+  <div class="post-content md-content">
+    {{- partial "anchored_headings.html" .Content -}}
+  </div>
+  {{- end }}
+  <footer class="post-footer">
+    {{- if (.Param "ShowPostNavLinks") }}{{ partial "post_nav_links.html" . }}{{ end }}
+  </footer>
+</article>
+{{- end }}
