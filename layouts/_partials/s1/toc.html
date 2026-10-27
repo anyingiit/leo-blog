@@ -3,7 +3,7 @@
 {{- if reflect.IsMap . }}{{ $v = .v }}{{ $cur = .current }}{{ end -}}
 <ol class="s1-toc">
   {{- range $v.Params.chapters }}
-  <li{{ if eq .slug $cur }} aria-current="page"{{ end }}>
+  <li data-from="{{ index .pages 0 }}" data-to="{{ index .pages 1 }}"{{ if eq .slug $cur }} aria-current="page"{{ end }}>
     {{- if .included }}<a href="{{ $v.RelPermalink }}{{ .slug }}/">{{ .title }}</a>{{ else }}<span class="s1-missing">{{ .title }}</span>{{ end }}
     <small>第 {{ index .pages 0 }}{{ if ne (index .pages 0) (index .pages 1) }}–{{ index .pages 1 }}{{ end }} 页</small>
   </li>

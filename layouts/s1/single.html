@@ -12,8 +12,10 @@
 {{- $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
 {{- $wide := .Params.s1wide }}
 {{- $imm := .Params.s1immersive }}
-<article class="post-single s1-chapter s1-mode-{{ $mode }}" data-vroot="{{ $v.RelPermalink }}"{{ if $wide }} data-wide{{ end }}{{ if $imm }} data-immersive{{ end }}>
+<article class="post-single s1-chapter s1-mode-{{ $mode }}" data-vroot="{{ $v.RelPermalink }}" data-first-page="{{ index .Params.pages 0 }}"{{ if $wide }} data-wide{{ end }}{{ if $imm }} data-immersive{{ end }}>
   {{- if $imm }}
+  {{- /* 带 ?read=1 打开时先进入沉浸样式，避免先显示普通页面再跳变 */}}
+  <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
   {{- /* 沉浸阅读的顶栏：只在沉浸模式下显示，保留"非官方"标记和声明入口 */}}
   {{- $total := index (index (last 1 $v.Params.chapters) 0).pages 1 }}
   <div class="s1-ibar" role="toolbar" aria-label="沉浸阅读" tabindex="-1" hidden>
@@ -22,11 +24,11 @@
       <summary title="章节目录"><span class="s1-ibar-title">{{ .Title }}</span> ▾</summary>
       {{ partial "s1/toc.html" (dict "v" $v "current" $slug) }}
     </details>
-    <span class="s1-ibar-page" data-total="{{ $total }}"></span>
+    <button type="button" class="s1-ibar-page" data-total="{{ $total }}" title="原文页码，点击跳页（g）"></button>
     <span class="s1-ibar-nav">
       {{- range $i, $c := $chs }}{{ if eq $c.slug $slug }}
-        {{- if gt $i 0 }}{{ with index $chs (sub $i 1) }}<a href="../{{ .slug }}/?read=1" data-key="ArrowLeft" title="上一章：{{ .title }}（←）" aria-label="上一章">‹<span class="s1-ibar-lbl"> 上一章</span></a>{{ end }}{{ end }}
-        {{- if lt (add $i 1) (len $chs) }}{{ with index $chs (add $i 1) }}<a href="../{{ .slug }}/?read=1" data-key="ArrowRight" title="下一章：{{ .title }}（→）" aria-label="下一章"><span class="s1-ibar-lbl">下一章 </span>›</a>{{ end }}{{ end }}
+        {{- if gt $i 0 }}{{ with index $chs (sub $i 1) }}<a href="../{{ .slug }}/?read=1" data-dir="prev" title="上一章：{{ .title }}（[）" aria-label="上一章">‹<span class="s1-ibar-lbl"> 上一章</span></a>{{ end }}{{ end }}
+        {{- if lt (add $i 1) (len $chs) }}{{ with index $chs (add $i 1) }}<a href="../{{ .slug }}/?read=1" data-dir="next" title="下一章：{{ .title }}（]）" aria-label="下一章"><span class="s1-ibar-lbl">下一章 </span>›</a>{{ end }}{{ end }}
       {{- end }}{{ end }}
     </span>
     {{- if eq $mode "both" }}<button type="button" data-toggle-view title="在原版版式和重排版之间切换"></button>{{ end }}
