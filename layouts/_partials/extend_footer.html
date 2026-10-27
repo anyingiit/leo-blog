@@ -121,3 +121,38 @@
   }
 })();
 </script>
+{{- /* 3. 短片（layouts/_shortcodes/film.html）：点封面在全窗口的对话框里放映，深浅色跟随博客；关闭时卸载，声音随之停止 */ -}}
+<script>
+(() => {
+  const openers = document.querySelectorAll(".film-open");
+  if (!openers.length) return;
+  const root = document.documentElement;
+  const theme = () => root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  let box, frame, link, opener;
+  const sync = () => { try { frame.contentDocument.documentElement.dataset.theme = theme(); } catch {} };
+  const build = () => {
+    box = document.createElement("dialog");
+    box.className = "film-dialog";
+    box.innerHTML = '<div class="film-bar"><span class="film-name"></span><a class="film-tab" target="_blank" rel="noopener">{{ i18n "film_newtab" }} ↗</a><button type="button" class="film-close" aria-label="{{ i18n "zoom_close" }}">×</button></div><iframe allow="fullscreen; autoplay" allowfullscreen></iframe>';
+    frame = box.querySelector("iframe"); link = box.querySelector(".film-tab");
+    // 短片页面若先有标题、导语，把播放区（.player、video、canvas 或第一个 svg 所在处）滚到窗口中间
+    frame.addEventListener("load", () => {
+      sync();
+      try { frame.contentDocument.querySelector("[data-film-player], .player, video, canvas, svg")?.scrollIntoView({ block: "center" }); } catch {}
+    });
+    box.querySelector(".film-close").onclick = () => box.close();
+    box.addEventListener("close", () => { frame.src = "about:blank"; document.body.style.overflow = ""; opener?.focus(); });
+    document.body.append(box);
+    new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  };
+  for (const b of openers) b.addEventListener("click", () => {
+    if (!box) build();
+    opener = b;
+    box.querySelector(".film-name").textContent = b.dataset.title;
+    box.setAttribute("aria-label", b.dataset.title);
+    link.href = b.dataset.src; frame.title = b.dataset.title; frame.src = b.dataset.src;
+    document.body.style.overflow = "hidden";
+    box.showModal();
+  });
+})();
+</script>
