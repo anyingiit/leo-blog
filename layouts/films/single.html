@@ -22,6 +22,8 @@
   <div class="film-stage">
     <iframe class="film-frame" src="{{ $play }}" title="{{ .Title }}" loading="lazy"
       sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay" allowfullscreen></iframe>
+    {{- /* 浏览器关了脚本时短片放不了：显示封面，下面的文字稿照常可读 */}}
+    {{- with $f.poster }}<noscript><style>.film-stage iframe{display:none}</style><img class="film-still" src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="{{ $.Title }}"></noscript>{{ end }}
   </div>
   {{- if .Content }}
   {{- if in .Content `id="transcript"` }}<p class="film-jump"><a href="#transcript">{{ i18n "film_transcript" }} ↓</a></p>{{ end }}

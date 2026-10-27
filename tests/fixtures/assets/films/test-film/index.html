@@ -23,7 +23,7 @@ header, footer { padding: 16px; }
 <header><h1>测试短片</h1><p>独立打开时显示的标题和说明。</p></header>
 <div class="player">
   <div class="stage"><img src="media/still.svg" alt="静帧"></div>
-  <div class="ctrls"><button id="play" type="button">▶ 播放</button><span id="theme"></span></div>
+  <div class="ctrls"><button id="play" type="button">▶ 播放</button><button id="next" type="button">下一句</button><button id="end" type="button">放完</button><span id="theme"></span> <span id="at"></span></div>
 </div>
 <footer>独立打开时显示的页脚。</footer>
 <script>
@@ -31,7 +31,16 @@ const t = document.getElementById("theme");
 const show = () => { t.textContent = document.documentElement.dataset.theme || "system"; };
 show();
 new MutationObserver(show).observe(document.documentElement, { attributes: true });
-document.getElementById("play").onclick = (e) => { e.target.textContent = "❚❚ 暂停"; };
+const play = document.getElementById("play");
+play.onclick = () => { play.textContent = "❚❚ 暂停"; };
+// 博客可选的约定（film-bridge.js）：?at= 从第几句开始、?autoplay=1 直接开播；换句时报 film:progress，放完报 film:ended
+const q = new URLSearchParams(location.search);
+let cue = +q.get("at") || 0;
+document.getElementById("at").textContent = "第 " + cue + " 句";
+if (q.get("autoplay") === "1") play.click();
+const tell = (m) => { if (parent !== window) parent.postMessage(m, "*"); };
+document.getElementById("next").onclick = () => { cue++; document.getElementById("at").textContent = "第 " + cue + " 句"; tell({ type: "film:progress", cue }); };
+document.getElementById("end").onclick = () => tell({ type: "film:ended" });
 </script>
 </body>
 </html>

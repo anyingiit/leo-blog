@@ -107,7 +107,7 @@ test("点封面在全窗口对话框里放映：沙箱 iframe、embed=fit、深�
   await page.click(".film-open");
   assert.equal(await dialogOpen(page), true);
   const frame = page.locator(".film-dialog iframe");
-  assert.match(await frame.getAttribute("src"), /\/films\/test-film\/play\/\?embed=fit$/);
+  assert.match(await frame.getAttribute("src"), /\/films\/test-film\/play\/\?embed=fit&autoplay=1$/, "读者已经点过播放，短片直接开播");
   assert.ok(!(await frame.getAttribute("sandbox")).includes("allow-same-origin"));
   await film(page).locator("#theme").filter({ hasText: "light" }).waitFor();
   assert.equal(await film(page).locator("html").getAttribute("data-embed"), "fit");
@@ -115,7 +115,9 @@ test("点封面在全窗口对话框里放映：沙箱 iframe、embed=fit、深�
   // 切换博客的深浅色，短片跟着变
   await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; });
   await film(page).locator("#theme").filter({ hasText: "dark" }).waitFor();
-  assert.equal(await page.evaluate(() => document.body.style.overflow), "hidden", "放映时正文不滚动");
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY), "hidden", "放映时正文不滚动");
+  await film(page).locator("#play").filter({ hasText: "暂停" }).waitFor();
+  await page.waitForFunction(() => document.activeElement?.matches(".film-dialog iframe"), null, { timeout: 2000 });
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -129,7 +131,42 @@ test("返回键先关掉短片，留在原文原处", async () => {
   await page.waitForFunction(() => !document.querySelector(".film-dialog").open);
   assert.equal(page.url(), url);
   assert.equal(await page.evaluate(() => scrollY), 200);
-  assert.equal(await page.locator(".film-dialog iframe").getAttribute("src"), "about:blank", "关闭时卸载短片，声音随之停止");
+  assert.equal(await page.locator(".film-dialog iframe").count(), 0, "关闭时移除短片，声音随之停止");
+  await ctx.close();
+});
+
+test("关掉再打开，返回键按一下就关（每次放映换新的 iframe，不多记历史）", async () => {
+  const { page, ctx } = await open("/notes/film-note/");
+  const url = page.url();
+  for (let i = 0; i < 2; i++) {
+    await page.click(".film-play-btn");
+    await film(page).locator("#play").filter({ hasText: "暂停" }).waitFor();
+    if (i === 0) { await page.click(".film-close"); await page.waitForFunction(() => history.state === null); }
+  }
+  await page.goBack();
+  await page.waitForFunction(() => !document.querySelector(".film-dialog").open);
+  assert.equal(page.url(), url);
+  await ctx.close();
+});
+
+test("记住看到第几句，再打开接着放；放完显示「重看」「文字稿」，重看从头开始", async () => {
+  const { page, ctx } = await open("/notes/film-note/");
+  await page.click(".film-play-btn");
+  await film(page).locator("#next").click();
+  await film(page).locator("#next").click();
+  await page.click(".film-close");
+  await page.click(".film-play-btn");
+  assert.match(await page.locator(".film-dialog iframe").getAttribute("src"), /&at=2$/);
+  await film(page).locator("#at").filter({ hasText: "第 2 句" }).waitFor();
+  assert.equal(await page.locator(".film-end").isVisible(), false);
+  await film(page).locator("#end").click();
+  await page.locator(".film-end").waitFor();
+  await page.waitForFunction(() => document.activeElement?.matches(".film-again"));
+  assert.equal(await page.locator(".film-end .film-tab").getAttribute("href"), "/films/test-film/#transcript");
+  await page.click(".film-again");
+  await film(page).locator("#at").filter({ hasText: "第 0 句" }).waitFor();
+  assert.doesNotMatch(await page.locator(".film-dialog iframe").getAttribute("src"), /at=/);
+  assert.equal(await page.locator(".film-end").isVisible(), false);
   await ctx.close();
 });
 
@@ -169,8 +206,8 @@ test("从对话框去短片页后按返回，直接回到原文（不多出一�
   const { page, ctx } = await open("/notes/film-note/");
   const note = page.url();
   await page.click(".film-play-btn");
-  await page.click(".film-tab");
-  await page.waitForURL("**/films/test-film/");
+  await page.click(".film-bar .film-tab");
+  await page.waitForURL("**/films/test-film/#transcript");
   await page.goBack();
   await page.waitForURL(note);
   assert.equal(await page.evaluate(() => !!document.querySelector(".film-dialog")?.open), false);
@@ -233,6 +270,21 @@ const filmNotes = () => readdirSync(join(root, "content/notes")).flatMap((d) => 
   return name ? [[md.match(/^slug:\s*(\S+)/m)?.[1] ?? d, name]] : [];
 });
 
+test("真实短片：播放器滚出视线、标签页在后台（没有动画帧）时，配音和画面照样往下走", async () => {
+  for (const [slug] of filmNotes()) {
+    const { page, ctx, errors } = await open(`/notes/${slug}/`);
+    // 浏览器不给看不见的 iframe 动画帧：在短片里把 requestAnimationFrame 换成什么都不做
+    await ctx.addInitScript(() => { if (window !== top) window.requestAnimationFrame = () => 0; });
+    await page.click(".film-play-btn");
+    const frame = film(page);
+    const cap = await frame.locator("#cap").textContent();
+    await frame.locator("#cap").filter({ hasNotText: cap }).waitFor({ timeout: 30000 });
+    assert.notEqual(await frame.locator("#time").textContent(), "00:00 / " + (await frame.locator("#time").textContent()).split(" / ")[1]);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+});
+
 test("真实短片在英文页里放英文版：地址带 lang=en，画面、字幕、按钮都没有中文，配音按英文文件加载", async () => {
   for (const [slug, name] of filmNotes()) {
     const filmLang = readFileSync(join(root, "content/films", name, "index.en.md"), "utf8").match(/^filmLang:\s*(\S+)/m)?.[1];
@@ -244,8 +296,7 @@ test("真实短片在英文页里放英文版：地址带 lang=en，画面、字
     assert.match(await page.locator(".film-dialog iframe").getAttribute("src"), /[?&]lang=en\b/);
     const frame = film(page);
     await frame.locator("svg").first().waitFor();
-    await page.locator(".film-dialog iframe").focus();
-    await frame.locator("body").press("Space");
+    // 点过「播放」就直接开播（?autoplay=1），不用再按一次
     await frame.locator("body").evaluate(() => new Promise((r) => setTimeout(r, 1500)));
     const cjk = await frame.locator("body").evaluate(() => {
       const re = /[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]/;

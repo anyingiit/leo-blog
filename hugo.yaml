@@ -35,6 +35,7 @@ permalinks:
     films: /films/:contentbasename/
 
 params:
+  displayFullLangName: true   # 文章页的译文链接写「中文」「English」，而不是 Zh / En
   env: production
   # 首页、归档、上一篇/下一篇只收长文（content/posts）；短文（content/notes）在 /notes/ 单独成栏
   mainSections: [posts]

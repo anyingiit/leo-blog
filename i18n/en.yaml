@@ -16,14 +16,10 @@
   translation: ", %d more"
 - id: film_play
   translation: Play the film
-- id: film_kind
-  translation: Animated short
 - id: film_minutes
   translation: "about %d min"
-- id: film_voice
-  translation: narrated
-- id: film_page
-  translation: Film page & transcript
+- id: film_again
+  translation: Watch again
 - id: film_transcript
   translation: Transcript
 - id: film_read_transcript

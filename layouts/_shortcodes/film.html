@@ -6,19 +6,16 @@
 */ -}}
 {{- $f := partial "film.html" (dict "name" (.Get "name") "page" .Page) -}}
 {{- $minutes := or (.Get "minutes") $f.minutes -}}
-{{- $meta := slice (i18n "film_kind") -}}
-{{- with $minutes }}{{ $meta = $meta | append (printf (i18n "film_minutes") (int .)) }}{{ end -}}
-{{- $meta = $meta | append (i18n "film_voice") -}}
 {{- $play := $f.play -}}
 {{- if and $f.lang (ne $f.lang .Page.Lang) }}{{ $play = printf "%s?lang=%s" $play .Page.Lang }}{{ end -}}
 <figure class="film film-cover">
-<a class="film-open" href="{{ or $f.page $f.play }}" data-play="{{ $play }}" data-title="{{ $f.title }}" tabindex="-1" aria-hidden="true">
+<a class="film-open" href="{{ or $f.page $f.play }}" data-play="{{ $play }}" data-title="{{ $f.title }}"{{ with $f.page }} data-transcript="{{ . }}#transcript"{{ end }} tabindex="-1" aria-hidden="true">
 {{- with $f.poster }}<img src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="" loading="lazy" decoding="async" class="in-text">{{ end -}}
 <span class="film-play"></span>
 </a>
-<figcaption><strong>{{ $f.title }}</strong><span>{{ delimit $meta " · " }}</span></figcaption>
+<figcaption><strong>{{ $f.title }}</strong>{{ with $minutes }}<span>{{ printf (i18n "film_minutes") (int .) }}</span>{{ end }}</figcaption>
 <div class="film-acts">
-<a class="btn btn-primary film-play-btn" href="{{ or $f.page $f.play }}" data-play="{{ $play }}" data-title="{{ $f.title }}" aria-haspopup="dialog">{{ i18n "film_play" }}</a>
+<a class="btn btn-primary film-play-btn" href="{{ or $f.page $f.play }}" data-play="{{ $play }}" data-title="{{ $f.title }}"{{ with $f.page }} data-transcript="{{ . }}#transcript"{{ end }} aria-haspopup="dialog">{{ i18n "film_play" }}</a>
 {{- with $f.page }}
 <a class="btn btn-outline" href="{{ . }}#transcript">{{ i18n "film_read_transcript" }}</a>
 {{- end }}

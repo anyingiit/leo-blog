@@ -1,5 +1,5 @@
 ---
-title: "Anthropic's Money and Power"
+title: "Money and Power at Anthropic"
 date: 2026-10-27T12:00:00Z
 minutes: 15
 filmLang: zh
@@ -8,15 +8,15 @@ ShowWordCount: false
 description: "An animated short: how five share classes, the Long-Term Benefit Trust, the Founder LLC and a 7-seat board check one another."
 ---
 
-How do the five share classes in the prospectus (A / N / T / F / E), the Long-Term Benefit Trust (LTBT), the Founder LLC and the 7-seat board check and balance one another? This roughly 15-minute animation takes it apart in an order engineers will find familiar: the data structure, the permission table, the board, the checks and balances, and finally how it evolves over time. On this page it plays in English, with English narration, captions and diagrams (the original is in Chinese); the full transcript is below. Space plays and pauses, ← → step through the lines; on a phone, turn it sideways or tap “Full screen”.
+It takes the structure apart in an order engineers will recognise: data structure, permission table, board, checks and balances, and how it changes over time. Translated from the Chinese original.
 
-Based on the sections of Anthropic's S-1 prospectus on its governance structure and objectives, description of capital stock, management and related risk factors. It is a structural explainer made for personal study, not investment advice; the prospectus text governs.
+Based on the sections of Anthropic's S-1 prospectus on its governance structure and objectives, description of capital stock, management and related risk factors. Not investment advice; the prospectus is the authority.
 
 ## Transcript {#transcript}
 
 ### 01 Two questions
 
-This passage of the prospectus mentions five share classes in one breath: A, N, T, F and E, plus a trust (the LTBT) and a limited liability company made up of the founders (the Founder LLC).
+Anthropic's IPO prospectus (its S-1) names five share classes in one breath: A, N, T, F and E, plus a trust (the LTBT) and a limited liability company made up of the founders (the Founder LLC).
 
 It reads as a tangle because the same passage answers two different questions at once: who gets the money, and who gets the power?
 
@@ -48,17 +48,17 @@ So the PBC only changes “what to optimize.” Who carries it out, and whether 
 
 ### 04 The permission table of five share classes
 
-Think of the five classes as five kinds of token and look at each one's permission bits. Class A: what the public buys after the IPO. It has economic rights, one vote per share on general matters, and cannot convert into another class.
+Think of the five classes as five kinds of token and look at each one's permission bits.
 
-Class N: economically identical to A, but with no vote. It is held mainly by strategic business partners; when sold to an unaffiliated third party it generally converts to Class A automatically.
+| Class | Held by | Economic rights | Votes |
+|---|---|---|---|
+| A | The public, after the IPO | Yes | One vote per share on general matters; cannot convert into another class |
+| N | Mainly strategic business partners | Same as A | None; generally converts to Class A when sold to an unaffiliated third party |
+| T | The Long-Term Benefit Trust (LTBT); a single share | None | No vote on general matters; elects and removes the Class T directors, who are a majority of the board |
+| F | The Founder LLC of seven co-founders; a single share | None | Always 50.1% of the total voting power in general shareholder votes |
+| E | Employees other than the co-founders | None | Votes on only a few matters, which happen to be the “arbitration” link in the chain of checks |
 
-That way a large partner can hold a big economic stake without gaining voting control from it.
-
-Class T: there is a single share in the whole company, held by the Long-Term Benefit Trust (LTBT). It gets no money and does not vote on general matters, but it can elect and remove the Class T directors, and the Class T directors are a majority of the board.
-
-Class F: also a single share, held by the Founder LLC of seven co-founders. It gets no money, but in general shareholder votes that one share always carries 50.1% of the total voting power.
-
-Class E: issued to employees other than the co-founders. It gets no money and votes on only a few matters. Those few matters happen to be the “arbitration” link in the chain of checks.
+Class N lets a large partner hold a big economic stake without gaining voting control from it.
 
 Now look down the economic-rights column: the three “power shares,” T, F and E, are all zero. The channel to control and the channel to money are kept apart on purpose.
 
@@ -164,16 +164,13 @@ The two triggers are very asymmetric: the F sunset can fire automatically as num
 
 ### 12 Summary: six design points
 
-Back to the opening question. In engineering terms, the structure has six design points. One, separation of concerns: money and power are split. Classes T, F and E have power but no money; Class N has money but no vote.
+Back to the opening question. In engineering terms, the structure has six design points:
 
-Two, the majority is sharded: the board majority belongs to the LTBT, the shareholder-meeting majority to the founders, and nobody has all of it.
-
-Three, there is an arbiter: for the “designated Class T director” seat, when the LTBT and the NGC disagree, employees vote to decide.
-
-Four, multisig: when the trustees disagree, changing the LTBT's rules needs founders, employees and public shareholders to agree at once.
-
-Five, a kill switch: the founders' special powers end once fewer than 3 of them remain.
-
-Six, the costs are written in the prospectus too: Class A holders have limited influence, the LTBT's interests may differ from shareholders', and public-benefit performance has no objective metric to test it against.
+1. Separation of concerns: money and power are split. Classes T, F and E have power but no money; Class N has money but no vote.
+2. The majority is sharded: the board majority belongs to the LTBT, the shareholder-meeting majority to the founders, and nobody has all of it.
+3. There is an arbiter: for the “designated Class T director” seat, when the LTBT and the NGC disagree, employees vote to decide.
+4. Multisig: when the trustees disagree, changing the LTBT's rules needs founders, employees and public shareholders to agree at once.
+5. A kill switch: the founders' special powers end once fewer than 3 of them remain.
+6. The costs are written in the prospectus too: Class A holders have limited influence, the LTBT's interests may differ from shareholders', and public-benefit performance has no objective metric to test it against.
 
 In one sentence: the founders run the shareholder meeting, the LTBT runs the board majority, employees decide the key disputes, and no one can change the rules alone.
