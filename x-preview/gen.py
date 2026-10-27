@@ -182,68 +182,69 @@ def own_body(x, sid=""):
 
 
 def more(recs, outdir):
-    """第二轮方案（不把推文混进短文流）：
-      v5 推文单独成栏：/x/ 时间线收全部推文，转发折叠成一行；短文、首页不变
-      v6 按月合集：每月一篇短文合集（原创 + 引用，转发列在末尾）；长推文进长文
-      v7 精选进博客：长推文进长文，150 字以上的原创进短文，其余只在 /x/ 时间线
-      v8 单独成栏 + 首页“最近在 X”：v5 再在首页简介下面放最近 3 条
+    """第二轮方案（博客的文章流不变，推文另放）。第 1 轮评审后：长推文不再进长文，/x/ 按月分页，转发收进每月末尾。
+      v5 推文单独成栏：菜单多“推文”，/x/ 每月一页
+      v6 按月合集：每月一篇“X 月记”短文，最新的在前，转发列在末尾；没有 /x/
+      v7 精选进短文：150 字以上的原创进短文，全部推文在 /x/
+      v8 单独成栏 + 首页一行：v5 再在首页简介下面加一行“最近在 X”
+      v9 摘录：v5 再加每月一篇“X 摘录”短文，只放 3～5 条（正式版由博主挑选并加一句评注，预览里按长度代挑）
     """
     counts = {}
     recs = sorted(recs, key=lambda r: r["date"], reverse=True)
-    promoted = {}
+    months = {}
     for r in recs:
-        x = r["x"]
-        if r["section"] == "posts":
-            promoted[x["id"]] = "posts"
-        elif x["kind"] != "retweet" and r["chars"] >= 150:
-            promoted[x["id"]] = "notes"
-    for v in ("v5", "v6", "v7", "v8"):
+        months.setdefault(r["date"].strftime("%Y-%m"), []).append(r)
+    promoted = {r["x"]["id"] for r in recs if r["x"]["kind"] != "retweet" and r["chars"] >= 150}
+    for v in ("v5", "v6", "v7", "v8", "v9"):
         if v != "v6":
             tl = []
             for r in recs:
                 e = dict(r["x"], date=r["date"].isoformat(), chars=r["chars"])
-                if v == "v7" and r["x"]["id"] in promoted:
-                    e["blog"] = f"{promoted[r['x']['id']]}/x-{r['x']['id']}/"
+                if v == "v7" and e["id"] in promoted:
+                    e["blog"] = f"notes/x-{e['id']}/"
                 tl.append(e)
             (outdir / v / "data").mkdir(parents=True, exist_ok=True)
             (outdir / v / "data" / "xtl.json").write_text(json.dumps(tl, ensure_ascii=False))
             (outdir / v / "x").mkdir(parents=True, exist_ok=True)
             (outdir / v / "x" / "_index.md").write_text(
-                "---\ntitle: 推文\ndescription: 我在 X（[@Name11216161228](https://x.com/Name11216161228)）上的推文存档，最新的在上面。"
-                "转发只占一行，长推文先折叠。\nlayout: timeline\n---\n")
+                "---\ntitle: 推文\ndescription: 我在 X（[@Name11216161228](https://x.com/Name11216161228)）上的碎碎念，最新的在前。\n---\n")
+            for ym in months:
+                y, m = ym.split("-")
+                (outdir / v / "x" / f"{ym}.md").write_text(f'---\ntitle: "推文 · {y}年{int(m)}月"\nmonth: "{ym}"\nslug: "{ym}"\nsitemap: {{disable: true}}\n---\n')
             counts[(v, "timeline")] = len(tl)
-        for r in recs:
-            x = r["x"]
-            if (v == "v6" and r["section"] == "posts") or (v == "v7" and x["id"] in promoted):
-                sec = promoted.get(x["id"], "posts")
-                fm = {"title": r["title"], "slug": f"x-{x['id']}", "date": r["date"].isoformat(), "tags": ["来自X"], "x": x}
-                if sec == "posts":
-                    fm["ShowToc"] = False
-                write_bundle(outdir / v / sec / f"x-{x['id']}", fm, own_body(x) + "\n\n{{< x-src >}}", x["media"])
-                counts[(v, sec)] = counts.get((v, sec), 0) + 1
-        if v == "v6":
-            months = {}
-            for r in sorted(recs, key=lambda r: r["date"]):
-                if r["section"] != "posts":
-                    months.setdefault(r["date"].strftime("%Y-%m"), []).append(r)
+        if v == "v7":
+            for r in recs:
+                x = r["x"]
+                if x["id"] in promoted:
+                    fm = {"title": r["title"], "slug": f"x-{x['id']}", "date": r["date"].isoformat(), "tags": ["来自X"], "x": x}
+                    write_bundle(outdir / v / "notes" / f"x-{x['id']}", fm, own_body(x) + "\n\n{{< x-src >}}", x["media"])
+                    counts[(v, "notes")] = counts.get((v, "notes"), 0) + 1
+        if v in ("v6", "v9"):
             for ym, rs in months.items():
                 y, m = ym.split("-")
                 own = [r for r in rs if r["x"]["kind"] != "retweet"]
                 rts = [r for r in rs if r["x"]["kind"] == "retweet"]
-                chunks = []
-                for r in own:
-                    chunks.append(f'{{{{< x-day id="{r["x"]["id"]}" >}}}}\n\n' + own_body(r["x"], sid=True))
+                if v == "v9":
+                    pick = sorted([r for r in own if r["chars"] >= 40], key=lambda r: -r["chars"])[:5]
+                    if not pick:
+                        continue
+                    own, rts = sorted(pick, key=lambda r: r["date"], reverse=True), []
+                chunks = [f'{{{{< x-day id="{r["x"]["id"]}" >}}}}\n\n' + own_body(r["x"], sid=True) for r in own]
                 body = "\n\n".join(chunks)
                 if rts:
                     body += "\n\n{{< x-rts >}}"
+                if v == "v9":
+                    body += f'\n\n{{{{< x-more month="{ym}" n="{len(rs)}" >}}}}'
                 media = [f for r in own for f in r["x"]["media"]]
-                fm = {"title": f"X 月记 · {y}年{int(m)}月", "slug": f"x-{ym}", "date": rs[-1]["date"].isoformat(),
-                      "tags": ["来自X"], "description": f"这个月在 X 上发了 {len(own)} 条，转发 {len(rts)} 条。",
-                      "xs": {r["x"]["id"]: r["x"] for r in rs}, "xrts": [r["x"]["id"] for r in rts]}
+                if v == "v6":
+                    title, desc = f"X 月记 · {y}.{int(m)}", f"这个月在 X 上发了 {len(own)} 条，转发 {len(rts)} 条。"
+                else:
+                    title, desc = f"X 摘录 · {y}.{int(m)}", f"从这个月的 {len(rs)} 条推文里挑了 {len(own)} 条。"
+                fm = {"title": title, "slug": f"x-{ym}", "date": rs[0]["date"].isoformat(), "tags": ["来自X"],
+                      "description": desc, "xs": {r["x"]["id"]: r["x"] for r in own + rts}, "xrts": [r["x"]["id"] for r in rts]}
                 write_bundle(outdir / v / "notes" / f"x-{ym}", fm, body, media)
                 counts[(v, "notes")] = counts.get((v, "notes"), 0) + 1
     return counts
-
 
 if __name__ == "__main__":
     main(sys.argv[1])

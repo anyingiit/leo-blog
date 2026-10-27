@@ -7,6 +7,6 @@ cd "$(dirname "$0")/.."
 python3 x-preview/gen.py x-preview/out
 export HUGO_PARAMS_XPREVIEW_ROOT="$root"
 hugo --gc --minify -b "$root" --config hugo.yaml,x-preview/config/v0.yaml
-for n in 1 2 3 4 5 6 7 8; do
+for n in 1 2 3 4 5 6 7 8 9; do
   hugo --minify -b "${root}v$n/" -d "public/v$n" --config "hugo.yaml,x-preview/config/v$n.yaml"
 done

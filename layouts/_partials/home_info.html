@@ -14,13 +14,7 @@
 </article>
 {{- end -}}
 {{- if eq (int (site.Params.xpreview.cur | default 0)) 8 }}
-<section class="xt-recent" aria-label="最近在 X">
-  <h2 class="xt-recent-h">最近在 X <a href="{{ "x/" | relLangURL }}">全部推文 →</a></h2>
-  <ul>
-  {{- range first 3 (where site.Data.xtl "kind" "ne" "retweet") }}
-    {{- $d := time .date }}
-    <li><a href="{{ "x/" | relLangURL }}#t{{ .id }}"><time>{{ $d | time.Format "1月2日" }}</time><span>{{ replaceRE `https?://\S+` "" (index .parts 0).text | truncate 80 }}</span></a></li>
-  {{- end }}
-  </ul>
-</section>
+{{- with first 1 (where (where site.Data.xtl "kind" "ne" "retweet") "chars" "ge" 15) }}{{ with index . 0 }}
+<p class="xt-recent"><a href="{{ "x/" | relLangURL }}"><span class="xt-recent-h">最近在 X</span><time>{{ time .date | time.Format "1月2日" }}</time><span class="xt-recent-t">{{ replaceRE `https?://\S+` "" (index .parts 0).text | truncate 60 }}</span><span aria-hidden="true">→</span></a></p>
+{{- end }}{{ end }}
 {{- end }}

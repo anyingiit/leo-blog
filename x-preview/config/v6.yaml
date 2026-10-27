@@ -5,6 +5,5 @@ module:
   mounts:
     - { source: content, target: content }
     - { source: x-preview/out/v6/notes, target: content/notes }
-    - { source: x-preview/out/v6/posts, target: content/posts }
     - { source: assets, target: assets }
     - { source: x-preview/src/media, target: assets/x-media }

@@ -1,0 +1,8 @@
+{{- /* 推文栏目的某个月（/x/2026-09/），页面由 x-preview/gen.py 按月生成，只带 month 参数。 */ -}}
+{{- define "main" }}
+<header class="page-header">
+  <h1>{{ .Parent.Title }}</h1>
+  {{- with .Parent.Description }}<div class="post-description">{{ . | markdownify }}</div>{{ end }}
+</header>
+{{- partial "x/month.html" (dict "month" .Params.month) }}
+{{- end }}

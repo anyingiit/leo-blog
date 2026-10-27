@@ -1,0 +1,40 @@
+{{- /* 推文栏目的一个月：顶部月份条（吸顶），原创和引用按时间倒序，转发收进月末一个折叠块，底部链到前后月份。
+       参数：dict "page" "month"（"2026-10"）。数据来自 data/xtl.json（已按时间倒序）。 */ -}}
+{{- $tl := site.Data.xtl -}}
+{{- $ym := .month -}}
+{{- $months := slice }}{{ range $tl }}{{ $m := (time .date).Format "2006-01" }}{{ if not (in $months $m) }}{{ $months = $months | append $m }}{{ end }}{{ end -}}
+{{- $url := dict }}{{ range $i, $m := $months }}{{ $url = merge $url (dict $m (cond (eq $i 0) ("x/" | relLangURL) (printf "x/%s/" $m | relLangURL))) }}{{ end -}}
+{{- $label := dict }}{{ range $months }}{{ $t := time (printf "%s-01" .) }}{{ $label = merge $label (dict . (printf "%d年%d月" $t.Year (int $t.Month))) }}{{ end -}}
+{{- $items := slice }}{{ $rts := slice }}
+{{- range $tl }}{{ if eq ((time .date).Format "2006-01") $ym }}{{ if eq .kind "retweet" }}{{ $rts = $rts | append . }}{{ else }}{{ $items = $items | append . }}{{ end }}{{ end }}{{ end -}}
+<nav class="xt-months" aria-label="按月份查看">
+  {{- range $months }}<a href="{{ index $url . }}"{{ if eq . $ym }} class="cur" aria-current="page"{{ end }}>{{ index $label . }}</a>{{ end -}}
+</nav>
+<div class="post-content md-content xt">
+  <h2 class="xt-month">{{ index $label $ym }}<span>{{ len $items }} 条{{ with len $rts }} · 转发 {{ . }}{{ end }}</span></h2>
+  {{- range $items }}{{ partial "x/entry.html" . }}{{ end }}
+  {{- with $rts }}
+  <details class="xt-rts">
+    <summary>这个月还转发了 {{ len . }} 条</summary>
+    <ul>
+    {{- range . }}{{ $d := time .date }}
+      <li><a href="{{ .other.url }}" rel="nofollow noopener noreferrer" target="_blank">@{{ .other.handle }}</a>：{{ (replaceRE `https?://\S+` "" .other.text | strings.TrimSpace) | default "（视频或图片）" | truncate 80 }} <span class="xt-rt-d">{{ $d | time.Format "1月2日" }}</span></li>
+    {{- end }}
+    </ul>
+  </details>
+  {{- end }}
+  {{- $i := 0 }}{{ range $k, $m := $months }}{{ if eq $m $ym }}{{ $i = $k }}{{ end }}{{ end }}
+  <nav class="xt-pager">
+    {{- if gt $i 0 }}{{ $n := index $months (sub $i 1) }}<a href="{{ index $url $n }}">← {{ index $label $n }}</a>{{ else }}<span></span>{{ end }}
+    {{- if lt $i (sub (len $months) 1) }}{{ $p := index $months (add $i 1) }}<a href="{{ index $url $p }}">{{ index $label $p }} →</a>{{ end }}
+  </nav>
+</div>
+<script>
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".xt-more");
+  if (!b) return;
+  const open = b.closest(".xt-long").classList.toggle("is-open");
+  b.textContent = open ? "收起" : "展开全文";
+  b.setAttribute("aria-expanded", String(open));
+});
+</script>
