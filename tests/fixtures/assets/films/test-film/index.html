@@ -32,7 +32,7 @@ const show = () => { t.textContent = document.documentElement.dataset.theme || "
 show();
 new MutationObserver(show).observe(document.documentElement, { attributes: true });
 const play = document.getElementById("play");
-play.onclick = () => { play.textContent = "❚❚ 暂停"; };
+play.onclick = () => { play.textContent = "❚❚ 暂停"; if (parent !== window) parent.postMessage({ type: "film:playing" }, "*"); };
 // 博客可选的约定（film-bridge.js）：?at= 从第几句开始、?autoplay=1 直接开播；换句时报 film:progress，放完报 film:ended
 const q = new URLSearchParams(location.search);
 let cue = +q.get("at") || 0;
@@ -42,10 +42,13 @@ const tell = (m) => { if (parent !== window) parent.postMessage(m, "*"); };
 document.getElementById("next").onclick = () => { cue++; document.getElementById("at").textContent = "第 " + cue + " 句"; tell({ type: "film:progress", cue }); };
 document.getElementById("end").onclick = () => tell({ type: "film:ended" });
 addEventListener("message", (e) => {
-  if (e.source !== parent || e.data?.type !== "film:seek") return;
+  if (e.source !== parent) return;
+  if (e.data?.type === "film:play") play.click();
+  if (e.data?.type !== "film:seek") return;
   document.getElementById("at").textContent = "第 " + e.data.chapter + " 章";
   play.click();
 });
+tell({ type: "film:chapters", starts: [0, 65] });
 </script>
 </body>
 </html>

@@ -76,7 +76,7 @@
 .film-chapters li { display: flex; align-items: center; margin: 0 !important; padding: 0 .25rem 0 1rem; }
 .film-chapters li a { flex: 1; padding: .55rem 0; box-shadow: none !important; text-decoration: none !important; color: var(--primary); }
 .film-chapters li a:hover { color: var(--secondary); }
-.film-seek { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--secondary); font-size: .8rem; cursor: pointer; }
+.film-seek { flex: none; display: inline-flex; align-items: center; justify-content: flex-end; gap: .5rem; min-width: 44px; height: 44px; padding: 0 .75rem; border: 0; border-radius: 22px; background: transparent; color: var(--secondary); font-size: .8rem; cursor: pointer; }
 .film-seek:hover { background: var(--code-bg); color: var(--primary); }
 .film-seek:focus-visible, .film-chapters summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .film-dialog { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0f1522; display: none; flex-direction: column; }
@@ -86,10 +86,9 @@
 html:has(.film-dialog[open]) { overflow: hidden; }
 .film-dialog { overscroll-behavior: contain; }
 /* 顶栏和画面同一个深色，不随博客深浅色变；按钮、链接都不小于 44px */
-.film-bar { display: flex; align-items: center; gap: .5rem; padding: 0 max(.5rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left)); padding-top: env(safe-area-inset-top); background: #0f1522; border-bottom: 1px solid rgb(255 255 255 / .12); color: #e8ecf3; font-size: .9rem; }
+.film-bar { order: -1; display: flex; align-items: center; gap: .5rem; padding: 0 max(.5rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left)); padding-top: env(safe-area-inset-top); background: #0f1522; border-bottom: 1px solid rgb(255 255 255 / .12); color: #e8ecf3; font-size: .9rem; }
 .film-name { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .film-bar .film-tab { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .75rem; color: #c3cad6; white-space: nowrap; }
-.film-bar .film-tab::after { content: " ↗"; white-space: pre; }
 .film-bar .film-tab:hover { color: #fff; }
 .film-close { width: 44px; height: 44px; font-size: 1.6rem; line-height: 1; color: #e8ecf3; background: transparent; border: 0; border-radius: 50%; cursor: pointer; }
 .film-close:hover { background: rgb(255 255 255 / .1); }
@@ -97,7 +96,8 @@ html:has(.film-dialog[open]) { overflow: hidden; }
 .film-view { position: relative; flex: 1; min-height: 0; display: flex; }
 /* 短片加载完之前先显示封面 */
 .film-dialog iframe { flex: 1; width: 100%; border: 0; background: #0f1522 center / contain no-repeat; }
-.film-end { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); display: none; gap: .75rem; }
+/* 放完：盖住整个画面（字幕也盖住），按钮居中 */
+.film-end { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: .75rem; background: rgb(15 21 34 / .82); }
 .film-dialog.ended .film-end { display: flex; }
 .film-end .btn-primary { background: #e8ecf3; color: #0f1522; border-color: #e8ecf3; }
 .film-end .btn-outline { background: rgb(15 21 34 / .85); color: #e8ecf3; border-color: rgb(255 255 255 / .5); }
@@ -105,7 +105,8 @@ html:has(.film-dialog[open]) { overflow: hidden; }
 @media (max-height: 500px) { .film-name { font-size: .85rem; } }
 .film-stage { --w: min(1000px, 100vw - 2 * var(--gap), (100vh - 240px) * 16 / 9); /* 整个播放器（画面 + 约 200px 的字幕和控制条）放得进一屏 */ width: var(--w); margin: 0 0 var(--gap) calc(50% - var(--w) / 2); }
 .film-still { display: block; width: 100%; height: auto; border-radius: var(--radius); }
-.film-stage iframe { display: block; width: 100%; height: calc(var(--w) * 9 / 16 + 200px); border: 0; background: transparent; }
+.film-stage { position: relative; }
+.film-stage iframe { display: block; width: 100%; background: center / contain no-repeat; height: calc(var(--w) * 9 / 16 + 200px); border: 0; background: transparent; }
 
 /* 按钮（短片的操作按钮；S-1 译本的「开始阅读」也可以用）：实心是主操作，描边是次操作。
    写成 .md-content a.btn:not(.anchor)，压过 PaperMod 给正文链接加的下划线，不靠样式表的先后 */
@@ -117,3 +118,12 @@ html:has(.film-dialog[open]) { overflow: hidden; }
 .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) { .film-open img { transition: none; } }
+
+/* 文章里的播放器：开播前画面左侧正中一个大播放按钮（画面中央有内容；放在下沿的话桌面上常常落在首屏之外） */
+.film-start { position: absolute; left: 1.25rem; top: calc(var(--w) * 9 / 32 - 2rem); width: 4rem; height: 4rem; border: 0; border-radius: 50%; background: rgb(0 0 0 / .6); cursor: pointer; }
+.film-start::before { content: ""; position: absolute; left: 54%; top: 50%; width: 1.4rem; height: 1.6rem; transform: translate(-50%, -50%); background: #fff; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.film-start:hover { background: rgb(0 0 0 / .75); }
+.film-start:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.film-seek .film-at { font-variant-numeric: tabular-nums; font-size: .85rem; }
+/* 手机横屏这类矮窗口：按高度收窄会把播放器挤成一条，改为铺满宽度 */
+@media (max-height: 500px) { .film-stage { --w: min(1000px, 100vw - 2 * var(--gap)); } }

@@ -48,6 +48,7 @@ h1{font-family:var(--serif);font-size:clamp(26px,4vw,38px);line-height:1.2;margi
 .ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 16px 14px}
 .ctrls button{font:inherit;font-size:14px;color:var(--st-text);background:#1c2539;border:1px solid #2c3854;border-radius:8px;padding:6px 12px;cursor:pointer;min-height:36px}
 .ctrls button:hover{background:#25304a}
+@media (pointer:coarse) and (min-height:501px){.ctrls button{min-height:44px}.bar{padding-top:14px;padding-bottom:14px}}
 .ctrls button:focus-visible,.chapters button:focus-visible,.tr button:focus-visible{outline:2px solid var(--cT);outline-offset:2px}
 .ctrls #play{background:var(--cT);border-color:var(--cT);color:#06231a;font-weight:700;min-width:84px}
 .ctrls .time{font-family:var(--mono);font-size:13px;color:var(--st-mute);margin-left:auto;font-variant-numeric:tabular-nums}
@@ -448,7 +449,7 @@ function step(){
   if(!(tts&&speaking)&&elapsed>=CUES[cur].d)next();
   paintProgress();
 }
-function play(){if(cur>=CUES.length-1&&elapsed>=CUES[cur].d){go(0)}playing=true;playBtn.textContent=T('❚❚ 暂停');lastTs=performance.now();if(tts)speak();requestAnimationFrame(tick)}
+function play(){if(cur>=CUES.length-1&&elapsed>=CUES[cur].d){go(0)}playing=true;tell({type:'film:playing'});playBtn.textContent=T('❚❚ 暂停');lastTs=performance.now();if(tts)speak();requestAnimationFrame(tick)}
 function pause(){playing=false;playBtn.textContent=T('▶︎ 播放');stopSpeech()}
 
 /* narration: one pre-recorded clip per cue, the next one prefetched */
@@ -493,7 +494,11 @@ if(LANG==='en'){
 cur=0;render();
 $('mins').textContent=Math.round(TOTAL/60000);
 /* the blog's chapter list asks to play from a chapter */
-addEventListener('message',e=>{if(e.source!==parent||!e.data||e.data.type!=='film:seek')return;const s=segs[e.data.chapter|0];if(s){go(s.first);if(!playing)play()}});
+addEventListener('message',e=>{if(e.source!==parent||!e.data)return;
+  if(e.data.type==='film:play'&&!playing)play();
+  if(e.data.type==='film:seek'){const s=segs[e.data.chapter|0];if(s){go(s.first);if(!playing)play()}}});
+/* tell the blog where each chapter starts (shown next to the chapter list) */
+tell({type:'film:chapters',starts:segs.map(s=>Math.round(s.start/1000))});
 /* ?at=<line> opens on that line (resume); ?autoplay=1 starts at once when the reader already pressed Play on the blog */
 {const q=new URLSearchParams(location.search),at=parseInt(q.get('at'),10);
   if(at>0&&at<CUES.length)go(at);

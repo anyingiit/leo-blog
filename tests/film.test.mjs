@@ -274,6 +274,45 @@ test("短片文章里，章节目录的「从这里播放」让播放器从那�
   await ctx.close();
 });
 
+test("短片文章里，画面上的大播放按钮开播后收起；章节目录标出每章的开始时间", async () => {
+  const { page, ctx, errors } = await open("/notes/film-note/");
+  const frame = page.frameLocator(".film-stage iframe");
+  await frame.locator("html[data-embed=page]").waitFor({ state: "attached" });
+  const start = page.locator(".film-start");
+  assert.equal(await start.getAttribute("aria-label"), "播放短片");
+  // 按钮在画面（16:9 部分）左侧正中，不压住画面中央和控制条
+  const [b, f] = await page.evaluate(() => [".film-start", ".film-stage iframe"].map((s) => document.querySelector(s).getBoundingClientRect().toJSON()));
+  assert.ok(b.x > f.x && b.x < f.x + f.width / 4 && Math.abs(b.y + b.height / 2 - (f.y + f.width * 9 / 32)) < 2, JSON.stringify([b, f]));
+  await start.click();
+  await frame.locator("#play").filter({ hasText: "暂停" }).waitFor();
+  assert.equal(await start.count(), 0);
+  assert.deepEqual(await page.locator(".film-seek .film-at").allTextContents(), ["00:00", "01:05"]);
+  assert.match(await page.locator(".film-chapters summary").textContent(), /2 · 约 2 分钟/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("对话框里从短片按 Tab 出来，接着是顶栏的「文字稿」和关闭按钮，不会跑到后面的页面", async () => {
+  const { page, ctx } = await open("/notes/film-ref/");
+  await page.click(".film-play-btn");
+  await film(page).locator("#end").focus();
+  await page.keyboard.press("Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.matches(".film-bar .film-tab")), true);
+  await page.keyboard.press("Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.matches(".film-close")), true);
+  // 顶栏在画面上面
+  const [bar, view] = await page.evaluate(() => [".film-bar", ".film-view"].map((s) => document.querySelector(s).getBoundingClientRect().top));
+  assert.ok(bar < view);
+  await ctx.close();
+});
+
+test("手机横屏（矮窗口）时文章里的播放器铺满宽度，不被挤成一条", async () => {
+  const { page, ctx } = await open("/notes/film-note/", { viewport: { width: 844, height: 390 } });
+  const [stage, text] = await page.evaluate(() => [".film-stage", ".post-content"].map((s) => document.querySelector(s).getBoundingClientRect().width));
+  assert.ok(stage >= text, `播放器 ${stage}px，正文 ${text}px`);
+  await ctx.close();
+});
+
 test("真实短片：文章里的「从这里播放」跳到对应章节", async () => {
   for (const [slug] of filmNotes()) {
     const { page, ctx, errors } = await open(`/notes/${slug}/`);

@@ -8,17 +8,18 @@
 {{- $play := $f.play -}}
 {{- if and $f.lang (ne $f.lang $page.Lang) }}{{ $play = printf "%s?lang=%s&embed=page" $play $page.Lang }}{{ else }}{{ $play = printf "%s?embed=page" $play }}{{ end -}}
 <div class="film-stage">
-<iframe class="film-frame" src="{{ $play }}" title="{{ $page.Title }}" loading="lazy" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay" allowfullscreen></iframe>
+<iframe class="film-frame" src="{{ $play }}"{{ with $f.poster }} style="background-image:url({{ . }})"{{ end }} title="{{ $page.Title }}" loading="lazy" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay" allowfullscreen></iframe>
+<button type="button" class="film-start" aria-label="{{ i18n "film_play" }}" hidden></button>
 {{- with $f.poster }}<noscript><style>.film-stage iframe{display:none}</style><img class="film-still" src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="{{ $page.Title }}"></noscript>{{ end }}
 </div>
 {{- $chapters := slice -}}
 {{- range $page.Fragments.Headings }}{{ range .Headings }}{{ if eq .ID "transcript" }}{{ range .Headings }}{{ $chapters = $chapters | append . }}{{ end }}{{ end }}{{ end }}{{ end -}}
 {{- with $chapters }}
 <details class="film-chapters">
-<summary>{{ i18n "film_chapters" }}<span>{{ len . }}</span></summary>
+<summary>{{ i18n "film_chapters" }}<span>{{ len . }}{{ with $f.minutes }} · {{ printf (i18n "film_minutes") (int .) }}{{ end }}</span></summary>
 <ol>
 {{- range $i, $h := . }}
-<li><a href="#{{ $h.ID }}">{{ $h.Title | safeHTML }}</a><button type="button" class="film-seek" data-chapter="{{ $i }}" aria-label="{{ i18n "film_from_here" }}：{{ $h.Title | plainify }}" hidden>▶</button></li>
+<li><a href="#{{ $h.ID }}">{{ $h.Title | safeHTML }}</a><button type="button" class="film-seek" data-chapter="{{ $i }}" aria-label="{{ i18n "film_from_here" }}：{{ $h.Title | plainify }}" hidden><span class="film-at"></span>▶</button></li>
 {{- end }}
 </ol>
 </details>
