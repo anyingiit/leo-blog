@@ -51,3 +51,6 @@
   .note-entry .post-content p:has(+ .img-group) { margin-bottom: 0.5rem; }
   .note-entry .post-content p + .img-group { margin-top: 0.5rem; }
 }
+/* 视频（render-image.html 输出的 <video>）：按封面宽高比占位；单篇页最高 80vh，短文时间线里和图片一样最高 24rem */
+.md-content video { display: block; width: min(100%, calc(80vh * var(--ar, 1.7778))); height: auto; margin: 1rem 0; background: #000; border-radius: 4px; }
+.note-entry .post-content video { width: min(100%, calc(24rem * var(--ar, 1.7778))); }

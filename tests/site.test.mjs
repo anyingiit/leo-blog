@@ -183,6 +183,33 @@ test("有英文版的配图：英文页用 .en 图，中文页用原图（docs/i
   }
 });
 
+// 文章里的视频（docs/video.md）：原样发布，所以要先压好。读 MP4 顶层 box 和样本描述，不依赖 ffprobe
+function mp4Info(buf) {
+  const top = [];
+  for (let i = 0; i + 8 <= buf.length;) {
+    let size = buf.readUInt32BE(i);
+    const type = buf.toString("latin1", i + 4, i + 8);
+    if (size === 1) size = Number(buf.readBigUInt64BE(i + 8));
+    if (size === 0) size = buf.length - i;
+    if (size < 8) break;
+    top.push(type);
+    i += size;
+  }
+  const s = buf.toString("latin1");
+  return { top, codecs: ["avc1", "hvc1", "hev1", "vp09", "av01"].filter((c) => s.includes(c)), aac: s.includes("mp4a") };
+}
+
+test("文章里的视频：H.264 编码（Chrome、Safari 都能播），moov 在前（边下边播），不超过 25 MiB", () => {
+  const mp4s = walk(join(root, "content")).filter((f) => /\.mp4$/i.test(f));
+  for (const f of mp4s) {
+    const name = relative(root, f);
+    assert.ok(statSync(f).size <= 25 * 1024 * 1024, `${name} 超过 Cloudflare Pages 单文件 25 MiB 的上限`);
+    const { top, codecs } = mp4Info(readFileSync(f));
+    assert.deepEqual(codecs, ["avc1"], `${name} 的视频编码是 ${codecs}，应只用 H.264（avc1）`);
+    assert.ok(top.includes("moov") && top.indexOf("moov") < top.indexOf("mdat"), `${name} 的 moov 在 mdat 后面，要用 -movflags +faststart 重新封装：${top}`);
+  }
+});
+
 // ── 数学公式、Mermaid、提示框（layouts/_markup、extend_head.html）────────────
 
 const allPages = (s) => walk(s.out).filter((f) => f.endsWith(".html")).map((f) => ({ path: relative(s.out, f), html: readFileSync(f, "utf8") }));
