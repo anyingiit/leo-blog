@@ -6,7 +6,7 @@
         --full /tmp/s1site/translations/anthropic-s1/v1.0/full.html
 
 做的事：
-  1. 把 Hugo 生成的 full.html（单文件完整 HTML）原样冻结到 <版本>/files/anthropic-s1-zh-unofficial-<版本>.html
+  1. 把 Hugo 生成的 full.html（单文件完整 HTML）原样冻结到 <版本>/files/anthropic-s1-zh-unofficial-<版本>.html.raw（网站上发布为 .html）
   2. 用 pdf.cjs 把它打印成同名 .pdf（每页 612×810pt：原文页 + 底部「非官方」页边，首页声明、末页再附声明）
   3. 修 PDF：Chrome 内嵌中文字体时把部分汉字的文字层写成形近的部首字符（复制、搜索会出错），改回对应汉字；
      写入标题、作者、主题、关键词，打开时显示书签栏；逐页检查都有「非官方」标记
@@ -139,7 +139,8 @@ def main():
     name = f"anthropic-s1-zh-unofficial-{version}"
     out = os.path.join(a.vdir, "files")
     os.makedirs(out, exist_ok=True)
-    html_path, pdf_path = os.path.join(out, name + ".html"), os.path.join(out, name + ".pdf")
+    # 内容目录里的 .html 会被 Hugo 当成文章，所以完整 HTML 存成 .html.raw，由 downloads.html 模板以 .html 的名字发布
+    html_path, pdf_path = os.path.join(out, name + ".html.raw"), os.path.join(out, name + ".pdf")
     shutil.copyfile(a.full, html_path)
     subprocess.run(["node", os.path.join(HERE, "pdf.cjs"), html_path, pdf_path], check=True)
     title = re.search(r"<title>([^<]+)</title>", html).group(1)

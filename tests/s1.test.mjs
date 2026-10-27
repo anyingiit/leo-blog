@@ -31,12 +31,13 @@ const files = (dir) => readdirSync(dir, { recursive: true }).map(String);
 
 test("已发布版本的冻结文件原样发布，内容和 front matter 的 sha256 一致", () => {
   for (const [kind, d] of Object.entries(downloads)) {
-    const b = readFileSync(join(site.out, "s1-d4/v1.0", d.file));
+    const b = readFileSync(join(site.out, "s1-d4/v1.0", d.file.replace(/\.raw$/, "")));
     assert.equal(b.length, d.bytes, kind);
     assert.equal(createHash("sha256").update(b).digest("hex"), d.sha256, kind);
   }
-  // .html 不能被 Hugo 当成文章渲染成 <名字>/index.html（hugo.yaml 的 contentTypes）
+  // 完整 HTML 在内容目录里是 .html.raw（免得被 Hugo 当成文章），只以 .html 的名字发布一份
   assert.ok(!site.exists(`s1-d4/v1.0/files/${NAME}/index.html`));
+  assert.deepEqual(files(site.out).filter((f) => f.endsWith(".raw")), []);
   // 已发布的版本不再从模板生成 full.html
   assert.ok(!site.exists("s1-d4/v1.0/full.html"));
 });

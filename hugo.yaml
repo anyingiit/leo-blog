@@ -100,6 +100,3 @@ markup:
           block: [['\[', '\]'], ['$$', '$$']]
           inline: [['\(', '\)'], ['$', '$']]
 
-# 只把 Markdown 当文章；.html 文件（译本版本冻结的完整 HTML 下载、章节的 original.html）作为普通文件资源原样发布或读取
-contentTypes:
-  text/markdown: {}

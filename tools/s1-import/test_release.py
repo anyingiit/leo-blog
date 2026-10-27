@@ -64,7 +64,7 @@ class ReleasedFiles(unittest.TestCase):
                 self.assertNotRegex(fm, r"(?m)^outputs:.*s1full", "发布后不应再从模板生成 full.html")
                 self.assertEqual(set(dl), {"html", "pdf"})
                 for kind, d in dl.items():
-                    self.assertEqual(d["file"], f"files/anthropic-s1-zh-unofficial-{version}.{kind}")
+                    self.assertEqual(d["file"], f"files/anthropic-s1-zh-unofficial-{version}." + {"html": "html.raw", "pdf": "pdf"}[kind])
                     b = open(os.path.join(vdir, d["file"]), "rb").read()
                     self.assertEqual(len(b), d["bytes"], f"{d['file']} 大小和 front matter 不一致（发布后被改过？）")
                     self.assertEqual(hashlib.sha256(b).hexdigest(), d["sha256"], f"{d['file']} sha256 不一致")

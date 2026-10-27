@@ -1,4 +1,5 @@
 404.html
+_headers
 archives/index.html
 assets/css/stylesheet.<hash>.css
 assets/js/search.<hash>.js
