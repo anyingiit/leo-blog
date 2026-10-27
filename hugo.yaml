@@ -36,6 +36,8 @@ permalinks:
 
 params:
   env: production
+  # S-1 译本的下架联系方式（声明、版权行、下载文件里都会出现；tools/s1-import/release.py 要求设置）
+  s1Contact: leoycwan@gmail.com
   # 首页、归档、上一篇/下一篇只收长文（content/posts）；短文（content/notes）在 /notes/ 单独成栏
   mainSections: [posts]
   defaultTheme: auto

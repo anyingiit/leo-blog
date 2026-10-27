@@ -142,7 +142,8 @@ def main():
     # 内容目录里的 .html 会被 Hugo 当成文章，所以完整 HTML 存成 .html.raw，由 downloads.html 模板以 .html 的名字发布
     html_path, pdf_path = os.path.join(out, name + ".html.raw"), os.path.join(out, name + ".pdf")
     shutil.copyfile(a.full, html_path)
-    subprocess.run(["node", os.path.join(HERE, "pdf.cjs"), html_path, pdf_path], check=True)
+    # 用 .html 文件名打印（.raw 浏览器会当成下载），内容和冻结的副本相同
+    subprocess.run(["node", os.path.join(HERE, "pdf.cjs"), a.full, pdf_path], check=True)
     title = re.search(r"<title>([^<]+)</title>", html).group(1)
     try:
         fixed = fix_pdf(pdf_path, title, version, pages)
