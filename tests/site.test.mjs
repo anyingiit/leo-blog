@@ -124,6 +124,19 @@ test("列表里没有 0 分钟、0 字的条目（没有正文的栏目页不显
   }
 });
 
+test("正文里的链接不指向页面自己（Markdown 站内链接会被换成当前语言的页面，跨语言链接要用 relref 加 lang）", () => {
+  const pages = walk(site.out).filter((f) => f.endsWith("index.html")).map((f) => relative(site.out, f));
+  const self = [];
+  for (const f of pages) {
+    const html = readFileSync(join(site.out, f), "utf8");
+    const body = html.split(/<div class="?post-content[^>]*>/)[1]?.split("</main>")[0];
+    if (!body) continue;
+    const path = "/" + f.replace(/index\.html$/, "");
+    for (const h of hrefs(body)) if (h === path || h === PROD + path.slice(1)) self.push(`${path} → ${h}`);
+  }
+  assert.deepEqual(self, []);
+});
+
 test("草稿不发布", () => {
   for (const f of contentFiles.filter(isDraft)) {
     const slug = field(frontMatter(join(root, "content", f)), "slug");

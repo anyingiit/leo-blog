@@ -15,4 +15,4 @@ The translation is for reference only and is not investment advice; the translat
 
 The original English filing is authoritative: [Form S-1 on SEC EDGAR](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm). All rights in the original belong to Anthropic, PBC and the respective rights holders. Takedown requests: [leoycwan@gmail.com](mailto:leoycwan@gmail.com).
 
-The Chinese translation: [/translations/anthropic-s1/](/translations/anthropic-s1/)
+The Chinese translation: [/translations/anthropic-s1/]({{< relref path="/translations/anthropic-s1" lang="zh" >}})
