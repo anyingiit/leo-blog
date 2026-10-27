@@ -8,14 +8,12 @@ en/404.html
 en/archives/index.html
 en/categories/index.html
 en/categories/index.xml
-en/films/index.html
-en/films/index.xml
-en/films/page/1/index.html
 en/films/test-film/index.html
 en/index.html
 en/index.json
 en/index.xml
 en/notes/film-note/index.html
+en/notes/film-ref/index.html
 en/notes/four-photos/index.html
 en/notes/index.html
 en/notes/index.xml
@@ -57,9 +55,6 @@ en/tags/test/page/1/index.html
 en/tags/testing/index.html
 en/tags/testing/index.xml
 en/tags/testing/page/1/index.html
-films/index.html
-films/index.xml
-films/page/1/index.html
 films/test-film/index.html
 films/test-film/play/index.html
 films/test-film/play/media/still.svg
@@ -68,6 +63,7 @@ index.html
 index.json
 index.xml
 notes/film-note/index.html
+notes/film-ref/index.html
 notes/four-photos/four-photos.assets/IMG_01_hu_899d002f461609c9.webp
 notes/four-photos/four-photos.assets/IMG_01_hu_a3f4d354bff142f4.webp
 notes/four-photos/four-photos.assets/IMG_01_hu_b5042720aed70fd4.webp

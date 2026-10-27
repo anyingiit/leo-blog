@@ -13,17 +13,24 @@
 <link>http://blog.test/en/notes/film-note/</link>
 <pubDate>Sun, 25 Oct 2026 08:00:00 +0000</pubDate>
 <guid>http://blog.test/en/notes/film-note/</guid>
-<description>&lt;p&gt;A film cover in the text:&lt;/p&gt;
+<description>&lt;p&gt;The film article&amp;rsquo;s intro, written in Markdown and set like any other post.&lt;/p&gt;</description>
+</item>
+<item>
+<title>[Test] Film reference</title>
+<link>http://blog.test/en/notes/film-ref/</link>
+<pubDate>Sun, 25 Oct 2026 07:00:00 +0000</pubDate>
+<guid>http://blog.test/en/notes/film-ref/</guid>
+<description>&lt;p&gt;Another post that refers to the film shows a cover card:&lt;/p&gt;
 &lt;figure class="film film-cover"&gt;
-&lt;a class="film-open" href="http://blog.test/en/films/test-film/" data-play="/films/test-film/play/?lang=en" data-title="Test Film" tabindex="-1" aria-hidden="true"&gt;&lt;img src="http://blog.test/films/test-film/poster_hu_80a0afd65939a82.webp" width="1280" height="720" alt="" loading="lazy" decoding="async" class="in-text"&gt;&lt;span class="film-play"&gt;&lt;/span&gt;
+&lt;a class="film-open" href="http://blog.test/en/notes/film-note/" data-play="/films/test-film/play/?lang=en" data-title="[Test] Film" data-transcript="/en/notes/film-note/#transcript" tabindex="-1" aria-hidden="true"&gt;&lt;img src="http://blog.test/films/test-film/poster_hu_80a0afd65939a82.webp" width="1280" height="720" alt="" loading="lazy" decoding="async" class="in-text"&gt;&lt;span class="film-play"&gt;&lt;/span&gt;
 &lt;/a&gt;
-&lt;figcaption&gt;&lt;strong&gt;Test Film&lt;/strong&gt;&lt;span&gt;Animated short · about 2 min · narrated&lt;/span&gt;&lt;/figcaption&gt;
+&lt;figcaption&gt;&lt;strong&gt;[Test] Film&lt;/strong&gt;&lt;span&gt;about 2 min&lt;/span&gt;&lt;/figcaption&gt;
 &lt;div class="film-acts"&gt;
-&lt;a class="btn btn-primary film-play-btn" href="http://blog.test/en/films/test-film/" data-play="/films/test-film/play/?lang=en" data-title="Test Film" aria-haspopup="dialog"&gt;Play the film&lt;/a&gt;
-&lt;a class="btn btn-outline" href="http://blog.test/en/films/test-film/#transcript"&gt;Read the transcript&lt;/a&gt;
+&lt;a class="btn btn-primary film-play-btn" href="http://blog.test/en/notes/film-note/" data-play="/films/test-film/play/?lang=en" data-title="[Test] Film" data-transcript="/en/notes/film-note/#transcript" aria-haspopup="dialog"&gt;Play the film&lt;/a&gt;
+&lt;a class="btn btn-outline" href="http://blog.test/en/notes/film-note/#transcript"&gt;Read the transcript&lt;/a&gt;
 &lt;/div&gt;
 &lt;/figure&gt;
-&lt;p&gt;A paragraph after the film.&lt;/p&gt;</description>
+&lt;p&gt;A paragraph after the card.&lt;/p&gt;</description>
 </item>
 <item>
 <title>A short note</title>
