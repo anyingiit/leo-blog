@@ -22,17 +22,17 @@
 <div class="s1-dl-cards" aria-label="全文下载">
   <div class="s1-dl-card">
     <div class="s1-dl-kind">完整 HTML{{ with $html.size }} <small>{{ . }}</small>{{ end }}</div>
-    <p>原版版式整本一个文件，图片内嵌，浏览器直接打开，离线可读、可全文搜索。</p>
+    <p>原版版式，单个文件，图片内嵌。</p>
     <p class="s1-dl-acts"><a href="{{ $html.url }}" target="_blank" rel="noopener">在浏览器打开 ↗</a><a href="{{ $html.url }}" download="{{ $html.name }}">下载 .html ↓</a></p>
   </div>
   {{- with $pdf.url }}
   <div class="s1-dl-card">
     <div class="s1-dl-kind">PDF <small>{{ $pdf.size }}</small></div>
-    <p>与原文逐页对应，带章节书签；首末页是译者声明，每页底部标注「非官方」。用你习惯的阅读器打开。</p>
+    <p>与原文逐页对应，带章节书签。</p>
     <p class="s1-dl-acts"><a href="{{ . }}" download="{{ $pdf.name }}">下载 .pdf ↓</a></p>
   </div>
   {{- end }}
-  {{- with $pdf.sha }}<p class="s1-dl-sha">{{ $ver }} 文件发布后不再改动 · SHA-256：HTML <code title="{{ $html.sha }}">{{ substr $html.sha 0 12 }}…</code> PDF <code title="{{ . }}">{{ substr . 0 12 }}…</code></p>{{ end }}
+  {{- with $pdf.sha }}<p class="s1-dl-sha">SHA-256：HTML <code title="{{ $html.sha }}">{{ substr $html.sha 0 12 }}…</code> PDF <code title="{{ . }}">{{ substr . 0 12 }}…</code></p>{{ end }}
 </div>
 {{- else if eq .style "menu" }}
 <details class="s1-dl-menu">
@@ -45,6 +45,6 @@
   </ul>
 </details>
 {{- else }}
-<span class="s1-dl-line">{{ with .label }}<span class="s1-dl-label">{{ . }}</span>{{ end }}<a href="{{ $html.url }}" target="_blank" rel="noopener" title="完整 HTML：原版版式整本一个文件，在浏览器打开">HTML ↗{{ with $html.size }} <small>{{ . }}</small>{{ end }}</a>{{ with $pdf.url }}<a href="{{ . }}" download="{{ $pdf.name }}" title="下载 PDF：与原文逐页对应">PDF ↓ <small>{{ $pdf.size }}</small></a>{{ end }}</span>
+<span class="s1-dl-line">{{ with .label }}<span class="s1-dl-label">{{ . }}</span>{{ end }}<a href="{{ $html.url }}" target="_blank" rel="noopener" title="完整 HTML">HTML ↗{{ with $html.size }} <small>{{ . }}</small>{{ end }}</a>{{ with $pdf.url }}<a href="{{ . }}" download="{{ $pdf.name }}" title="PDF">PDF ↓ <small>{{ $pdf.size }}</small></a>{{ end }}</span>
 {{- end }}
 {{- end }}
