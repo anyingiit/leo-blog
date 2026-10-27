@@ -90,7 +90,3 @@ markup:
         delimiters:
           block: [['\[', '\]'], ['$$', '$$']]
           inline: [['\(', '\)'], ['$', '$']]
-
-# 只把 Markdown 当文章；.html 文件（例如沉浸式翻译导出的原样 HTML）作为普通文件原样发布（和 S-1 译本分支的同一设置）
-contentTypes:
-  text/markdown: {}
