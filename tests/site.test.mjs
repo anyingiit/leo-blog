@@ -117,6 +117,13 @@ test("导航菜单第一项是短文栏目（中文「短文」、英文「Notes
   assert.match(menu(site.read("en/")), new RegExp(`^<li><a href="?${PROD}en/notes/"?[^>]*><span>Notes</span>`));
 });
 
+test("列表里没有 0 分钟、0 字的条目（没有正文的栏目页不显示阅读时长和字数）", () => {
+  for (const list of ["", "en/", "translations/", "en/translations/", "notes/", "en/notes/", "archives/", "en/archives/"]) {
+    if (!site.exists(`${list}index.html`)) continue;
+    assert.doesNotMatch(allPagesOf(site, list), /(^|[>\s·])0 (分钟|字|min\b|words?\b)/, `${list || "首页"} 有 0 分钟或 0 字`);
+  }
+});
+
 test("草稿不发布", () => {
   for (const f of contentFiles.filter(isDraft)) {
     const slug = field(frontMatter(join(root, "content", f)), "slug");

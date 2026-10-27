@@ -5,4 +5,6 @@ type: s1
 latest: v1.0
 cascade:
   - type: s1
+ShowReadingTime: false
+ShowWordCount: false
 ---

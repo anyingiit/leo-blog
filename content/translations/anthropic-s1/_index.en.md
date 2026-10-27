@@ -1,6 +1,8 @@
 ---
 title: "Anthropic S-1 — Unofficial Chinese Translation"
 description: "An unofficial, AI-produced Chinese translation of the S-1 registration statement Anthropic, PBC filed with the US SEC."
+ShowReadingTime: false
+ShowWordCount: false
 ---
 
 This section hosts an **unofficial Chinese translation** of the S-1 registration statement filed by Anthropic, PBC with the US Securities and Exchange Commission on October 26, 2026. The translator has no affiliation with Anthropic, and the translation has not been reviewed or authorized by Anthropic.
