@@ -1,0 +1,3 @@
+# 整站预览：方案 0（只在预览分支上用，见 build.sh）
+params:
+  xpreview: { cur: 0 }

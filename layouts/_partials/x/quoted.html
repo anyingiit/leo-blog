@@ -1,0 +1,7 @@
+{{- /* 外部推文框：别人的推文，不翻译，只标 lang；底色区分，不画线。参数：dict "page" "o"（x.other）"media"（框内图片文件名）。 */ -}}
+{{- $o := .o -}}
+<blockquote class="xf-quoted" cite="{{ $o.url }}">
+  <p class="xf-qhead"><span class="xf-name">@{{ $o.handle }}</span> <span class="xf-meta">· {{ partial "x/date.html" $o }}</span></p>
+  {{- with $o.text }}<div class="xf-qtext">{{ partial "x/paras.html" . }}</div>{{ else }}<p class="xf-meta">（原推内容请在 X 上查看）</p>{{ end }}
+  {{- partial "x/media.html" (dict "page" .page "files" .media) }}
+</blockquote>

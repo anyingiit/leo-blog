@@ -1,0 +1,3 @@
+{{- /* 方案三/四：短文末尾的出处，日期链接到原推。 */ -}}
+{{- $x := .Page.Params.x -}}
+<p class="x-src">{{ cond (eq $x.kind "retweet") "转发于 X" "原发于 X" }} · {{ partial "x/date.html" (dict "url" $x.url "date" (.Page.Date.Format "2006-01-02T15:04:05-07:00")) }}</p>

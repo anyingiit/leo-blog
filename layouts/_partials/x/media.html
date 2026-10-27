@@ -1,0 +1,13 @@
+{{- /* 推文图片（页面文件夹里的文件名列表），按宽高比等高成一行，可点击放大。参数：dict "page" "files"。 */ -}}
+{{- with .files }}
+<div class="xf-media n-{{ len . }}">
+  {{- range . }}
+    {{- with $.page.Resources.Get . }}
+      {{- $img := .Filter images.AutoOrient -}}
+      {{- $full := $img.Process (printf "resize %dx webp q85" (cond (gt $img.Width 1600) 1600 $img.Width)) -}}
+      {{- $sm := $img.Process (printf "resize %dx webp q85" (cond (gt $img.Width 900) 900 $img.Width)) -}}
+      <img class="{{ cond (eq .MediaType.SubType "png") "shot" "photo" }}" src="{{ $sm.RelPermalink }}" width="{{ $sm.Width }}" height="{{ $sm.Height }}" style="--ar:{{ printf "%.4f" (div (float $sm.Width) $sm.Height) }}" data-zoom="{{ $full.RelPermalink }}" alt="" loading="lazy" decoding="async">
+    {{- end }}
+  {{- end }}
+</div>
+{{- end }}

@@ -1,0 +1,2 @@
+{{- /* 推文日期，链接到原推。参数：dict "url" "date"（ISO 字符串，带 +08:00）。 */ -}}
+{{- with .date }}{{ $d := time . }}<a href="{{ $.url }}" rel="nofollow noopener noreferrer" target="_blank"><time datetime="{{ $d.Format "2006-01-02T15:04:05-07:00" }}">{{ $d | time.Format ":date_long" }}</time></a>{{ else }}<a href="{{ .url }}" rel="nofollow noopener noreferrer" target="_blank">{{ i18n "x_original" | default "原推" }}</a>{{ end -}}

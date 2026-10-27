@@ -1,0 +1,19 @@
+{{- /* 方案二：整条推文显示成卡片（融合方案 F）。纯转发显示原作者，引用转发把原推放进卡片里的底色框。 */ -}}
+{{- $x := .Page.Params.x -}}
+{{- $rt := eq $x.kind "retweet" -}}
+<article class="xf">
+  {{- if $rt }}<p class="xf-rt">{{ $x.author.name }} 转发了</p>{{ end }}
+  {{- $name := cond $rt (printf "@%s" $x.other.handle) $x.author.name }}
+  <header class="xf-head">
+    <span class="xf-av" aria-hidden="true">{{ substr (strings.TrimPrefix "@" $name) 0 1 | upper }}</span>
+    <span class="xf-name">{{ $name }}</span>
+    <span class="xf-meta">{{ if not $rt }}@{{ $x.author.handle }} · {{ end }}{{ partial "x/date.html" (cond $rt $x.other (dict "url" $x.url "date" (.Page.Date.Format "2006-01-02T15:04:05-07:00"))) }}</span>
+  </header>
+  <div class="xf-text"{{ with $x.lang }} lang="{{ . }}"{{ end }}>
+    {{- if $rt }}{{ partial "x/paras.html" $x.other.text }}{{ else }}{{ range $x.parts }}{{ partial "x/paras.html" .text }}{{ end }}{{ end -}}
+  </div>
+  {{- partial "x/media.html" (dict "page" .Page "files" $x.media) }}
+  {{- if and $x.other (not $rt) }}{{ partial "x/quoted.html" (dict "page" .Page "o" $x.other "media" slice) }}{{ end }}
+  {{- if $x.missing }}<p class="x-missing">另有 {{ $x.missing }} 个视频或图片，<a href="{{ $x.url }}" rel="nofollow noopener noreferrer" target="_blank">在 X 上查看 ↗</a></p>{{ end }}
+  <p class="xf-foot"><a href="{{ $x.url }}" rel="nofollow noopener noreferrer" target="_blank">在 X 上查看 ↗</a></p>
+</article>

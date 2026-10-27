@@ -1,0 +1,12 @@
+{{- /* 方案一：X 官方嵌入代码（和 publish.twitter.com 生成的一样）。能连上 X 时由 widgets.js 换成官方卡片，
+       连不上（大陆、禁用脚本）时就是这段引用。纯转发嵌入原推；线程每一条各嵌入一次。widgets.js 在页尾加载一次。 */ -}}
+{{- $x := .Page.Params.x -}}
+{{- $items := slice -}}
+{{- if eq $x.kind "retweet" -}}
+  {{- $items = slice (dict "url" $x.other.url "text" $x.other.text "who" (printf "@%s" $x.other.handle) "date" $x.other.date) -}}
+{{- else -}}
+  {{- range $x.parts }}{{ $items = $items | append (dict "url" .url "text" .text "who" (printf "%s (@%s)" $x.author.name $x.author.handle) "date" .date) }}{{ end -}}
+{{- end -}}
+{{- range $items }}
+<blockquote class="twitter-tweet"><p{{ with $x.lang }} lang="{{ . }}"{{ end }} dir="ltr">{{ replace (htmlEscape .text) "\n" "<br>" | safeHTML }}</p>&mdash; {{ .who }} <a href="{{ replace .url "https://x.com/" "https://twitter.com/" }}?ref_src=twsrc%5Etfw">{{ with .date }}{{ (time .).Format "January 2, 2006" }}{{ end }}</a></blockquote>
+{{- end }}

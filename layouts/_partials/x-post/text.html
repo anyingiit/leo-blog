@@ -1,5 +1,0 @@
-{{- /* 推文正文：转义后把链接变成 <a>，换行变成 <br>。参数是字符串。 */ -}}
-{{- $t := . | htmlEscape -}}
-{{- $t = replaceRE `(https?://[^\s<]+)` `<a href="$1" rel="nofollow noopener" target="_blank">$1</a>` $t -}}
-{{- $t = replace $t "\n" "<br>" -}}
-{{- $t | safeHTML -}}

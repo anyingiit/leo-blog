@@ -1,0 +1,6 @@
+{{- /* 推文纯文本 → 段落：先转义，再把链接变成 <a>（不吞后面的全角标点），空行分段，段内换行变 <br>。参数是字符串。 */ -}}
+{{- range split (trim . "\n") "\n\n" -}}
+  {{- $t := trim . "\n" | htmlEscape -}}
+  {{- $t = replaceRE `(https?://[^\s<“”‘’\x{3000}-\x{303f}\x{ff00}-\x{ffef}]+)` `<a href="$1" rel="nofollow noopener noreferrer" target="_blank">$1</a>` $t -}}
+  {{- with $t }}<p>{{ replace . "\n" "<br>" | safeHTML }}</p>{{ end -}}
+{{- end -}}

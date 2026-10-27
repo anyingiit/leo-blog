@@ -1,0 +1,4 @@
+{{- /* 方案三/四：短文正文下面的原推框。rt="true" 是纯转发：图片属于原推，放进框里。 */ -}}
+{{- $x := .Page.Params.x -}}
+{{- $rt := eq (.Get "rt") "true" -}}
+{{- with $x.other }}{{ partial "x/quoted.html" (dict "page" $.Page "o" . "media" (cond $rt $x.media slice)) }}{{ end -}}

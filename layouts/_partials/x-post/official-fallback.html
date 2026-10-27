@@ -1,5 +1,0 @@
-{{- /* 与 publish.twitter.com/oembed 返回的 HTML 结构一致，但不加载 widgets.js */ -}}
-{{- $p := .p -}}
-<blockquote class="twitter-tweet">
-  <p lang="{{ $p.lang }}" dir="ltr">{{ partial "x-post/text.html" $p.text }}{{ with $p.quoted }} <a href="{{ .url }}">{{ .url }}</a>{{ end }}{{ range $p.media }} <a href="{{ $p.url }}">pic.x.com/…</a>{{ end }}</p>&mdash; {{ $p.author.name }} (@{{ $p.author.handle }}) <a href="{{ $p.url }}">{{ time.Format "January 2, 2006" $p.date }}</a>
-</blockquote>

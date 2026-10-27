@@ -1,0 +1,18 @@
+{{- /* 只在整站预览里出现：底部固定一条，切换现状和四种方案，停留在同一个页面路径。 */ -}}
+{{- $root := .root | default "/" -}}
+{{- $cur := int .cur -}}
+<nav class="xpv" aria-label="方案切换">
+  <span class="xpv-t">预览</span>
+  {{- range slice (slice 0 "现状" "不同步") (slice 1 "方案一" "官方嵌入") (slice 2 "方案二" "全部卡片") (slice 3 "方案三" "评审推荐") (slice 4 "方案四" "推荐 + 转发") }}
+  {{- $n := index . 0 }}
+  <a class="xpv-a{{ if eq $n $cur }} cur{{ end }}" href="{{ $root }}{{ if $n }}v{{ $n }}/{{ end }}"{{ if eq $n $cur }} aria-current="page"{{ end }} title="{{ index . 2 }}">{{ index . 1 }}<span class="xpv-l">·{{ index . 2 }}</span></a>
+  {{- end }}
+</nav>
+<script>
+(() => {
+  const base = {{ site.Home.Permalink }};
+  const rest = location.href.startsWith(base) ? location.href.slice(base.length) : "";
+  for (const a of document.querySelectorAll(".xpv-a")) a.href += rest;
+})();
+</script>
+{{- if eq $cur 1 }}<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>{{ end }}

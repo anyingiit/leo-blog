@@ -1,0 +1,8 @@
+# 整站预览：方案 4（只在预览分支上用，见 build.sh）
+params:
+  xpreview: { cur: 4 }
+module:
+  mounts:
+    - { source: content, target: content }
+    - { source: x-preview/out/v4/notes, target: content/notes }
+    - { source: x-preview/out/v4/posts, target: content/posts }

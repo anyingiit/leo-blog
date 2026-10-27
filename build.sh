@@ -61,6 +61,8 @@ fi
 hugo version
 
 if [ -n "${CF_PAGES_URL:-}" ] && [ "${CF_PAGES_BRANCH:-}" != "main" ]; then
+  # 预览分支：整站预览四种 X 同步方案（见 x-preview/build.sh）
+  exec bash x-preview/build.sh "${CF_PAGES_URL%/}/"
   # 预览站额外带上 tests/fixtures 里的测试短文，方便在 PR 预览里对照查看；正式站不包含它们
   exec hugo --gc --minify -b "${CF_PAGES_URL%/}/" --config hugo.yaml,tests/hugo.test.yaml "$@"
 fi

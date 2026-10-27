@@ -4,6 +4,7 @@
   2. 短文栏目：超过约一屏的短文先折叠，可展开、收起；图片加载后重新判断。
      多张图片的原位分组在构建时完成，见 notes/list.html。
 */ -}}
+{{- with site.Params.xpreview }}{{ partial "x/preview-bar.html" . }}{{ end }}
 <script>
 (() => {
   const t = {
