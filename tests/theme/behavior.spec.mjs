@@ -261,8 +261,10 @@ test("长短文折叠：靠近页尾时收起，滚到最底", async ({ browser 
   await page.setViewportSize({ width, height: Math.ceil(below) + 200 });
   await btn.click();
   await expect(btn).toHaveAttribute("aria-expanded", "true");
-  await btn.scrollIntoViewIfNeeded();
-  await btn.click();
+  // 从页面顶部收起（不经过鼠标，免得点击前的自动滚动替它滚到位）：不滚动的话会停在顶部；
+  // 收起后页面变短，浏览器自己把滚动位置压到最底也不会发生，这一步测的确实是收起时的滚动
+  await page.evaluate(() => scrollTo(0, 0));
+  await btn.evaluate((b) => b.click());
   await expect(body).toHaveClass(/is-folded/);
   const where = () => entry.evaluate((e) => ({ top: e.getBoundingClientRect().top, docTop: e.getBoundingClientRect().top + scrollY,
     scrollY, max: document.documentElement.scrollHeight - innerHeight }));
