@@ -63,7 +63,7 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 .s1-sheet img { max-width: none; } /* PaperMod 的 img{max-width:100%} 在没有宽度的绝对定位容器里会把图片算成 0 宽（原文第 2、412 页的黑底图） */
 /* 横版页（792pt 宽，原文的大表格）：缩到和竖版页同宽（818/1058，含 1px 页框），和 PDF 阅读器「适应宽度」一样整页可见。
    否则手机上右侧约 1/5 要在框内横滑才看得到，全屏阅读里还会把整页撑宽、把顶栏右端推出屏幕。打印时不缩，用横版纸（list.s1full.html） */
-@media screen { .s1-sheet[style*="width:792pt"] { zoom: .7732; --s1-zl: .7732; } } /* --s1-zl：细线加粗按实际缩放算（--s1-z × --s1-zl） */
+@media screen { .s1-sheet[style*="width:792pt"] { zoom: .7732; } }
 @media (max-width: 880px) {
   .s1-sheets { margin-inline: calc(var(--gap) * -1); border-radius: 0; }
 }
@@ -124,7 +124,7 @@ body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-i
 .s1-ibar button { font: inherit; font-size: 14px; border: 0; background: none; color: var(--primary); padding: 0 12px; cursor: pointer; justify-content: center; }
 .s1-ibar-zoom button { min-width: 44px; }
 .s1-ibar [data-zoom="fit"] { min-width: 56px; font-variant-numeric: tabular-nums; }
-.s1-ibar .s1-ibar-exit { border: 1px solid var(--border); border-radius: var(--radius); }
+.s1-ibar .s1-ibar-exit { min-width: 44px; justify-content: center; border: 1px solid var(--border); border-radius: var(--radius); }
 .s1-ibar [data-toggle-view] { border: 1px solid var(--border); border-radius: var(--radius); }
 .s1-ibar-zoom button + button { border-inline-start: 1px solid var(--border); }
 .s1-ibar button:focus-visible, .s1-ibar a:focus-visible, .s1-ibar summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
@@ -149,6 +149,8 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-ibar-tag { font-size: 12px; min-width: 44px; justify-content: center; }
   .s1-ibar .s1-ibar-exit { min-width: 44px; padding: 0; }
 }
+/* 横屏手机同样不给缩放按钮（见 s1.js 的 zoomUI） */
+@media (pointer: coarse) and (max-height: 500px) { .s1-ibar-zoom { display: none !important; } }
 /* 更窄（360 宽的安卓、320 宽的 iPhone SE、或 Safari 放大页面后）：折成两行，上行目录和退出，下行页码、翻章、版式 */
 @media (max-width: 374px) {
   :root { --s1-ibar-h: 96px; }
@@ -183,6 +185,7 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-versions tr { padding: 10px 0; border-bottom: 1px solid var(--border); }
   .s1-versions td { border: 0; padding: 0; }
   .s1-versions td:nth-child(2), .s1-versions td:nth-child(3) { display: inline; font-size: 14px; color: var(--secondary); }
+  .s1-versions td:nth-child(3) { white-space: nowrap; }
   .s1-versions td:nth-child(3)::before { content: " · 采集于 "; }
   .s1-versions td:nth-child(4) { margin-top: 4px; }
 }

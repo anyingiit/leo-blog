@@ -14,7 +14,7 @@
   const selector = ".md-content img";
 
   // ---------- 图集灯箱 ----------
-  let box, big, caption, counter, list = [], index = 0, opener = null;
+  let box, big, caption, counter, list = [], index = 0, opener = null, fitTouch = () => {};
   const show = (i) => {
     index = (i + list.length) % list.length;
     const img = list[index];
@@ -42,21 +42,23 @@
     on(".zoom-next", () => show(index + 1));
     on(".zoom-close", () => box.close());
     box.addEventListener("click", () => box.close());
-    box.addEventListener("close", () => { box.style.touchAction = ""; opener && opener.focus(); });
+    box.addEventListener("close", () => { box.style.touchAction = ""; down.clear(); opener && opener.focus(); });
     box.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft") show(index - 1);
       if (e.key === "ArrowRight") show(index + 1);
     });
     // 手指或鼠标横扫换图。双指缩放时不算（第二根手指按下就作废）；页面已被双指放大时，单指拖动用来移动画面，也不算，
     // 而且要把 touch-action 放开，否则放大后拖不动（CSS 里平时只允许双指缩放，见 custom.css 的 .img-zoom）
-    let x0 = null, fingers = 0;
+    // 按下的指针按 pointerId 记：没收到 pointerup 的（按着时关了灯箱、右键菜单、切走窗口）关闭和打开时清掉，不会一直算成多指
+    let x0 = null;
+    const down = new Set();
     const zoomedIn = () => (window.visualViewport?.scale || 1) > 1.01;
-    window.visualViewport?.addEventListener("resize", () => { if (box.open) box.style.touchAction = zoomedIn() ? "auto" : ""; });
-    box.addEventListener("pointerdown", (e) => { fingers++; x0 = fingers === 1 && !zoomedIn() ? e.clientX : null; });
-    const lift = () => { fingers = Math.max(0, fingers - 1); };
-    box.addEventListener("pointercancel", () => { lift(); x0 = null; });
+    fitTouch = () => { box.style.touchAction = zoomedIn() ? "auto" : ""; };
+    window.visualViewport?.addEventListener("resize", () => { if (box.open) fitTouch(); });
+    box.addEventListener("pointerdown", (e) => { down.add(e.pointerId); x0 = down.size === 1 && !zoomedIn() ? e.clientX : null; });
+    box.addEventListener("pointercancel", (e) => { down.delete(e.pointerId); x0 = null; });
     box.addEventListener("pointerup", (e) => {
-      lift();
+      down.delete(e.pointerId);
       if (x0 === null) return;
       const dx = e.clientX - x0;
       x0 = null;
@@ -78,6 +80,7 @@
     opener = img;
     // 第 9 张上标着「+N」，点它从第 10 张（没显示出来的第一张）看起
     show(list.indexOf(img) + (img.closest(".img-more") ? 1 : 0));
+    fitTouch(); // 先把页面放大了再点开图片时，没有 resize 事件
     box.showModal();
     box.focus();
   };

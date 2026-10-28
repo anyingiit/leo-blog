@@ -762,11 +762,15 @@ for (const engine of ENGINES) {
 
   // 2026-10-28 手机端检查：原来的顶栏一行放不下（约 508px），控件被 flex 压缩而不是溢出，scrollWidth 看不出来——
   // 目录入口被压成 0 宽、缩放组被裁、「退出」被推出 320 宽的屏幕。所以逐个量控件：完整可见、在顶栏和屏幕里、够大好点
-  for (const device of ["iPhone SE", engine === "webkit" ? "iPhone 13" : "Pixel 7"]) {
+  // 320 两行、375 一行最挤、390/412 一行、667 横屏（601–760 之间：缩放组显示、文字标签隐藏）
+  const SIZES = { "iPhone SE": devices["iPhone SE"], "375 宽": { ...devices["iPhone 13"], viewport: { width: 375, height: 667 } }, "667 横屏": { ...devices["iPhone 13"], viewport: { width: 667, height: 375 } } };
+  SIZES[engine === "webkit" ? "iPhone 13" : "Pixel 7"] = devices[engine === "webkit" ? "iPhone 13" : "Pixel 7"];
+  for (const device of Object.keys(SIZES)) {
     test(`${engine} · ${device}：全屏阅读顶栏的每个控件都完整可见、在顶栏和屏幕里、至少 44×44；电脑上记的缩放不带到手机上`, async (t) => {
-      const s = await open(t, engine, devices[device]);
+      const s = await open(t, engine, SIZES[device]);
       if (!s) return;
       const { page } = s;
+      const phone = await page.evaluate(() => matchMedia("(max-width: 600px), (pointer: coarse) and (max-height: 500px)").matches);
       await page.addInitScript(() => localStorage.setItem("s1-zoom", "1.5"));
       await s.go(V + "risk-factors/?read=1");
       for (const view of ["reflow", "original"]) {
@@ -786,9 +790,9 @@ for (const engine of ENGINES) {
         assert.deepEqual(bad, [], view);
         assert.ok(await noHScroll(page), view + " 不应横向滚动");
       }
-      // 手机上没有缩放按钮，原版固定适应宽度（双指缩放照常可用）
+      // 手机竖屏上没有缩放按钮，原版固定适应宽度（双指缩放照常可用）；横屏有缩放按钮，用记住的倍数
       const z = await page.evaluate(() => +document.querySelector(".s1-original .s1-sheets-inner").style.zoom);
-      assert.ok(Math.abs(z - (await page.evaluate(() => document.documentElement.clientWidth)) / 836) < 0.001, `原版缩放 ${z} 不是适应宽度`);
+      if (phone) assert.ok(Math.abs(z - (await page.evaluate(() => document.documentElement.clientWidth)) / 836) < 0.001, `原版缩放 ${z} 不是适应宽度`);
       // 靠后的章节打开目录：当前章滚到面板可见处，正文不跟着动（短屏上它原来在面板底部以下）
       await s.go(V + "principal-stockholders/?read=1");
       const y = await page.evaluate(() => scrollY);

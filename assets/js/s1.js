@@ -12,8 +12,9 @@
   let zoom = "fit"; // 沉浸阅读里的缩放："fit" 或具体倍数
   try { const z = localStorage.getItem("s1-zoom"); if (z && z !== "fit") zoom = +z; } catch {}
   const immersive = () => document.body.classList.contains("s1-immersive");
-  // 手机竖屏（≤600px）的顶栏没有缩放按钮（s1.css），原版固定适应宽度，放大用双指；电脑上记下的缩放不带过来
-  const zoomUI = () => !matchMedia("(max-width: 600px)").matches;
+  // 手机（竖屏，或横屏的矮触屏）不给缩放按钮，原版固定适应宽度、用双指缩放：手机浏览器的布局视口会跟着放大后的页面变宽，
+  // 固定的顶栏也跟着变宽，右半边控件跑到屏幕外。和 s1.css 的同一条媒体查询保持一致
+  const zoomUI = () => !matchMedia("(max-width: 600px), (pointer: coarse) and (max-height: 500px)").matches;
   const zoomed = () => immersive() && zoom !== "fit" && zoomUI();
 
   const fitScale = (box) => Math.min(wide || immersive() ? 1.4 : 1, (immersive() ? document.documentElement.clientWidth : box.clientWidth) / 836);
