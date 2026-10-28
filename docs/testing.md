@@ -6,22 +6,23 @@
 
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
-| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Regression tests |
-| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests |
-| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Regression tests |
-| `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Regression tests |
-| `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Test → Test image-i18n |
-| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Regression tests |
-| `tests/s1-links.test.mjs` | S-1 译本和译文栏目的每个链接：站内地址存在、`#片段` 有对应 id、不意外指回本页、中英文页只在该跨的地方跨、外链格式、原版 444 个跨章交叉引用、封面目录章节名落在同名章节、冻结 HTML 离线可跳；冻结 PDF 的书签和 477 个页内链接指向正确页（pypdf）；Chromium 和 WebKit 实点菜单、语言切换、翻章、全屏阅读目录/跳页/页码、下载、版本菜单 | Regression tests |
-| `tests/s1-behavior.test.mjs` | S-1 译本的用户行为清单（113 条，见各测试名）：栏目与导航、译本首页/版本页/章节页、重排与原版的默认/记忆/切换时停在同一页、缩放、沉浸阅读的进入退出（按钮、Esc、后退）、页码与跳页（含跳到下一章）、翻章、目录面板、缩放记忆、本机存储被禁用时照常可用；Chromium 和 WebKit | Regression tests |
-| `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Test → Test s1-import |
-| `tools/s1-import/test_import.py` | 导入脚本 `import.py` 把译文 Markdown 转成 Hugo 正文：脚注标记保留为上标，被误包进 `<sup>` 的整句、中文、点线引导符去掉上标；章首前只有图片的整页分隔图归入后一章；导入新版本时内容变了的同名配图加内容哈希另存，旧版本仍用原图 | Test → Test s1-import |
-| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Visual (浏览器-设备)，6 个任务 |
-| `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Visual (chromium-desktop) |
-| `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint |
+| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 用量」） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Lint and build → Test image-i18n |
+| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/s1-links.test.mjs` | S-1 译本和译文栏目的每个链接：站内地址存在、`#片段` 有对应 id、不意外指回本页、中英文页只在该跨的地方跨、外链格式、原版 444 个跨章交叉引用、封面目录章节名落在同名章节、冻结 HTML 离线可跳；冻结 PDF 的书签和 477 个页内链接指向正确页（pypdf）；Chromium 和 WebKit 实点菜单、语言切换、翻章、全屏阅读目录/跳页/页码、下载、版本菜单 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/s1-behavior.test.mjs` | S-1 译本的用户行为清单（113 条，见各测试名）：栏目与导航、译本首页/版本页/章节页、重排与原版的默认/记忆/切换时停在同一页、缩放、沉浸阅读的进入退出（按钮、Esc、后退）、页码与跳页（含跳到下一章）、翻章、目录面板、缩放记忆、本机存储被禁用时照常可用；Chromium 和 WebKit | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Lint and build → Test s1-import |
+| `tools/s1-import/test_import.py` | 导入脚本 `import.py` 把译文 Markdown 转成 Hugo 正文：脚注标记保留为上标，被误包进 `<sup>` 的整句、中文、点线引导符去掉上标；章首前只有图片的整页分隔图归入后一章；导入新版本时内容变了的同名配图加内容哈希另存，旧版本仍用原图 | Lint and build → Test s1-import |
+| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium) |
+| `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint and build |
 
 ## `tests/site.test.mjs` 检查的内容
 
@@ -50,9 +51,9 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 
 **网络状态**：正常；图片一直没有响应（检查加载前的版面）；CDN 不可用（KaTeX 样式、Mermaid 加载失败时的降级显示）；Slow 3G（400ms 延迟、约 50KB/s，检查布局偏移 CLS ≤ 0.1，且最终渲染与正常网络逐像素一致）。CLS 只有 Chromium 能测。"图片一直没有响应"在 WebKit 上只检查页面能稳定、Mermaid 图表照常画出，不截图：WebKit 截图前要等整页 load，图片不回来就永远截不了。
 
-**运行环境**：CI 的 Visual 任务固定在 Playwright 官方镜像 `mcr.microsoft.com/playwright:v1.63.0-noble`（按 digest 锁定）里运行，基准图 `tests/theme/__snapshots__/` 也是在这个镜像里生成的。不同机器的字体和渲染不同，本地截图和基准不一致是正常的，以 CI 为准。浏览器 × 设备共 6 个任务并行，非视觉的输出快照只在 chromium-desktop 任务里跑。
+**运行环境**：CI 的浏览器测试任务固定在 Playwright 官方镜像 `mcr.microsoft.com/playwright:v1.63.0-noble`（按 digest 锁定）里运行，基准图 `tests/theme/__snapshots__/` 也是在这个镜像里生成的。不同机器的字体和渲染不同，本地截图和基准不一致是正常的，以 CI 为准。每个浏览器一个任务（两个任务并行），三种设备在任务内依次跑；非视觉的输出快照只在 chromium 任务里跑。
 
-**改了样式、需要更新基准图时**：推送后 CI 的 Visual 任务会失败，失败的任务在同一镜像里重新生成有变化或缺失的基准图，并上传名为 `visual-<浏览器>-<设备>` 的产物，里面有每张图的期望/实际/差异对比（`test-results-failed/`、`playwright-report/`）和新基准（`__snapshots__/`）。同仓库的 PR 还会由 `Publish regenerated baselines` 任务把所有新基准合并推到 `ci-baselines/pr-<编号>` 分支（这个任务只有它有写权限，不执行仓库代码）。逐张确认差异都是预期的改动后取回提交：
+**改了样式、需要更新基准图时**：推送后 CI 的 Browser tests 任务会失败，失败的任务在同一镜像里重新生成有变化或缺失的基准图，并上传名为 `visual-<浏览器>` 的产物，里面有每张图的期望/实际/差异对比（`test-results-failed/`、`playwright-report/`）和新基准（`__snapshots__/`）。同仓库的 PR 还会由 `Publish regenerated baselines` 任务把所有新基准合并推到 `ci-baselines/pr-<编号>` 分支（这个任务只有它有写权限，不执行仓库代码）。逐张确认差异都是预期的改动后取回提交：
 
 ```bash
 git fetch origin ci-baselines/pr-<编号>
@@ -71,6 +72,18 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 不用 Playwright 自带的 `fullPage: true`：它在截图过程中另画视口以外的部分，`repaint` 管不到，放慢后同样会截出不同结果。
 
 **验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
+
+**CI 用量**：私有仓库的 GitHub 托管运行机按分钟计费，每个任务单独向上取整到整分钟，免费额度用完后任务分不到运行机、两秒就失败（2026-10-27 遇到过）。所以 CI 按两条原则安排：
+
+1. 任务按"计费分钟"而不是按"并行度"拆。几十秒的检查（action 锁定、测试覆盖、构建、image-i18n）合在 Lint and build 一个任务里；浏览器测试每个浏览器一个任务，拉 Playwright 镜像（约 50 秒）和取整各只算两次。
+2. 只跳过输入没有变、已经在完全相同的文件上通过过的测试，拿不准就全跑（`tests/ci-plan.mjs`，单元测试 `tests/ci-plan.test.mjs`）：
+   - 只改 `content/`、`docs/`、根目录 `.md` 时，跳过 WebKit 任务和视觉测试，站点回归测试照跑。主题测试的本站只用 `tests/theme/site-fixture` 里的固定文章构建，不读 `content/`，文档也不进入任何构建，所以视觉测试的输入和 main 完全相同。发文章是最常见的改动，这类运行只要约 3 分钟。
+   - 合并 PR 产生的 main 提交，文件树和 PR 分支最后一个提交完全相同（PR 合并前已包含最新 main，几乎总是如此），而那个提交的 PR CI 已经通过时，main 上不再重复跑。
+   - 手动运行（Run workflow）、拿不到改动列表、或者改到上面以外的任何文件，都全跑。
+
+3. 同一件事只做一次。整站构建由站点回归测试（`site.test.mjs` 用 `build.sh` 构建正式站）完成，Lint and build 不再单独构建；Hugo 处理过的图片（`resources/_gen`）用 `actions/cache` 跨运行复用，整站冷构建约 55 秒，有缓存约 2 秒。Hugo 按源文件和处理参数给缓存文件命名，内容变了就会重新生成；Hugo 版本（`build.sh`）或图片渲染钩子（`layouts/_markup/`）变了，整份缓存作废。
+
+一次全量运行约 13 计费分钟（原来 10 个任务约 20 分钟），测试内容不变。新增任务或让主题测试读取新目录前，先对照这两条。
 
 ## 本地运行
 

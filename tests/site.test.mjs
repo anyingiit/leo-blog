@@ -290,7 +290,7 @@ test("KaTeX、Mermaid 的线上地址锁定了精确版本，并与主题测试�
 test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，版本不同会找不到浏览器）", () => {
   const ci = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
   const images = [...ci.matchAll(/mcr\.microsoft\.com\/playwright:v([\d.]+)-/g)].map((m) => m[1]);
-  assert.ok(images.length >= 2, "ci.yml 里应有两个任务使用 Playwright 镜像");
+  assert.ok(images.length >= 1, "ci.yml 里的浏览器测试任务应使用 Playwright 镜像");
   for (const [file, name] of [["tests/package.json", "playwright"], ["tests/theme/package.json", "@playwright/test"]]) {
     const v = JSON.parse(readFileSync(join(root, file), "utf8")).devDependencies[name];
     for (const img of images) assert.equal(v, img, `${file} 的 ${name} 是 ${v}，CI 镜像是 v${img}`);
