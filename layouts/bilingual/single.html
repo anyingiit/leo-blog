@@ -1,0 +1,36 @@
+{{- /*
+  双语对照译文（沉浸式翻译导出的「原文段落 + 段后译文」网页）。用 tools/bilingual-import/import.py 导入，同目录：
+    pairs.yaml     段落对，重排版用
+    original.html  原网页正文（保留原作者的样式，段后译文），原版版式用
+  中文页和 S-1 译本同一套阅读界面（layouts/_partials/bilingual/reader.html）。
+  英文页（.en.md）设 enStub: true：只放说明和原文链接，不重复原文全文。
+*/ -}}
+{{- define "main" }}
+{{- if .Params.enStub }}
+{{- $p := .Params }}
+<article class="post-single bl-stub">
+  <header class="post-header">
+    {{- with .Parent }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
+    <h1 class="post-title">{{ .Title }}</h1>
+    <div class="post-meta bl-meta">
+      {{- with $p.originalTitle }}<span>{{ . }}</span>{{ end }}
+      {{- with $p.author }}&nbsp;·&nbsp;<span>{{ . }}</span>{{ end }}
+      {{- with $p.originalDate }}&nbsp;·&nbsp;<span>{{ i18n "bl_published" }} {{ time.Format ":date_long" . }}</span>{{ end }}
+      {{- partial "translation_list.html" . -}}
+    </div>
+  </header>
+  <div class="post-content">{{ .Content }}</div>
+  <aside class="bl-notice" role="note">
+    <ul>
+      <li>Unofficial Chinese translation, version {{ $p.version }}. {{ $p.methodDetailEn }}</li>
+      {{- with $p.captured }}<li>Original captured {{ (time.AsTime .).UTC.Format "2006-01-02 15:04" }} UTC.</li>{{ end }}
+      <li>Copyright in the original belongs to {{ $p.author | default "its author" }}. Rights holders who object can write to {{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }} and the translation will be taken down.</li>
+    </ul>
+  </aside>
+</article>
+{{- else }}
+{{- $data := dict }}
+{{- with .Resources.Get "pairs.yaml" }}{{ $data = . | transform.Unmarshal }}{{ end }}
+{{- partial "bilingual/reader.html" (dict "page" . "data" $data) }}
+{{- end }}
+{{- end }}

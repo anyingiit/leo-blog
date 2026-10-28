@@ -22,10 +22,18 @@ before(async () => {
 });
 after(async () => { for (const b of Object.values(browsers)) await b?.close(); server?.close(); site?.remove(); });
 
+// content/（及测试样例）里原样发布的 HTML（.html.raw，例如双语译文下载用的原网页）：不是站点页面，没有页头，也不能为了测试往里加标记
+const rawFiles = (dir) => readdirSync(dir).flatMap((n) => {
+  const p = join(dir, n);
+  return n === "node_modules" ? [] : statSync(p).isDirectory() ? rawFiles(p) : n.endsWith(".html.raw") ? [p] : [];
+});
+const published = new Set([join(root, "content"), join(root, "tests")].flatMap(rawFiles).map((f) => readFileSync(f, "utf8")));
+
 // 读出一页的语言、页头切换链接、<head> 里的 hreflang 互链；跳转页（别名）返回 null
 async function inspect(html) {
   if (/<meta http-equiv="?refresh/.test(html)) return null; // 别名页一加载就会跳走，不读
   if (/<html[^>]* data-standalone/.test(html)) return null; // 供下载的独立文件（S-1 完整 HTML），没有站点页头
+  if (published.has(html)) return null; // 原样发布的 .html.raw
   await dom.setContent(html, { waitUntil: "domcontentloaded" });
   return dom.evaluate(() => {
     return {

@@ -233,7 +233,9 @@
     // 原版目录里的跨章链接（#id）只在原版里有目标
     const hash = decodeURIComponent(location.hash.slice(1));
     const wantOriginal = hash && !document.getElementById(hash) && tpl?.content.getElementById(hash);
-    const initial = wantOriginal ? "original" : saved || (narrow() ? "reflow" : "original");
+    // 双语译文的段落链接（#p3）只在重排版里有目标：带着它打开时显示重排版（不改读者记住的选择）
+    const wantReflow = !wantOriginal && hash && chapter.hasAttribute("data-hash-reflow") && reflow?.contains(document.getElementById(hash));
+    const initial = wantOriginal ? "original" : wantReflow ? "reflow" : saved || (narrow() ? "reflow" : "original");
     if (initial === "original") {
       show("original", false);
       if (wantOriginal) document.getElementById(hash)?.scrollIntoView();

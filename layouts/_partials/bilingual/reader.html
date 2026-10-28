@@ -1,0 +1,104 @@
+{{- /*
+  原版阅读：沿用 S-1 译本的阅读界面（类名、assets/js/s1.js、s1.css 都是同一套），只是内容换成一篇网页：
+  - 原版版式：同目录 original.html（tools/bilingual-import/import.py 第三个参数生成），排在一张 816px 宽的「纸」上，
+    宽屏按宽度放大（最多 1.4 倍），深色模式下纸也不反色；
+  - 重排版：本站排版，「中文 / 对照 / English」三档切换；
+  - 没选过时电脑默认原版、手机默认重排（s1.js）；?read=1 全屏阅读；全文下载用 s1/downloads.html（front matter downloads）。
+  参数 dict "page" 页面 "data" pairs.yaml 的内容
+*/ -}}
+{{- $page := .page }}{{ $lang := $page.Language.Lang }}
+{{- $p := $page.Params }}
+{{- $sec := $page.Parent }}
+<article class="post-single s1-chapter bl-reader" data-hash-reflow data-vroot="{{ $page.RelPermalink }}" data-first-page="1" data-wide data-immersive>
+  <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
+  <div class="s1-ibar" role="toolbar" aria-label="全屏阅读" tabindex="-1" hidden>
+    <a class="s1-ibar-tag" href="#bl-notice" title="完整声明">非官方译文</a>
+    <span class="s1-ibar-toc"><span class="s1-ibar-title">{{ $page.Title }}</span></span>
+    <span class="s1-ibar-dl">{{ partial "s1/downloads.html" (dict "v" $page "style" "line") }}</span>
+    <button type="button" data-toggle-view title="在原版版式和重排版之间切换"></button>
+    <span class="s1-ibar-zoom" role="group" aria-label="缩放">
+      <button type="button" data-zoom="out" aria-label="缩小" title="缩小">−</button>
+      <button type="button" data-zoom="fit" title="适应宽度">适应</button>
+      <button type="button" data-zoom="in" aria-label="放大" title="放大">+</button>
+    </span>
+    <button type="button" class="s1-ibar-exit" data-exit title="退出全屏阅读（Esc）">✕ 退出</button>
+  </div>
+  <header class="post-header s1-header">
+    {{- with $sec }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
+    <h1 class="post-title">{{ $page.Title }}</h1>
+    <div class="post-meta bl-meta">
+      {{- with $p.originalTitle }}<span lang="en">{{ . }}</span>{{ end }}
+      {{- with $p.author }}&nbsp;·&nbsp;<span>{{ . }}</span>{{ end }}
+      {{- with $p.originalDate }}&nbsp;·&nbsp;<span>{{ i18n "bl_published" }} {{ time.Format ":date_long" . }}</span>{{ end }}
+      {{- partial "translation_list.html" $page -}}
+    </div>
+  </header>
+  <div class="s1-vbar">
+    <span class="s1-vtag s1-latest">{{ $p.version }} · 最新</span>
+    {{- with $p.captured }}<span>原文采集于 {{ (time.AsTime .).UTC.Format "2006-01-02 15:04" }} UTC</span>{{ end }}
+    {{- partial "s1/downloads.html" (dict "v" $page "style" "line" "label" "全文：") }}
+  </div>
+  {{- partial "bilingual/notice-s1.html" $page }}
+  <div class="s1-switchbar">
+    <div class="s1-switch" role="group" aria-label="版式">
+      <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
+      <button type="button" data-view="original" aria-pressed="false">原版版式</button>
+    </div>
+    <a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>
+  </div>
+  <div class="post-content s1-reflow bl-article" data-view="reflow" data-mode="both">
+    <script>
+      (function (a) {
+        var m = null;
+        try { m = localStorage.getItem("bl-mode-{{ $lang }}"); } catch (e) {}
+        a.dataset.mode = m || "zh";
+        a.classList.add("bl-js");
+      })(document.currentScript.parentNode);
+    </script>
+    <div class="bl-switch" role="group" aria-label="{{ i18n "bl_view" }}">
+      <button type="button" data-set="zh">中文</button>
+      <button type="button" data-set="both">{{ i18n "bl_both" }}</button>
+      <button type="button" data-set="en">English</button>
+    </div>
+    <div class="bl-body">
+    {{- range $i, $x := .data.pairs }}
+      {{- $n := add $i 1 }}
+      {{- if eq $x.kind "img" }}
+      <figure class="bl-pair bl-img" id="p{{ $n }}"><img src="{{ $x.src }}" alt="{{ $x.alt }}" loading="lazy" decoding="async"></figure>
+      {{- continue }}
+      {{- end }}
+      {{- $tag := cond (in (slice "h1" "h2") $x.kind) "h2" (cond (in (slice "h3" "h4") $x.kind) "h3" (cond (eq $x.kind "quote") "blockquote" "p")) }}
+      {{- /* 没有译文的段落（插件跳过的）只有原文，「中文」档也显示原文，不让内容消失 */}}
+      <div class="bl-pair bl-k-{{ $x.kind }}{{ if not $x.zh }} bl-untr{{ end }}" id="p{{ $n }}">
+        {{- with $x.zh }}{{ printf "<%s class=\"bl-zh\" lang=\"zh-CN\">%s</%s>" $tag (. | markdownify) $tag | safeHTML }}{{ end }}
+        {{- printf "<%s class=\"bl-en\" lang=\"en\">%s</%s>" $tag ($x.en | markdownify) $tag | safeHTML }}
+        <a class="bl-anchor" href="#p{{ $n }}" aria-label="{{ i18n "bl_link_para" }} {{ $n }}">#</a>
+      </div>
+    {{- end }}
+    </div>
+  </div>
+  <div class="s1-original" data-view="original" hidden></div>
+  <template class="s1-original-tpl">
+    <div class="s1-sheets" data-first-page="1">
+      <div class="s1-sheets-inner"><div class="s1-sheet bl-sheet">{{ with $page.Resources.Get "original.html" }}{{ .Content | safeHTML }}{{ end }}</div></div>
+    </div>
+    <script>(b=>{const s=Math.min(b.closest("[data-wide]")?1.4:1,b.clientWidth/836);if(s!==1)b.firstElementChild.style.zoom=s.toFixed(4)})(document.currentScript.previousElementSibling)</script>
+  </template>
+  {{- if $page.Content }}<div class="post-content md-content bl-afterword">{{ $page.Content }}</div>{{ end }}
+  <p class="s1-rights">原文版权归{{ $p.author | default "原作者" }}所有，本站提供的是非官方译文，以原文为准。下架请求：{{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}。</p>
+</article>
+{{- partial "s1/script.html" $page }}
+<script>
+(function () {
+  // 重排版的「中文 / 对照 / English」切换，记在本机
+  var a = document.querySelector(".s1-reflow.bl-article"), key = "bl-mode-{{ $lang }}";
+  function mark() { a.querySelectorAll(".bl-switch [data-set]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.set === a.dataset.mode); }); }
+  mark();
+  a.querySelector(".bl-switch").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-set]");
+    if (!b) return;
+    a.dataset.mode = b.dataset.set; mark();
+    try { localStorage.setItem(key, b.dataset.set); } catch (e) {}
+  });
+})();
+</script>
