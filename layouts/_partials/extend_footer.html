@@ -71,6 +71,9 @@
     box.addEventListener("click", (e) => {
       if (box.dataset.swiped) { delete box.dataset.swiped; e.stopImmediatePropagation(); }
     }, true);
+    // 灯箱里有选区时（Ctrl/Cmd+A，或图片加载前在灯箱上拖出的），按住图片拖动会变成浏览器原生的拖动选区，
+    // 接着发 pointercancel，这次横扫就没了。灯箱里的拖动只用来换图，原生拖动一律取消
+    box.addEventListener("dragstart", (e) => e.preventDefault());
     document.body.append(box);
   };
   const gallery = (img) => [...(img.closest(".note-entry") || img.closest(".md-content")).querySelectorAll(selector)].filter(zoomable);

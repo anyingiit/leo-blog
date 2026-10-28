@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- 短文图集灯箱：灯箱里有选区时（Ctrl/Cmd+A，或图片加载前在灯箱上拖出的），电脑上按住图片拖动变成浏览器原生的拖动选区，换图失效；现在灯箱里取消原生拖动。这也是「电脑上用鼠标拖动换图」测试偶发显示 1 / 12 的原因。新增回归测试「有选区时鼠标拖动图片照样换图」（Chromium、WebKit 各三种设备），以及「长短文靠近页尾时收起，滚到最底」。
 - 主题截图测试偶发差几十个像素（点状下划线随绘制过程变化）：截图前让整页重新绘制一遍，并加回归测试 `tests/theme/repaint.spec.mjs`。
 
 [Unreleased]: https://github.com/anyingiit/leo-blog/commits/main

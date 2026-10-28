@@ -204,6 +204,29 @@ test("短文图集灯箱：打开、切换、关闭", async ({ browser }, info) 
   await context.close();
 });
 
+// 灯箱里已有选区（Ctrl/Cmd+A，或者图片加载前在灯箱上拖出的选区）时，按住图片拖动会变成浏览器原生的「拖动选区」，
+// 随后的 pointercancel 让这次换图失效。以前「电脑上用鼠标拖动换图」测试偶发显示 1 / 12 就是这个原因
+test("短文图集灯箱：有选区时鼠标拖动图片照样换图", async ({ browser }, info) => {
+  const { context, page, errors } = await open(browser, info, SITE + "/notes/four-photos/");
+  await settle(page);
+  await page.locator(".md-content img").first().click();
+  const box = page.locator("dialog.img-zoom"), big = box.locator("figure img");
+  await expect(box.locator(".zoom-count")).toHaveText("1 / 4");
+  await big.evaluate((img) => img.complete ? img.decode() : new Promise((ok) => { img.onload = () => img.decode().then(ok); }));
+  await page.keyboard.press("ControlOrMeta+A");
+  expect(await big.evaluate((img) => getSelection().containsNode(img, true)), "测试前提：图片在选区里").toBe(true);
+  // 从图片右侧四分之一处拖到左侧四分之一处（手机上也有 180px 以上，不会拖出视口）
+  const r = await big.boundingBox(), y = r.y + r.height / 2;
+  await page.mouse.move(r.x + r.width * 0.75, y);
+  await page.mouse.down();
+  await page.mouse.move(r.x + r.width * 0.25, y, { steps: 5 });
+  await page.mouse.up();
+  await expect(box.locator(".zoom-count")).toHaveText("2 / 4");
+  expect(await box.evaluate((d) => d.open), "拖动松开后的 click 不应关闭灯箱").toBe(true);
+  expect(errors).toEqual([]);
+  await context.close();
+});
+
 // 长短文折叠（PR #16）：超过一屏先折叠，展开后完整显示，再收起
 test("长短文折叠：展开、收起", async ({ browser }, info) => {
   const { context, page } = await open(browser, info, SITE + "/notes/");
@@ -222,6 +245,33 @@ test("长短文折叠：展开、收起", async ({ browser }, info) => {
   await expect(body).toHaveClass(/is-folded/);
   await expect.poll(() => entry.evaluate((e) => Math.round(e.getBoundingClientRect().top))).toBeLessThanOrEqual(10);
   expect(await entry.evaluate((e) => e.getBoundingClientRect().top)).toBeGreaterThanOrEqual(-1);
+  await context.close();
+});
+
+// 长短文靠近页尾、页面滚不到让它贴顶时收起：滚到最底，开头仍在屏幕里。把视口加高到这条短文贴不了顶，
+// 不依赖测试短文的数量和顺序（PR #25 加了两条短文后，平板上它就落到了页尾附近）
+test("长短文折叠：靠近页尾时收起，滚到最底", async ({ browser }, info) => {
+  const { context, page } = await open(browser, info, SITE + "/notes/");
+  await settle(page);
+  const entry = page.locator(".note-entry", { has: page.locator('a[href$="/notes/long-text/"]') });
+  const body = entry.locator(".note-body"), btn = entry.locator(".note-expand");
+  await expect(body).toHaveClass(/is-folded/);
+  const below = await entry.evaluate((e) => document.documentElement.scrollHeight - (e.getBoundingClientRect().top + scrollY));
+  const { width } = page.viewportSize();
+  await page.setViewportSize({ width, height: Math.ceil(below) + 200 });
+  await btn.click();
+  await expect(btn).toHaveAttribute("aria-expanded", "true");
+  await btn.scrollIntoViewIfNeeded();
+  await btn.click();
+  await expect(body).toHaveClass(/is-folded/);
+  const where = () => entry.evaluate((e) => ({ top: e.getBoundingClientRect().top, docTop: e.getBoundingClientRect().top + scrollY,
+    scrollY, max: document.documentElement.scrollHeight - innerHeight }));
+  const before = await where();
+  expect(before.docTop, "测试前提：这条短文贴不了顶").toBeGreaterThan(before.max + 10);
+  await expect.poll(async () => { const w = await where(); return Math.round(w.max - w.scrollY); }).toBeLessThanOrEqual(1);
+  const w = await where();
+  expect(w.top).toBeGreaterThanOrEqual(-1);
+  expect(w.top).toBeLessThanOrEqual(200 + 1);
   await context.close();
 });
 
