@@ -19,10 +19,10 @@ ShowWordCount: false
 downloads:
   html:
     file: files/bitter-lesson-zh-en-v1.0.html.raw
-    bytes: 17711
-    sha256: 1a8f6ce625f069e5d49ad64e21f49bb03ea43d60aaa1e8d576be254090f17a00
+    bytes: 17817
+    sha256: fa92d01a19f78954920c6d17fb7bfdea9bec261f2fb4061aceef19ddb96bde20
   pdf:
     file: files/bitter-lesson-zh-en-v1.0.pdf
     bytes: 226710
-    sha256: 7cc94f491cb7b3db1a4e60db7185cc6b30b58d69cd34ab924faff8c88ae4c9f8
+    sha256: e21e29a1a75efda430bae160e6d046c04432994172f0feeee3cecbbe2a5f071e
 ---

@@ -57,6 +57,7 @@ html {{ -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }}
 body {{ margin: 0; background: #eee; }}
 .bl-dl-notice {{ max-width: 816px; box-sizing: border-box; margin: 0 auto; padding: 16px 64px; font: 14px/1.7 system-ui, sans-serif; color: #444; background: #fffbe6; }}
 .bl-dl-notice p {{ margin: 4px 0; }}
+.bl-dl-notice a {{ overflow-wrap: anywhere; }} /* 原文长网址在手机上折行，不把整页撑宽 */
 .bl-sheet {{ margin: 0 auto; max-width: 100%; }}
 @media (max-width: 820px) {{ .bl-sheet {{ width: auto !important; padding: 24px 16px !important; }} .bl-dl-notice {{ padding: 12px 16px; }} }}
 @page {{ size: 816px 1056px; margin: 0 0 40px; @bottom-center {{ content: "非官方译文 · {ver} · 以原文为准"; font: 10px sans-serif; color: #888; }} }}

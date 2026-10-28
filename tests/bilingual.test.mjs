@@ -118,6 +118,18 @@ for (const a of articles) {
     await ctx.close();
   });
 
+  test(`${a.slug}：下载的 HTML 在窄屏手机上不横向滚动（声明里的原文长网址折行）`, async () => {
+    const ctx = await browsers.chromium.newContext(devices["iPhone SE"]);
+    const page = await ctx.newPage();
+    await page.goto(server.url + p + a.html.file.replace(/\.raw$/, ""), { waitUntil: "load" });
+    // 手机浏览器遇到过宽的内容会把布局视口一起撑大（innerWidth 跟着变），所以和设备宽度比，而不是和 innerWidth 比
+    const width = devices["iPhone SE"].viewport.width;
+    const wide = await page.evaluate((w) => [...document.querySelectorAll("body *")].filter((e) => e.getBoundingClientRect().right > w + 0.5).map((e) => e.outerHTML.slice(0, 80)), width);
+    assert.deepEqual(wide, [], "这些元素超出了屏幕宽度");
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= width, "页面比屏幕宽");
+    await ctx.close();
+  });
+
   test(`${a.slug}：导入用的源文件、段落数据、原版片段不单独发布`, () => {
     for (const f of ["source.html.raw", "source.html", "pairs.yaml", "original.html"]) assert.ok(!site.exists(p + f), `${p}${f} 不应发布`);
     const files = readdirSync(join(site.out, p, "files")).sort();
