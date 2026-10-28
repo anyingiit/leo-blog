@@ -35,6 +35,7 @@
 短片在**沙箱 iframe** 里运行（`sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation"`，没有 `allow-same-origin`），和博客不同源，碰不到博客的页面和存储。构建时 `layouts/_partials/film.html` 只在 `index.html` 的 `<head>` 开头插入三样东西，其余一字不改：
 
 - `<meta name="robots" content="noindex">` 和指向短片文章的 canonical：搜索引擎收录文章，不收录裸播放器；
+- `html{-webkit-text-size-adjust:100%;text-size-adjust:100%}`：关掉 iOS 的文字自动放大。短片按窗口缩小显示时，iPhone（Safari 和 X、微信等应用内浏览器）会把小字放大，排好的画面互相重叠；
 - 桥接脚本 `assets/js/film-bridge.js`，经 postMessage 交换：
   - 博客 → 短片：`{type:"film:theme", theme}`，设到短片的 `<html data-theme>`；
   - 短片 → 博客：`film:ready`、`film:size`（`<html>` 的高度，文章里的播放器据此撑开）、`film:escape`（短片里按了 Esc）。

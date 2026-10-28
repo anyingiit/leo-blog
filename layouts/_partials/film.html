@@ -1,6 +1,7 @@
 {{- /*
   短片（docs/films.md）：assets/films/<名字>/ 是一部自包含的 HTML 短片（index.html 和它引用的配音、图片），
-  原样发布到 /films/<名字>/play/，只在 index.html 里插入两样东西：
+  原样发布到 /films/<名字>/play/，只在 index.html 里插入三样东西：
+  - 关掉 iOS 文字自动放大（-webkit-text-size-adjust:100%），否则 iPhone 上缩小显示的画面文字会被放大、互相重叠；
   - 桥接脚本 assets/js/film-bridge.js（深浅色、Esc、高度，经 postMessage 传给博客）；
   - noindex 和指向短片文章的 canonical（搜索引擎收录文章，不收录裸播放器）。
   poster.png/jpg 不发布，缩成 WebP 当封面；有 poster.en.png/jpg 时英文页用它（封面上有中文字时，见 docs/films.md）。
@@ -25,7 +26,7 @@
     {{- $head := `<meta name="robots" content="noindex">` -}}
     {{- /* 中英两种语言的页面发布的是同一份播放器，canonical 固定指向默认语言的短片文章 */ -}}
     {{- with $filmPage }}{{ $head = printf `%s<link rel="canonical" href="%s">` $head (index .AllTranslations 0).Permalink }}{{ end -}}
-    {{- $head = printf `%s<script>%s</script>` $head $bridge.Content -}}
+    {{- $head = printf `%s<style>html{-webkit-text-size-adjust:100%%;text-size-adjust:100%%}</style><script>%s</script>` $head $bridge.Content -}}
     {{- $html = replaceRE `(?i)(<head[^>]*>)` (printf "${1}%s" $head) $html 1 -}}
     {{- $_ := (resources.FromString (printf "%sindex.html" $base) $html).RelPermalink -}}
   {{- else -}}

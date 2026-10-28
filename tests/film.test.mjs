@@ -30,10 +30,10 @@ const dialogOpen = (page) => page.evaluate(() => !!document.querySelector(".film
 
 // ---------- 构建结果 ----------
 
-test("播放器原样发布到 /films/<名字>/play/，只在 <head> 开头插入 noindex、canonical 和桥接脚本", () => {
+test("播放器原样发布到 /films/<名字>/play/，只在 <head> 开头插入 noindex、canonical、关掉 iOS 文字自动放大和桥接脚本", () => {
   const html = read("films/test-film/play/index.html");
-  const m = html.match(/^<!doctype html>\s*<html lang="zh">\s*<head>(<meta name="robots" content="noindex"><link rel="canonical" href="([^"]+)"><script>.+?<\/script>)/s);
-  assert.ok(m, "head 开头应该依次是 noindex、canonical、桥接脚本");
+  const m = html.match(/^<!doctype html>\s*<html lang="zh">\s*<head>(<meta name="robots" content="noindex"><link rel="canonical" href="([^"]+)"><style>html\{-webkit-text-size-adjust:100%;text-size-adjust:100%\}<\/style><script>.+?<\/script>)/s);
+  assert.ok(m, "head 开头应该依次是 noindex、canonical、文字自动放大开关、桥接脚本");
   assert.equal(m[2], "https://douseful.eu.org/notes/film-note/", "canonical 指向默认语言的短片文章");
   assert.match(m[1], /film:ready/);
   assert.equal(html.replace(m[1], ""), source, "除了插入的部分，短片文件一字不改");
