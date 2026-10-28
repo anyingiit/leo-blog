@@ -10,7 +10,7 @@
 | `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 用量」） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：每个自带 `<html>` 的页面（含冻结文件、短片等独立页面）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：站点生成的每个自带 `<html>` 的页面（含短片等独立页面；内容目录里原样提供的 `.html.raw` 下载文件不查，保留原始 HTML 的一切特征）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Lint and build → Test image-i18n |
 | `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Browser tests (chromium) 里的 Run regression tests 步骤 |
@@ -92,7 +92,7 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 
 - **截图测试不开手机模式**：为了基准稳定，主题截图在 DPR 1、不开 isMobile 下拍，390 宽是它唯一的手机宽度。320 宽（iPhone SE，也相当于 Safari 把页面放大到 120%）、横屏、安卓 360 宽都没有测，英文菜单被裁、全屏阅读顶栏挤坏都出在这些宽度。
 - **只看 scrollWidth 测不出「被压扁」**：flex 布局放不下时先压缩子元素，不会溢出。全屏阅读顶栏的目录入口被压成 0 宽、缩放组被裁，`scrollWidth <= clientWidth` 照样成立。现在逐个量控件：完整可见、在容器和屏幕里、至少 44×44。
-- **iOS 独有的行为 CI 的浏览器都没有**：文字自动放大、按设备像素取整的细线、地址栏收放后 `vh` 和可见高度不一致、点击事件委托、没有元素全屏 API、跨源 iframe 不能自动播放。能写成规则的写成静态检查（`mobile.test.mjs` 查每个独立页面的 `-webkit-text-size-adjust`；全屏层用 `dvh` 并保留 `vh` 回退）；按设备像素取整的细线在 WebKit 的 DPR 3 下能复现，由 S-1 用例覆盖；其余的只能在 iOS 上看。
+- **iOS 独有的行为 CI 的浏览器都没有**：文字自动放大、按设备像素取整的细线、地址栏收放后 `vh` 和可见高度不一致、点击事件委托、没有元素全屏 API、跨源 iframe 不能自动播放。能写成规则的写成静态检查（`mobile.test.mjs` 查站点生成的每个独立页面的 `-webkit-text-size-adjust`，原样提供的下载 HTML 不改也不查；全屏层用 `dvh` 并保留 `vh` 回退）；按设备像素取整的细线在 WebKit 的 DPR 3 下能复现，由 S-1 用例覆盖；其余的只能在 iOS 上看。
 
 因此：
 

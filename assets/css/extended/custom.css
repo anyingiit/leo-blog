@@ -22,7 +22,7 @@
 .note-expand { display: block; margin: 0.75rem auto 0; padding: 0.25rem 1rem; color: var(--primary); background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
 .md-content img[role="button"]:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .img-zoom { max-width: 100vw; max-height: 100vh; max-height: 100dvh; padding: 0; border: 0; background: none; cursor: zoom-out; overflow: visible; touch-action: pinch-zoom; outline: none; }
-.img-zoom::backdrop { background: rgb(0 0 0 / 0.88); }
+.img-zoom::backdrop { background: rgb(0 0 0 / 0.96); }
 .img-zoom figure { margin: 0; text-align: center; }
 /* 高度留出上面的按钮和下面的图注；dvh 是 iOS 工具栏展开时实际可见的高度（vh 按工具栏收起算，会把图注挤出屏幕） */
 .img-zoom img { max-width: 95vw; max-height: 85vh; max-height: calc(100dvh - 7rem); margin: auto; user-select: none; -webkit-user-drag: none; }
@@ -69,9 +69,13 @@
 .md-content pre code { --scroll-bg: var(--code-block-bg); }
 .note-entry .md-content :is(table, .katex-display) { --scroll-bg: var(--entry); }
 [data-theme="dark"] :is(.md-content table, .md-content pre code, .post-content .katex-display) { --scroll-shadow: rgb(0 0 0 / 0.7); }
+/* 代码块在两种主题下都是深底，黑色阴影看不见 */
+:root .md-content pre code { --scroll-shadow: rgb(255 255 255 / 0.3); }
 /* 页头菜单：PaperMod 放不下时整行横向滚动，手机上看不出还能滑，英文菜单在 320 宽或 Safari 放大页面后 Tags、Search 直接看不到。
    改成放不下就折行；放得下时（中文菜单、390 宽以上的英文菜单）和原来完全一样 */
 #menu { flex-wrap: wrap; row-gap: 0.25rem; overflow-x: visible; }
+/* 英文菜单在 320 宽放不下一行（约 302px），折行后每行仍是页头的 60px 行高，第二行孤零零地隔得很远 */
+@media (max-width: 374px) { :lang(en) #menu { line-height: 2.5rem; row-gap: 0; } }
 /* 归档页月份标题 PaperMod 固定 200px 宽，Safari 页面放大到约 175% 以上时整页能左右拖 */
 .archive-month-header { max-width: 100%; }
 /* 触屏没有悬停：PaperMod 的「复制」按钮只在鼠标悬停代码块时出现，手机上永远看不到，改成一直显示 */

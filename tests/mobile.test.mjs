@@ -1,6 +1,8 @@
 // 手机端的样式契约（docs/testing.md「手机端」）。主题截图测试为了基准稳定不开手机模式（DPR 1、没有 isMobile），
 // 2026-10-28 的手机端全面检查找到的问题都出在那套测试看不到的地方：320 宽、横屏、iOS 独有的行为。这里补上：
-//   1. 静态检查（不开浏览器）：每个自带 <html> 的页面都关掉 iOS 文字自动放大，不禁止双指缩放
+//   1. 静态检查（不开浏览器）：站点生成的每个自带 <html> 的页面都关掉 iOS 文字自动放大，不禁止双指缩放。
+//      内容目录里原样提供的 HTML（.html.raw，下载文件）不查：按项目规则保留原始 HTML 的一切特征，不替它修；
+//      S-1 完整 HTML 的这条由 s1.test.mjs 单独检查（它是本站按模板生成的）
 //   2. 真实手机参数（isMobile、DPR 2/3、触屏，Chromium 和 WebKit）逐页检查：没有横向滚动，
 //      能点的东西没有被挤出屏幕或被裁掉（宽表格、代码块、原版页这些本来就横向滚动的内容除外），输入框字号不小于 16px
 // S-1 全屏阅读顶栏、版本表、横版页这些译本专有的检查在 s1-behavior.test.mjs 的手机用例里
@@ -24,16 +26,16 @@ after(async () => { for (const b of Object.values(browsers)) await b?.close(); s
 
 // ---------- 1. 静态检查 ----------
 
-// 构建结果里所有 HTML，加上内容目录里原样发布的冻结文件（.html.raw）
-const htmlFiles = () => [
-  ...readdirSync(site.out, { recursive: true }).map(String).filter((f) => f.endsWith(".html")).map((f) => join(site.out, f)),
-  ...readdirSync(join(root, "content"), { recursive: true }).map(String).filter((f) => f.endsWith(".html.raw")).map((f) => join(root, "content", f)),
-];
+// 构建结果里站点生成的 HTML：内容目录里的 .html.raw 会以 .html 的名字原样发布，按文件内容排除
+const htmlFiles = () => {
+  const raw = new Set(readdirSync(join(root, "content"), { recursive: true }).map(String).filter((f) => f.endsWith(".html.raw")).map((f) => readFileSync(join(root, "content", f), "utf8")));
+  return readdirSync(site.out, { recursive: true }).map(String).filter((f) => f.endsWith(".html")).map((f) => join(site.out, f)).filter((f) => !raw.has(readFileSync(f, "utf8")));
+};
 // iOS 只认带 -webkit- 前缀的写法；Chromium 解析时会丢掉它，所以查原文
 const ADJUST = /(^|[}\s,;])html\s*\{[^}]*-webkit-text-size-adjust:\s*100%/;
 
-test("每个自带 <html> 的页面都关掉了 iOS 的文字自动放大（-webkit-text-size-adjust: 100%）", () => {
-  // 站内页面用主题样式表（PaperMod reset.css 里有这条）；独立页面（完整 HTML、冻结文件、短片、以后的双语下载版）要自己写。
+test("站点生成的每个自带 <html> 的页面都关掉了 iOS 的文字自动放大（-webkit-text-size-adjust: 100%）", () => {
+  // 站内页面用主题样式表（PaperMod reset.css 里有这条）；本站生成的独立页面（如短片页）要自己写。
   // 缺了它，iPhone（含 X、微信里打开）会把缩小显示的小字放大，固定行距的原版页文字互相重叠（2026-10-28 S-1 完整 HTML）
   const sheets = new Map();
   const missing = [];
@@ -48,7 +50,7 @@ test("每个自带 <html> 的页面都关掉了 iOS 的文字自动放大（-web
       if (!sheets.has(p)) { try { sheets.set(p, readFileSync(p, "utf8")); } catch { sheets.set(p, ""); } }
       css += "\n" + sheets.get(p);
     }
-    if (!ADJUST.test(css)) missing.push(f.replace(site.out, "").replace(root, ""));
+    if (!ADJUST.test(css)) missing.push(f.replace(site.out, ""));
   }
   assert.ok(checked > 50, `只检查到 ${checked} 个页面，文件清单可能不对`);
   assert.deepEqual(missing, [], "这些页面缺少 html { -webkit-text-size-adjust: 100% }");

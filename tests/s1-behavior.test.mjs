@@ -789,6 +789,17 @@ for (const engine of ENGINES) {
       // 手机上没有缩放按钮，原版固定适应宽度（双指缩放照常可用）
       const z = await page.evaluate(() => +document.querySelector(".s1-original .s1-sheets-inner").style.zoom);
       assert.ok(Math.abs(z - (await page.evaluate(() => document.documentElement.clientWidth)) / 836) < 0.001, `原版缩放 ${z} 不是适应宽度`);
+      // 靠后的章节打开目录：当前章滚到面板可见处，正文不跟着动（短屏上它原来在面板底部以下）
+      await s.go(V + "principal-stockholders/?read=1");
+      const y = await page.evaluate(() => scrollY);
+      await page.locator(".s1-ibar-toc summary").click();
+      // toggle 事件在展开之后异步触发
+      const inside = await page.waitForFunction(() => {
+        const b = document.querySelector(".s1-ibar-toc .s1-toc").getBoundingClientRect(), c = document.querySelector('.s1-ibar-toc [aria-current="page"]').getBoundingClientRect();
+        return c.top >= b.top - 0.5 && c.bottom <= b.bottom + 0.5;
+      }, null, { timeout: 2000 }).then(() => true, () => false);
+      assert.ok(inside, "目录打开时当前章应在面板里可见");
+      assert.equal(await page.evaluate(() => scrollY), y, "打开目录不应滚动正文");
       await s.done();
     });
   }

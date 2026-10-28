@@ -216,6 +216,13 @@
         e.preventDefault(); pageEl.click();
       }
     });
+    // 目录打开时当前章在面板里可见（短屏上它常在面板底部以下）
+    ibar.querySelector(".s1-ibar-toc")?.addEventListener("toggle", (e) => {
+      const box = e.target.querySelector(".s1-toc"), cur = box?.querySelector('[aria-current="page"]');
+      if (!e.target.open || !cur) return;
+      const b = box.getBoundingClientRect(), r = cur.getBoundingClientRect();
+      if (r.bottom > b.bottom || r.top < b.top) box.scrollTop += r.top - b.top - (b.height - r.height) / 2; // 只滚面板，不动正文
+    });
     document.addEventListener("click", (e) => {
       const t = ibar.querySelector(".s1-ibar-toc[open]");
       if (t && !t.contains(e.target)) t.open = false;
