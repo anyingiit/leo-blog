@@ -34,7 +34,7 @@
 <meta property="article:modified_time" content="2019-03-11T00:00:00+00:00">
 <meta property="article:tag" content="Markdown">
 <meta property="article:tag" content="Css">
-<meta property="article:tag" content="Html">
+<meta property="article:tag" content="HTML">
 <meta property="article:tag" content="Themes">
 <meta property="og:image" content="http://example.test/images/papermod-cover.png">
 <meta property="og:see_also" content="http://example.test/posts/code_syntax/">
