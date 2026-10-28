@@ -165,6 +165,33 @@ test("图集：电脑上用鼠标拖动换图，松开时不会顺带关掉灯�
   await ctx.close();
 });
 
+// 从图片外的黑底开始拖，会在灯箱里拉出一段包住大图的选区；之后按在图片上拖，浏览器把它当成拖走选区
+// （dragstart + pointercancel），换图就没反应了。上面那个测试偶发失败就是这个原因：第一次拖动时大图还没加载出来，按下点落在黑底上
+test("图集：电脑上先从黑底拖一次，再按在图片上拖，仍能换图", async () => {
+  const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
+  await card(page, "travel-photos").locator(".img-group img").first().click();
+  const box = page.locator("dialog.img-zoom"), img = box.locator("figure img");
+  const loaded = () => img.evaluate((im) => im.complete || new Promise((ok) => { im.onload = im.onerror = ok; }));
+  await loaded();
+  let r = await img.boundingBox();
+  assert.ok(r.x + r.width + 40 < 1280, `测试前提：大图右边有黑底（${JSON.stringify(r)}）`);
+  await page.mouse.move(r.x + r.width + 40, r.y + r.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(r.x + r.width / 2, r.y + r.height / 2, { steps: 6 });
+  await page.mouse.up();
+  assert.equal(await box.locator(".zoom-count").textContent(), "2 / 12");
+  assert.equal(await page.evaluate(() => getSelection().type), "Range", "测试前提：第一次拖动留下了选区");
+  await loaded();
+  r = await img.boundingBox();
+  await page.mouse.move(r.x + r.width / 2 + 100, r.y + r.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(r.x + r.width / 2 - 100, r.y + r.height / 2, { steps: 5 });
+  await page.mouse.up();
+  assert.equal(await box.locator(".zoom-count").textContent(), "3 / 12", "按在图片上拖动应该换图，不能变成拖走选区");
+  assert.equal(await box.evaluate((d) => d.open), true);
+  await ctx.close();
+});
+
 // 逐张检查（有没有图注、横图竖图、长图都不一样），边界用实际视口高度
 for (const device of ["iPhone 13 landscape", "iPhone 13", "iPhone SE"]) {
   test(`图集：${device} 上每张图的计数、图注、关闭按钮和图片互不遮挡，都在屏幕里`, async () => {

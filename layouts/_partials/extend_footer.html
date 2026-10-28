@@ -56,6 +56,7 @@
     fitTouch = () => { box.style.touchAction = zoomedIn() ? "auto" : ""; };
     window.visualViewport?.addEventListener("resize", () => { if (box.open) fitTouch(); });
     box.addEventListener("pointerdown", (e) => { down.add(e.pointerId); x0 = down.size === 1 && !zoomedIn() ? e.clientX : null; });
+    box.addEventListener("dragstart", (e) => e.preventDefault());
     box.addEventListener("pointercancel", (e) => { down.delete(e.pointerId); x0 = null; });
     box.addEventListener("pointerup", (e) => {
       down.delete(e.pointerId);

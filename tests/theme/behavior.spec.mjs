@@ -225,6 +225,30 @@ test("长短文折叠：展开、收起", async ({ browser }, info) => {
   await context.close();
 });
 
+// 上一个测试默认这条短文下面还有足够内容，页面能滚到让它贴顶。短文是栏目里最后一条、下面只剩页脚时滚不到：
+// 收起后应该滚到页底（尽量往上），短文开头在屏幕上半部，而不是停在原处
+test("长短文折叠：最后一条短文收起后滚到页底，开头在屏幕里", async ({ browser }, info) => {
+  const { context, page } = await open(browser, info, SITE + "/notes/");
+  await settle(page);
+  const entry = page.locator(".note-entry", { has: page.locator('a[href$="/notes/long-text/"]') });
+  const body = entry.locator(".note-body"), btn = entry.locator(".note-expand");
+  // 去掉它后面的短文，让它成为页面上最后一条；屏幕加高到比「这条短文 + 页尾」高 200px，保证滚不到贴顶（宽度不变）
+  await entry.evaluate((e) => { while (e.nextElementSibling?.matches(".note-entry")) e.nextElementSibling.remove(); });
+  const rest = await entry.evaluate((e) => document.documentElement.scrollHeight - (e.getBoundingClientRect().top + scrollY));
+  const { width, height } = page.viewportSize();
+  await page.setViewportSize({ width, height: Math.max(height, Math.ceil(rest) + 200) });
+  await btn.click();
+  await expect(btn).toHaveAttribute("aria-expanded", "true");
+  await btn.scrollIntoViewIfNeeded();
+  await btn.click();
+  await expect(body).toHaveClass(/is-folded/);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight - innerHeight - Math.round(scrollY))).toBeLessThanOrEqual(1);
+  const top = await entry.evaluate((e) => e.getBoundingClientRect().top);
+  expect(top, "测试前提：页面滚不到让这条短文贴顶").toBeGreaterThan(10);
+  expect(top).toBeLessThan(await page.evaluate(() => innerHeight) / 2);
+  await context.close();
+});
+
 // 短文多图分组的版面在 768px 切换（custom.css）：767 宽时逐张排列，768 起按行等高排列
 test("短文图组的断点正好在 768px", async ({ browser }, info) => {
   const { context, page } = await open(browser, info, SITE + "/notes/");
