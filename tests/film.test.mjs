@@ -306,11 +306,52 @@ test("对话框里从短片按 Tab 出来，接着是顶栏的「文字稿」和
   await ctx.close();
 });
 
-test("手机横屏（矮窗口）时文章里的播放器铺满宽度，不被挤成一条", async () => {
+test("手机横屏（矮窗口）时文章里的播放器不被挤成一条，画面本身放得进一屏", async () => {
   const { page, ctx } = await open("/notes/film-note/", { viewport: { width: 844, height: 390 } });
   const [stage, text] = await page.evaluate(() => [".film-stage", ".post-content"].map((s) => document.querySelector(s).getBoundingClientRect().width));
-  assert.ok(stage >= text, `播放器 ${stage}px，正文 ${text}px`);
+  assert.ok(stage >= text * 0.8, `播放器 ${stage}px，正文 ${text}px`);
+  assert.ok(stage * 9 / 16 <= 390, `画面高 ${stage * 9 / 16}px，超过一屏`);
   await ctx.close();
+});
+
+test("手机横屏全窗口放映时，顶栏不占一整行，只在右上角留关闭按钮", async () => {
+  const { page, ctx } = await open("/notes/film-ref/", { viewport: { width: 844, height: 390 } });
+  await page.click(".film-play-btn");
+  await film(page).locator("#play").waitFor();
+  const r = await page.evaluate(() => {
+    const q = (s) => document.querySelector(s).getBoundingClientRect();
+    return { view: q(".film-view").top, close: q(".film-close").toJSON(), name: getComputedStyle(document.querySelector(".film-name")).display };
+  });
+  assert.equal(r.view, 0, "画面从窗口顶端开始");
+  assert.ok(r.close.right >= 844 - 12 && r.close.top <= 4 && r.close.width >= 44, JSON.stringify(r.close));
+  assert.equal(r.name, "none");
+  await ctx.close();
+});
+
+test("手机竖屏时文章里的大播放按钮在画面下方的空白处，不压住开场画面", async () => {
+  const { page, ctx } = await open("/notes/film-note/", { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const [b, f] = await page.evaluate(() => [".film-start", ".film-stage iframe"].map((s) => document.querySelector(s).getBoundingClientRect().toJSON()));
+  const pic = f.width * 9 / 16;
+  assert.ok(b.y >= f.y + pic * 0.68 && b.y + b.height <= f.y + pic, JSON.stringify([b, f]));
+  assert.ok(Math.abs(b.x + b.width / 2 - (f.x + f.width / 2)) < 2, "水平居中");
+  assert.ok(b.width >= 44, "触控目标不小于 44px");
+  await ctx.close();
+});
+
+test("没有 <dialog> 的浏览器（iOS 15.3 及更早）点封面照常打开短片文章", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await ctx.addInitScript(() => { delete window.HTMLDialogElement; });
+  const page = await ctx.newPage();
+  await page.goto(server.url + "/notes/film-ref/");
+  await page.click(".film-play-btn");
+  await page.waitForURL(/\/notes\/film-note\/$/);
+  await ctx.close();
+});
+
+test("短片样式里的悬停效果只给有悬停的设备（触屏点过以后不会一直停在悬停样式）", () => {
+  const css = readFileSync(join(root, "assets/css/extended/custom.css"), "utf8");
+  const bad = css.split("\n").filter((l) => /\.film[\w-]*[^{]*:hover/.test(l) && !/@media \(hover: hover\)/.test(l));
+  assert.deepEqual(bad, []);
 });
 
 test("真实短片：文章里的「从这里播放」跳到对应章节", async () => {
@@ -341,6 +382,79 @@ test("真实短片在手机横屏全窗口放映时，画面占屏幕一半以�
     assert.ok(r.svg >= r.vh / 2, `${slug}：画面高 ${r.svg}，窗口高 ${r.vh}`);
     assert.ok(r.bottom <= r.vh, `${slug}：控制条底边 ${r.bottom} 超出窗口 ${r.vh}`);
     await ctx.close();
+  }
+});
+
+// iOS 不让没点过的嵌入播放器出声：在短片里让 play() 被拒绝，模拟这种情况
+const refuseSound = (ctx) => ctx.addInitScript(() => {
+  if (window === top) return;
+  const play = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function () { return Promise.reject(new DOMException("需要用户点击", "NotAllowedError")); };
+  window.allowSound = () => { HTMLMediaElement.prototype.play = play; };
+});
+
+test("真实短片：浏览器不让自动出声时，对话框里画面上出现播放按钮，点一下就开播", async () => {
+  for (const [slug] of filmNotes()) {
+    const { page, ctx, errors } = await open("/notes/");
+    await refuseSound(ctx);
+    await card(page, slug).locator(".film-play-btn").click();
+    const tap = film(page).locator("#tap");
+    await tap.waitFor();
+    assert.match(await film(page).locator("#play").textContent(), /播放/, "没出声就停着，不静音往下走");
+    const box = await tap.boundingBox(), svg = await film(page).locator("svg").first().boundingBox();
+    assert.ok(box.width >= svg.width - 1 && box.height >= svg.height - 1, "按钮盖住整个画面，点哪里都行");
+    // 读者点了画面里的按钮：浏览器这时允许出声
+    await film(page).locator("body").evaluate(() => window.allowSound());
+    await tap.click();
+    await film(page).locator("#play").filter({ hasText: "暂停" }).waitFor();
+    assert.equal(await tap.isHidden(), true);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+});
+
+test("真实短片：文章里点大播放按钮但浏览器不让出声时，大按钮交给短片画面上的播放按钮，不会点了就消失却不放", async () => {
+  for (const [slug] of filmNotes()) {
+    const { page, ctx, errors } = await open(`/notes/${slug}/`);
+    await refuseSound(ctx);
+    await page.reload();
+    const frame = page.frameLocator(".film-stage iframe");
+    await frame.locator("svg").first().waitFor();
+    await page.locator(".film-start").click();
+    await frame.locator("#tap").waitFor();
+    await page.locator(".film-start").waitFor({ state: "detached" });
+    assert.match(await frame.locator("#play").textContent(), /播放/);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+});
+
+test("真实短片：没有元素全屏的浏览器（iPhone）不显示「全屏」按钮", async () => {
+  for (const [, name] of filmNotes()) {
+    for (const supported of [true, false]) {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      if (!supported) await ctx.addInitScript(() => {
+        for (const k of ["fullscreenEnabled", "webkitFullscreenEnabled"]) Object.defineProperty(Document.prototype, k, { get: () => false, configurable: true });
+      });
+      const page = await ctx.newPage();
+      await page.goto(`${server.url}/films/${name}/play/`);
+      assert.equal(await page.locator("#fs").isVisible(), supported, `支持全屏：${supported}`);
+      assert.doesNotMatch(await page.locator(".hint").textContent(), /全屏/);
+      await ctx.close();
+    }
+  }
+});
+
+test("真实短片：触屏上文章里播放器的控制按钮都不小于 44px", async () => {
+  for (const [slug] of filmNotes()) {
+    for (const prefix of ["", "/en"]) {
+      const { page, ctx } = await open(`${prefix}/notes/${slug}/`, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      const frame = page.frameLocator(".film-stage iframe");
+      await frame.locator("svg").first().waitFor();
+      const hs = await frame.locator(".ctrls button:visible").evaluateAll((bs) => bs.map((b) => b.getBoundingClientRect().height));
+      assert.ok(hs.length >= 4 && hs.every((h) => h >= 44), `${prefix || "/"}：${hs}`);
+      await ctx.close();
+    }
   }
 });
 

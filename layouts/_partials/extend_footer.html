@@ -153,7 +153,8 @@
       // 文章里的播放器：画好之前显示封面；开播后收起大播放按钮；章节目录标上每章的开始时间
       const stage = f.closest(".film-stage");
       if (e.data.type === "film:ready") f.style.backgroundImage = "";
-      if (e.data.type === "film:playing") stage?.querySelector(".film-start")?.remove();
+      // 浏览器不让没点过画面的 iframe 出声（iOS）时，短片自己在画面上放一个播放按钮，这边的就收起
+      if (e.data.type === "film:playing" || e.data.type === "film:blocked") stage?.querySelector(".film-start")?.remove();
       if (e.data.type === "film:chapters" && Array.isArray(e.data.starts)) {
         const mmss = (t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
         document.querySelectorAll(".film-seek .film-at").forEach((s, i) => { if (Number.isFinite(e.data.starts[i])) s.textContent = mmss(e.data.starts[i]); });
@@ -169,7 +170,7 @@
   for (const b of document.querySelectorAll(".film-start")) {
     const f = b.closest(".film-stage").querySelector("iframe");
     b.hidden = false;
-    b.addEventListener("click", () => { f.contentWindow?.postMessage({ type: "film:play" }, "*"); b.remove(); f.focus(); });
+    b.addEventListener("click", () => { f.contentWindow?.postMessage({ type: "film:play" }, "*"); f.focus(); });
   }
   // 章节目录里的「从这里播放」：把章节号发给同一篇里的播放器，并把播放器滚到眼前
   for (const b of document.querySelectorAll(".film-seek")) {
@@ -180,10 +181,10 @@
       f.contentWindow?.postMessage({ type: "film:seek", chapter: +b.dataset.chapter }, "*");
       f.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
       f.focus({ preventScroll: true });
-      f.closest(".film-stage").querySelector(".film-start")?.remove();
     });
   }
-  if (!openers.length) return;
+  // 没有 <dialog> 的浏览器（iOS 15.3 及更早）不拦截，点封面照常打开短片文章
+  if (!openers.length || typeof HTMLDialogElement !== "function") return;
   const build = () => {
     box = document.createElement("dialog");
     box.className = "film-dialog";

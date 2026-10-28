@@ -39,8 +39,14 @@
 - 桥接脚本 `assets/js/film-bridge.js`，经 postMessage 交换：
   - 博客 → 短片：`{type:"film:theme", theme}`，设到短片的 `<html data-theme>`；
   - 短片 → 博客：`film:ready`、`film:size`（`<html>` 的高度，文章里的播放器据此撑开）、`film:escape`（短片里按了 Esc）。
-  - 短片自己可以再发（可选）：`film:progress`（`cue`：当前第几句）、`film:ended`（放完了）、`film:playing`（开播了，博客收起画面上的大播放按钮）、`film:chapters`（`starts`：每章开始的秒数，标在章节目录上）。
+  - 短片自己可以再发（可选）：`film:progress`（`cue`：当前第几句）、`film:ended`（放完了）、`film:playing`（真的开播了，有配音时等声音出来再发；博客收起画面上的大播放按钮）、`film:blocked`（浏览器不让出声，见下文；博客同样收起大按钮）、`film:chapters`（`starts`：每章开始的秒数，标在章节目录上）。
   - 博客 → 短片（可选）：`film:play`（开播）、`film:seek`（`chapter`：从第几章放）。
+
+手机上要注意的几件事（真实短片的测试会检查）：
+
+- iOS 不让跨源 iframe 在读者点它之前出声，博客发来的 `film:play`、`?autoplay=1` 都会被拒。短片要接住 `play()` 的 `NotAllowedError`：停在原处，在画面上放一个盖住整个画面的播放按钮，读者在短片里点一下就能放，并发 `film:blocked`。
+- iPhone 没有元素全屏（只有视频能全屏），`document.fullscreenEnabled` 为假时不显示「全屏」按钮，说明文字也不提它。
+- 触屏上（`pointer: coarse`）控制按钮不小于 44px；悬停样式放进 `@media (hover: hover)`，否则点过之后一直停在悬停样式。
 - 博客打开短片时可能带 `?autoplay=1`（直接开播；浏览器不允许出声时短片应停在暂停状态，不要静音空跑）和 `?at=<句号>`（从第几句开始）。
 - 短片的计时不能只靠 `requestAnimationFrame`：播放器滚出视线、标签页在后台时浏览器不给动画帧，配音会停。用定时器或音频的 `ended` 事件推进。
 - 地址带 `?embed=fit`（全窗口放映）或 `?embed=page`（文章里的播放器）时，桥接脚本给 `<html>` 加 `data-embed="fit|page"`。
