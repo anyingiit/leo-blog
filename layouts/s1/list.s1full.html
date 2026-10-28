@@ -19,6 +19,10 @@
 <link rel="canonical" href="{{ .Permalink }}">
 <style>
 :root { color-scheme: light; }
+/* 关掉手机浏览器的「文字自动放大」（iOS Safari 及 X、微信等应用内浏览器）：原文页整体缩到屏宽后正文只有 5px 左右，
+   iOS 会把这些字单独放大一倍，而每行的位置和宽度是按原尺寸固定的，放大后的字折成更多行，与下面的行叠在一起。
+   站内章节页由 PaperMod 的 reset.css 设置了同样的规则，这个独立文件不用主题样式，要自己设 */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #e9e9e9; color: #1f2328; font: 15px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
 a { color: #0b57d0; }

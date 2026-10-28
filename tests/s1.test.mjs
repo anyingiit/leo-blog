@@ -3,6 +3,7 @@
 //   - 已发布版本的冻结文件原样发布（和 front matter 的 sha256 一致），未发布版本只有模板生成的 full.html
 //   - 完整 HTML 是单文件、首末都有译者声明；下载文件不进搜索引擎（_headers）
 //   - 手机和电脑上都没有横向滚动，全屏阅读的目录面板里有下载链接
+//   - 显示原版页的页面（含完整 HTML）都关掉了 iOS 的文字自动放大，否则手机上原版页的文字互相重叠
 // 冻结文件本身（PDF 页数、每页「非官方」标记、文字层、书签）由 tools/s1-import/test_release.py 检查
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -101,6 +102,31 @@ for (const [name, opts] of [["手机", devices["iPhone 13"]], ["电脑", { viewp
     await ctx.close();
   });
 }
+
+// iOS（Safari 和 X、微信等应用内浏览器都是 WebKit）会把显示得很小的字单独放大（text autosizing）。原版页整体缩到屏宽后
+// 正文只有 5px 左右，会被放大一倍；每行的位置和宽度按原尺寸固定，放大的字折成更多行，和下面的行叠在一起（2026-10-28 用户在
+// iPhone 上看到 v1.1 完整 HTML 大面积重叠）。CI 里的 Chromium 和 Linux 版 WebKit 都没有这个功能，截图测不出来，
+// 所以直接检查每个显示原版页的页面都关掉了它：站内页靠 PaperMod 的 reset.css，独立的完整 HTML（模板生成的 full.html
+// 和每个已发布版本的冻结文件）要自己设
+test("手机：显示原版页的页面都关掉了 iOS 的文字自动放大（text-size-adjust: 100%）", async () => {
+  const real = readdirSync(join(root, "content/translations/anthropic-s1")).filter((d) => /^v\d/.test(d)).map((v) => {
+    const d = JSON.parse(readFileSync(join(root, "content/translations/anthropic-s1", v, "_index.md"), "utf8").match(/^downloads: (.+)$/m)?.[1] ?? "null");
+    return `/translations/anthropic-s1/${v}/` + (d ? d.html.file.replace(/\.raw$/, "") : "full.html");
+  });
+  assert.ok(real.length >= 2, "v1.0、v1.1 都要检查");
+  const ctx = await browser.newContext(devices["iPhone 13"]);
+  const page = await ctx.newPage();
+  for (const p of [...real, `/s1-test/v1.0/files/${NAME}.html`, "/s1-test/v0.9/full.html", `/translations/anthropic-s1/${LATEST}/cover/`, `/translations/anthropic-s1/${LATEST}/cover/?read=1`]) {
+    await page.goto(server.url + p, { waitUntil: "load" });
+    const r = await page.evaluate(() => ({ sheets: document.querySelectorAll(".s1-sheet, template.s1-original-tpl").length, adjust: getComputedStyle(document.documentElement).getPropertyValue("text-size-adjust"), css: [...document.querySelectorAll("style")].map((e) => e.textContent).join("\n"), links: [...document.querySelectorAll("link[rel~=stylesheet]")].map((l) => l.href) }));
+    for (const href of r.links) r.css += "\n" + await (await ctx.request.get(href)).text();
+    assert.ok(r.sheets > 0, `${p} 里没有原版页`); // 手机上站内章节页默认重排，原版页在 <template> 里，切换后才放进页面
+    assert.equal(r.adjust, "100%", p);
+    // iOS 只认带 -webkit- 前缀的写法；Chromium 解析时会丢掉它，所以查样式表原文
+    assert.match(r.css, /(^|[}\s,])html\s*\{[^}]*-webkit-text-size-adjust:\s*100%/, `${p} 缺少 html { -webkit-text-size-adjust: 100% }`);
+  }
+  await ctx.close();
+});
 
 test("全屏阅读：目录面板底部有下载链接，不另加按钮", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
