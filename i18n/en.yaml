@@ -28,3 +28,12 @@
   translation: Transcript
 - id: film_read_transcript
   translation: Read the transcript
+# Bilingual translations (layouts/bilingual/)
+- id: bl_published
+  translation: "Published"
+- id: bl_view
+  translation: "View"
+- id: bl_both
+  translation: "Both"
+- id: bl_link_para
+  translation: "Link to paragraph"

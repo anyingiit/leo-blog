@@ -1,0 +1,16 @@
+{{- /* 原版阅读页的译者声明：和 S-1 译本同样的样式，一行要点，点开是完整声明 */ -}}
+{{- $p := .Params -}}
+<aside class="s1-notice s1-notice-short" id="bl-notice" role="note">
+  <details>
+    <summary><strong>非官方译文</strong>，{{ $p.method | default "机器翻译" }}，未经人工逐句校对，以<a href="{{ $p.source }}" rel="noopener">英文原文</a>为准。版权归原作者。<span class="s1-more">完整声明</span></summary>
+    <aside class="s1-notice" role="note">
+      <ul>
+        <li>原文：{{ with $p.originalTitle }}《{{ . }}》{{ end }}{{ with $p.author }}，{{ . }}{{ end }}{{ with $p.originalDate }}，{{ time.Format "2006 年 1 月 2 日" . }}发表{{ end }}，<a href="{{ $p.source }}" rel="noopener">{{ $p.source }}</a>。译者与原作者没有关联，译文未经作者审阅。</li>
+        <li><strong>翻译方式：</strong>{{ $p.methodDetail | default $p.method }}</li>
+        {{- with $p.captured }}{{ $cap := time.AsTime . }}<li><strong>原文采集时间：</strong>{{ $cap.UTC.Format "2006-01-02 15:04" }} UTC（北京时间 {{ ($cap.UTC.Add (time.ParseDuration "8h")).Format "2006-01-02 15:04" }}）。<strong>译文版本：</strong>{{ $p.version }}。</li>{{ end }}
+        <li>译者不对译文的准确性负责，读者据此作出的判断与行动后果自负。</li>
+        <li>原文著作权归{{ $p.author | default "原作者" }}所有。如权利人认为本译文不宜公开，请发邮件到 {{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}，我会立即删除。</li>
+      </ul>
+    </aside>
+  </details>
+</aside>

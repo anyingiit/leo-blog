@@ -11,13 +11,17 @@
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集、文章里的视频（见 [tests/README.md](../tests/README.md)、[video.md](video.md)）；构建结果没有超过 25 MiB 的文件 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/film.test.mjs` | 短片（见 [films.md](films.md)）：播放器原样发布并只插入桥接脚本、noindex、canonical；封面卡片是链接、没有脚本也能打开短片页；全窗口放映的沙箱、深浅色同步、返回键/Esc/关闭、修饰键点击不拦截；短片页按短片高度撑开；真实短片不引用外部样式和脚本、手机横屏画面够大；英文页放英文版（无中文、英文配音、英文封面）；卡片下的「播放短片」「阅读文字稿」按钮、Tab 顺序、从对话框去短片页后的返回；打开即开播、焦点在画面、背景不滚动、关掉再打开返回键按一下就关、记住进度、片尾「重看」；真实短片没有动画帧时照样往下放 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：站点生成的每个自带 `<html>` 的页面（含短片等独立页面；内容目录里原样提供的 `.html.raw` 下载文件不查，保留原始 HTML 的一切特征）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Lint and build → Test image-i18n |
-| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；完整 HTML 和 SEC 原页一样不设 viewport、不用脚本缩放（原样提供，手机由浏览器整页缩小）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/s1-links.test.mjs` | S-1 译本和译文栏目的每个链接：站内地址存在、`#片段` 有对应 id、不意外指回本页、中英文页只在该跨的地方跨、外链格式、原版 444 个跨章交叉引用、封面目录章节名落在同名章节、冻结 HTML 离线可跳；冻结 PDF 的书签和 477 个页内链接指向正确页（pypdf）；Chromium 和 WebKit 实点菜单、语言切换、翻章、全屏阅读目录/跳页/页码、下载、版本菜单 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/s1-behavior.test.mjs` | S-1 译本的用户行为清单（113 条，见各测试名）：栏目与导航、译本首页/版本页/章节页、重排与原版的默认/记忆/切换时停在同一页、缩放、沉浸阅读的进入退出（按钮、Esc、后退）、页码与跳页（含跳到下一章）、翻章、目录面板、缩放记忆、本机存储被禁用时照常可用；Chromium 和 WebKit | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/s1-behavior.test.mjs` | S-1 译本的用户行为清单（113 条，见各测试名）：栏目与导航、译本首页/版本页/章节页、重排与原版的默认/记忆/切换时停在同一页、缩放、沉浸阅读的进入退出（按钮、Esc、后退）、页码与跳页（含跳到下一章）、翻章、目录面板、缩放记忆、本机存储被禁用时照常可用、手机上原版页里表格细线和双线画得出来（完整 HTML 由浏览器整页缩小；站内原版视图用 zoom 缩小时 iPhone 的 WebKit 曾把 1pt 细线画成 0 宽；按像素检查）；Chromium 和 WebKit | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Lint and build → Test s1-import |
 | `tools/s1-import/test_import.py` | 导入脚本 `import.py` 把译文 Markdown 转成 Hugo 正文：脚注标记保留为上标，被误包进 `<sup>` 的整句、中文、点线引导符去掉上标；章首前只有图片的整页分隔图归入后一章；导入新版本时内容变了的同名配图加内容哈希另存，旧版本仍用原图 | Lint and build → Test s1-import |
+| `tests/bilingual.test.mjs` | 双语对照译文（[bilingual-translations.md](bilingual-translations.md)）：全文下载是冻结文件原样发布（大小、sha256）、直链无门槛、小文件按 KB 显示；站内显示原版版式的页面都关掉了 iOS 文字自动放大；导入用的源文件不发布；版本条、声明、版权行；重排版段落齐全；英文页只放说明不放原文全文、中英互链；Chromium 和 WebKit 上的首次默认版式（电脑原版、手机重排）、版式和「中文/对照/English」记住选择、全屏阅读进出（按钮、Esc、后退）、缩放、无横向滚动、深色模式纸面不反色且纸面里每个元素的文字颜色和浅色模式一致、本机存储被禁用、不开脚本、段落锚点 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tools/bilingual-import/test_import.py` | 导入脚本 `import.py`：沉浸式翻译网页拆成段落对（标题/作者进 header、行内 Markdown、特殊字符转义、插件注入的脚本/弹窗去掉）、原版片段（作者样式加 `.bl-sheet` 前缀、译文换成统一的 span）；仓库里每篇用 `source.html.raw` 重新导入，结果逐字节不变 | Lint and build → Test bilingual-import |
+| `tools/bilingual-import/test_release.py` | 发布脚本 `release.py`（不覆盖已发布版本；下载的 HTML 是保存的原网页原样，去掉加的声明和 noindex 后与原网页逐字节相同；和 S-1 共用文字层修正），以及每篇已发布的冻结 HTML/PDF：大小和 sha256、和 `source.html.raw` 对得上、首末有声明、没有加原网页没有的样式、PDF 每页「非官方」标记、无部首字符、尺寸、元数据、标签结构 | Lint and build → Test bilingual-import |
 | `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面（含短片封面、短片页、全窗口放映），Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
@@ -86,6 +90,21 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 3. 同一件事只做一次。整站构建由站点回归测试（`site.test.mjs` 用 `build.sh` 构建正式站）完成，Lint and build 不再单独构建；Hugo 处理过的图片（`resources/_gen`）用 `actions/cache` 跨运行复用，整站冷构建约 55 秒，有缓存约 2 秒。Hugo 按源文件和处理参数给缓存文件命名，内容变了就会重新生成；Hugo 版本（`build.sh`）或图片渲染钩子（`layouts/_markup/`）变了，整份缓存作废。
 
 一次全量运行约 13 计费分钟（原来 10 个任务约 20 分钟），测试内容不变。新增任务或让主题测试读取新目录前，先对照这两条。
+
+## 手机端
+
+2026-10-28 用户在 iPhone 上发现 S-1 完整 HTML 文字重叠，随后对全站做了一次手机端检查（问题清单见项目文件 `mobile-audit/`）。找到的问题都在上面那套截图测试看不到的地方：
+
+- **截图测试不开手机模式**：为了基准稳定，主题截图在 DPR 1、不开 isMobile 下拍，390 宽是它唯一的手机宽度。320 宽（iPhone SE，也相当于 Safari 把页面放大到 120%）、横屏、安卓 360 宽都没有测，英文菜单被裁、全屏阅读顶栏挤坏都出在这些宽度。
+- **只看 scrollWidth 测不出「被压扁」**：flex 布局放不下时先压缩子元素，不会溢出。全屏阅读顶栏的目录入口被压成 0 宽、缩放组被裁，`scrollWidth <= clientWidth` 照样成立。现在逐个量控件：完整可见、在容器和屏幕里、至少 44×44。
+- **iOS 独有的行为 CI 的浏览器都没有**：文字自动放大、按设备像素取整的细线、地址栏收放后 `vh` 和可见高度不一致、点击事件委托、没有元素全屏 API、跨源 iframe 不能自动播放。能写成规则的写成静态检查（`mobile.test.mjs` 查站点生成的每个独立页面的 `-webkit-text-size-adjust`，原样提供的下载 HTML 不改也不查；全屏层用 `dvh` 并保留 `vh` 回退）；S-1 原文页表格细线按设备像素取整后消失的问题，由框线修复单独处理和测试；其余的只能在 iOS 上看。
+
+因此：
+
+- `tests/mobile.test.mjs`：真实手机参数下逐页检查，Chromium 跑 iPhone SE、iPhone 13 竖屏和横屏、Pixel 7，WebKit 跑三种 iPhone。只做几何检查不截图，两个浏览器合计约 1 分钟。
+- `tests/s1-behavior.test.mjs` 的手机用例：全屏阅读顶栏逐个量控件（320 宽和 390/412 宽、重排和原版）；横版页和竖版页同宽、不横向滚动；版本表每一项都在屏幕里。
+- `tests/browser.test.mjs`：灯箱横扫后第一次点按不被吞掉、能双指放大、横屏时计数/图注/关闭按钮/图片互不遮挡。
+- **iOS 模拟器只做复核**：用户的 Mac 上有 Xcode 的 iOS 模拟器，可以用 Safari 打开真实页面截图。它不进 CI，只在大改样式、发现严重的手机问题、发布大版本时用（用户 2026-10-28 定的）。
 
 ## 本地运行
 

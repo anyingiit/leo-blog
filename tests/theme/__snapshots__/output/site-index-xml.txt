@@ -121,6 +121,13 @@ A[想法] --&amp;gt; B[短文]&lt;/pre&gt;</description>
 <description>&lt;p&gt;一篇很短的长文，用来检查首页列表、归档和上一篇/下一篇。&lt;/p&gt;</description>
 </item>
 <item>
+<title>一篇测试短文</title>
+<link>http://blog.test/translations/sample-essay/</link>
+<pubDate>Sat, 10 Jan 2026 00:00:00 +0800</pubDate>
+<guid>http://blog.test/translations/sample-essay/</guid>
+<description>视觉回归测试用的双语对照译文。</description>
+</item>
+<item>
 <title>短文 7</title>
 <link>http://blog.test/notes/short-7/</link>
 <pubDate>Wed, 07 Jan 2026 08:00:00 +0000</pubDate>

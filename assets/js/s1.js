@@ -12,13 +12,20 @@
   let zoom = "fit"; // 沉浸阅读里的缩放："fit" 或具体倍数
   try { const z = localStorage.getItem("s1-zoom"); if (z && z !== "fit") zoom = +z; } catch {}
   const immersive = () => document.body.classList.contains("s1-immersive");
+  // 手机（竖屏，或横屏的矮触屏）不给缩放按钮，原版固定适应宽度、用双指缩放：手机浏览器的布局视口会跟着放大后的页面变宽，
+  // 固定的顶栏也跟着变宽，右半边控件跑到屏幕外。和 s1.css 的同一条媒体查询保持一致
+  const zoomUI = () => !matchMedia("(max-width: 600px), (pointer: coarse) and (max-height: 500px)").matches;
+  const zoomed = () => immersive() && zoom !== "fit" && zoomUI();
 
   const fitScale = (box) => Math.min(wide || immersive() ? 1.4 : 1, (immersive() ? document.documentElement.clientWidth : box.clientWidth) / 836);
   const fit = () => {
     for (const box of document.querySelectorAll(".s1-sheets")) {
       if (!box.offsetParent) continue;
-      const s = immersive() && zoom !== "fit" ? zoom : fitScale(box);
-      box.firstElementChild.style.zoom = s !== 1 ? s.toFixed(4) : "";
+      const s = zoomed() ? zoom : fitScale(box);
+      const inner = box.firstElementChild;
+      inner.style.zoom = s !== 1 ? s.toFixed(4) : "";
+      // 缩小时 s1.css 按这个倍数加粗表格细线，免得 WebKit 把它们画成 0 宽
+      if (s < 1) inner.style.setProperty("--s1-z", s.toFixed(4)); else inner.style.removeProperty("--s1-z");
     }
   };
   const number = (root) => {
@@ -47,7 +54,8 @@
     }
   };
   // 阅读位置 = 原文页码 + 在这一页里读到的比例，切换版式、缩放、进出沉浸时保持
-  const TOP = () => (immersive() ? 60 : 80); // 沉浸阅读里和 s1.css 的 scroll-padding-top 一致，锚点跳到的页算作当前页
+  // 沉浸阅读里和 s1.css 的 scroll-padding-top（顶栏高度 + 8）一致，锚点跳到的页算作当前页；顶栏在很窄的屏幕上折成两行
+  const TOP = () => (immersive() ? (ibar?.offsetHeight || 52) + 8 : 80);
   const firstPage = +(chapter?.dataset.firstPage || 0) || null;
   const lastPage = +(chapter?.dataset.lastPage || 0) || Infinity;
   const pageBlocks = () => {
@@ -105,7 +113,7 @@
     if (toggleBtn) toggleBtn.textContent = view() === "original" ? "重排版" : "原版";
     if (fitBtn) {
       const box = original?.querySelector(".s1-sheets");
-      fitBtn.textContent = box?.offsetParent ? Math.round((zoom === "fit" ? fitScale(box) : zoom) * 100) + "%" : "适应";
+      fitBtn.textContent = box?.offsetParent ? Math.round((zoomed() ? zoom : fitScale(box)) * 100) + "%" : "适应";
       fitBtn.title = zoom === "fit" ? "当前：适应宽度" : "恢复适应宽度";
     }
   };
@@ -212,6 +220,13 @@
         e.preventDefault(); pageEl.click();
       }
     });
+    // 目录打开时当前章在面板里可见（短屏上它常在面板底部以下）
+    ibar.querySelector(".s1-ibar-toc")?.addEventListener("toggle", (e) => {
+      const box = e.target.querySelector(".s1-toc"), cur = box?.querySelector('[aria-current="page"]');
+      if (!e.target.open || !cur) return;
+      const b = box.getBoundingClientRect(), r = cur.getBoundingClientRect();
+      if (r.bottom > b.bottom || r.top < b.top) box.scrollTop += r.top - b.top - (b.height - r.height) / 2; // 只滚面板，不动正文
+    });
     document.addEventListener("click", (e) => {
       const t = ibar.querySelector(".s1-ibar-toc[open]");
       if (t && !t.contains(e.target)) t.open = false;
@@ -233,7 +248,9 @@
     // 原版目录里的跨章链接（#id）只在原版里有目标
     const hash = decodeURIComponent(location.hash.slice(1));
     const wantOriginal = hash && !document.getElementById(hash) && tpl?.content.getElementById(hash);
-    const initial = wantOriginal ? "original" : saved || (narrow() ? "reflow" : "original");
+    // 双语译文的段落链接（#p3）只在重排版里有目标：带着它打开时显示重排版（不改读者记住的选择）
+    const wantReflow = !wantOriginal && hash && chapter.hasAttribute("data-hash-reflow") && reflow?.contains(document.getElementById(hash));
+    const initial = wantOriginal ? "original" : wantReflow ? "reflow" : saved || (narrow() ? "reflow" : "original");
     if (initial === "original") {
       show("original", false);
       if (wantOriginal) document.getElementById(hash)?.scrollIntoView();

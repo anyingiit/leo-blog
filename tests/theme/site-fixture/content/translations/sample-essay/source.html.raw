@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Sample --- 样例</title>
+<style>.style1 { font-family: Palatino; }
+h1, h2 { color: #222; }</style>
+<style data-id="immersive-translate-input-injected-css">.imt-x { color: red; }</style>
+<script>window.imt = 1;</script>
+</head>
+<body data-imt-p="1">
+<h1 data-immersive-translate-walked="x">A Sample Essay<font class="notranslate immersive-translate-target-wrapper" lang="zh-CN"><font class="notranslate">&nbsp;&nbsp;</font><font class="notranslate immersive-translate-target-translation-theme-none immersive-translate-target-translation-inline-wrapper-theme-none immersive-translate-target-translation-inline-wrapper"><font class="notranslate immersive-translate-target-inner immersive-translate-target-translation-theme-none-inner">一篇样例短文</font></font></font></h1>
+<h2>Jane Doe<font class="notranslate immersive-translate-target-wrapper" lang="zh-CN"><font class="notranslate immersive-translate-target-inner">简·多伊</font></font></h2>
+<p class="style1">Plain text with <i>italics</i>, a <a href="https://example.com/x">link</a>, a star * and $5 &lt;tag&gt;. A quote ``like this" here.<font class="notranslate immersive-translate-target-wrapper" lang="zh-CN"><br><font class="notranslate immersive-translate-target-translation-theme-none immersive-translate-target-translation-block-wrapper-theme-none immersive-translate-target-translation-block-wrapper"><font class="notranslate immersive-translate-target-inner">纯文本，带*斜体*、链接、星号和 5 美元。</font></font></font></p>
+<p>1984. was a year.<font class="notranslate immersive-translate-target-wrapper" lang="zh-CN"><br><font class="notranslate immersive-translate-target-translation-block-wrapper"><font class="notranslate immersive-translate-target-inner">1984 年是一年。</font></font></font></p>
+<p>No translation here.</p>
+<div id="immersive-translate-popup" style="all: initial">popup</div>
+<template id="mount">x</template>
+</body></html>

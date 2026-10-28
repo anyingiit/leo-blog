@@ -122,6 +122,13 @@ A[Idea] --&amp;gt; B[Note]&lt;/pre&gt;</description>
 <description>&lt;p&gt;A short post to check the home list, archive and previous/next links.&lt;/p&gt;</description>
 </item>
 <item>
+<title>A Sample Essay (Chinese translation)</title>
+<link>http://blog.test/en/translations/sample-essay/</link>
+<pubDate>Sat, 10 Jan 2026 00:00:00 +0800</pubDate>
+<guid>http://blog.test/en/translations/sample-essay/</guid>
+<description>A fixture for the visual regression tests.</description>
+</item>
+<item>
 <title>Note 7</title>
 <link>http://blog.test/en/notes/short-7/</link>
 <pubDate>Wed, 07 Jan 2026 08:00:00 +0000</pubDate>

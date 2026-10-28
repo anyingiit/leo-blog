@@ -103,7 +103,7 @@ for (const [name, opts] of [["手机", devices["iPhone 13"]], ["电脑", { viewp
   });
 }
 
-// iOS（Safari 和 X、微信等应用内浏览器都是 WebKit）会把显示得很小的字单独放大（text autosizing）。原版页整体缩到屏宽后
+// iOS（Safari 和 X、微信等应用内浏览器都是 WebKit）会把显示得很小的字单独放大（text autosizing）。手机上原版页整体缩小后
 // 正文只有 5px 左右，会被放大一倍；每行的位置和宽度按原尺寸固定，放大的字折成更多行，和下面的行叠在一起（2026-10-28 用户在
 // iPhone 上看到 v1.1 完整 HTML 大面积重叠）。CI 里的 Chromium 和 Linux 版 WebKit 都没有这个功能，截图测不出来，
 // 所以直接检查每个显示原版页的页面都关掉了它：站内页靠 PaperMod 的 reset.css，独立的完整 HTML（模板生成的 full.html
@@ -126,6 +126,20 @@ test("手机：显示原版页的页面都关掉了 iOS 的文字自动放大（
     assert.match(r.css, /(^|[}\s,])html\s*\{[^}]*-webkit-text-size-adjust:\s*100%/, `${p} 缺少 html { -webkit-text-size-adjust: 100% }`);
   }
   await ctx.close();
+});
+
+// 完整 HTML 原样提供：和 SEC 原文 HTML 一样不设 viewport、不用脚本缩放，手机浏览器按电脑网页整页缩小。
+// 自己用 zoom 缩到屏宽时 iPhone 会把原文表格的 1pt 细线画成 0 宽（2026-10-28），用户要求与原页一致、不做额外适配
+test("完整 HTML（模板生成的和每个冻结文件）都不设 viewport、不自己缩放", () => {
+  const pages = readdirSync(join(root, "content/translations/anthropic-s1")).filter((d) => /^v\d/.test(d)).map((v) => {
+    const d = JSON.parse(readFileSync(join(root, "content/translations/anthropic-s1", v, "_index.md"), "utf8").match(/^downloads: (.+)$/m)?.[1] ?? "null");
+    return `translations/anthropic-s1/${v}/` + (d ? d.html.file.replace(/\.raw$/, "") : "full.html");
+  });
+  for (const p of [...pages, `s1-test/v1.0/files/${NAME}.html`, "s1-test/v0.9/full.html"]) {
+    const h = read(p);
+    assert.doesNotMatch(h, /<meta[^>]+name="?viewport/, `${p} 不应设 viewport`);
+    assert.doesNotMatch(h, /\.zoom\s*=/, `${p} 不应用脚本缩放`);
+  }
 });
 
 test("全屏阅读：目录面板底部有下载链接，不另加按钮", async () => {

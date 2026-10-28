@@ -72,7 +72,8 @@ const noHScroll = (page) => page.evaluate(() => document.documentElement.scrollW
 
 // 当前在读的原文页：页面顶部（顶栏/页头下沿）所在的那一页。原版看 .s1-sheet，重排版看「原文第 N 页」分隔（分隔线在第 N 页末尾）
 const pageAt = (page) => page.evaluate(() => {
-  const y = document.body.classList.contains("s1-immersive") ? 61 : 81; // s1.js 的 TOP（沉浸 60、普通 80）下面一像素
+  // s1.js 的 TOP（沉浸为顶栏高度 + 8，普通 80）下面一像素
+  const y = (document.body.classList.contains("s1-immersive") ? document.querySelector(".s1-ibar").offsetHeight + 8 : 80) + 1;
   const o = document.querySelector(".s1-original");
   if (!o.hidden) {
     let p = null;
@@ -86,7 +87,7 @@ const pageAt = (page) => page.evaluate(() => {
 // 滚到原文第 n 页（frac 是在这一页里的比例），等滚动停下
 const scrollToPage = async (page, n, frac = 0.3) => {
   await page.evaluate(([n, frac]) => {
-    const imm = document.body.classList.contains("s1-immersive"), top = imm ? 60 : 80;
+    const imm = document.body.classList.contains("s1-immersive"), top = imm ? document.querySelector(".s1-ibar").offsetHeight + 8 : 80;
     const o = document.querySelector(".s1-original");
     let el, next;
     if (!o.hidden) { el = o.querySelector(`.s1-sheet[data-page="${n}"]`); next = el.nextElementSibling; }
@@ -118,7 +119,7 @@ for (const [lang, home, label, list, entry] of [["中文", "/", "译文", "/tran
     await waitPath(s.page, list);
     // 菜单当前项高亮
     assert.equal(await s.page.locator("#menu .active").textContent(), label);
-    await s.page.locator(".post-entry .entry-link").first().click();
+    await s.page.locator(`.post-entry .entry-link[href$="${entry}"]`).click();
     await waitPath(s.page, entry);
     assert.equal(await s.page.locator("html").getAttribute("lang"), lang === "中文" ? "zh" : "en");
     await s.done();
@@ -759,6 +760,89 @@ for (const engine of ENGINES) {
     await s.done();
   });
 
+  // 2026-10-28 手机端检查：原来的顶栏一行放不下（约 508px），控件被 flex 压缩而不是溢出，scrollWidth 看不出来——
+  // 目录入口被压成 0 宽、缩放组被裁、「退出」被推出 320 宽的屏幕。所以逐个量控件：完整可见、在顶栏和屏幕里、够大好点
+  // 320 两行、375 一行最挤、390/412 一行、667 横屏（601–760 之间：缩放组显示、文字标签隐藏）
+  const SIZES = { "iPhone SE": devices["iPhone SE"], "375 宽": { ...devices["iPhone 13"], viewport: { width: 375, height: 667 } }, "667 横屏": { ...devices["iPhone 13"], viewport: { width: 667, height: 375 } } };
+  SIZES[engine === "webkit" ? "iPhone 13" : "Pixel 7"] = devices[engine === "webkit" ? "iPhone 13" : "Pixel 7"];
+  for (const device of Object.keys(SIZES)) {
+    test(`${engine} · ${device}：全屏阅读顶栏的每个控件都完整可见、在顶栏和屏幕里、至少 44×44；电脑上记的缩放不带到手机上`, async (t) => {
+      const s = await open(t, engine, SIZES[device]);
+      if (!s) return;
+      const { page } = s;
+      const phone = await page.evaluate(() => matchMedia("(max-width: 600px), (pointer: coarse) and (max-height: 500px)").matches);
+      await page.addInitScript(() => localStorage.setItem("s1-zoom", "1.5"));
+      await s.go(V + "risk-factors/?read=1");
+      for (const view of ["reflow", "original"]) {
+        if ((await shown(page)) !== view) await page.locator(".s1-ibar [data-toggle-view]").click();
+        const bad = await page.evaluate(() => {
+          const vw = document.documentElement.clientWidth, bar = document.querySelector(".s1-ibar").getBoundingClientRect(), out = [];
+          for (const el of document.querySelectorAll(".s1-ibar > :is(a, button, details, span), .s1-ibar :is(a, button, summary)")) {
+            if (el.closest(".s1-ibar-panel") || !el.checkVisibility()) continue;
+            const r = el.getBoundingClientRect(), name = (el.className || el.tagName) + "「" + el.textContent.trim().slice(0, 8) + "」";
+            if (r.left < -0.5 || r.right > vw + 0.5) out.push(name + " 超出屏幕");
+            if (r.top < bar.top - 0.5 || r.bottom > bar.bottom + 0.5) out.push(name + " 超出顶栏");
+            if (el.matches("a, button, summary") && (r.width < 44 || r.height < 44)) out.push(`${name} ${Math.round(r.width)}×${Math.round(r.height)}`);
+            if (el.matches(".s1-ibar-zoom") && el.scrollWidth > el.clientWidth) out.push("缩放组被裁");
+          }
+          return out;
+        });
+        assert.deepEqual(bad, [], view);
+        assert.ok(await noHScroll(page), view + " 不应横向滚动");
+      }
+      // 手机竖屏上没有缩放按钮，原版固定适应宽度（双指缩放照常可用）；横屏有缩放按钮，用记住的倍数
+      const z = await page.evaluate(() => +document.querySelector(".s1-original .s1-sheets-inner").style.zoom);
+      if (phone) assert.ok(Math.abs(z - (await page.evaluate(() => document.documentElement.clientWidth)) / 836) < 0.001, `原版缩放 ${z} 不是适应宽度`);
+      // 靠后的章节打开目录：当前章滚到面板可见处，正文不跟着动（短屏上它原来在面板底部以下）
+      await s.go(V + "principal-stockholders/?read=1");
+      const y = await page.evaluate(() => scrollY);
+      await page.locator(".s1-ibar-toc summary").click();
+      // toggle 事件在展开之后异步触发
+      const inside = await page.waitForFunction(() => {
+        const b = document.querySelector(".s1-ibar-toc .s1-toc").getBoundingClientRect(), c = document.querySelector('.s1-ibar-toc [aria-current="page"]').getBoundingClientRect();
+        return c.top >= b.top - 0.5 && c.bottom <= b.bottom + 0.5;
+      }, null, { timeout: 2000 }).then(() => true, () => false);
+      assert.ok(inside, "目录打开时当前章应在面板里可见");
+      assert.equal(await page.evaluate(() => scrollY), y, "打开目录不应滚动正文");
+      await s.done();
+    });
+  }
+
+  test(`${engine}：手机上横版页缩到和竖版页同宽，原版和全屏阅读都不用横向滚动`, async (t) => {
+    const s = await open(t, engine, PHONE[engine]);
+    if (!s) return;
+    const { page } = s;
+    const check = async (where) => {
+      const r = await page.evaluate(() => {
+        const o = document.querySelector(".s1-original"), box = o.querySelector(".s1-sheets");
+        const w = (sel) => [...o.querySelectorAll(sel)].map((e) => Math.round(e.getBoundingClientRect().width));
+        return { land: w('.s1-sheet[style*="width:792pt"]'), port: w('.s1-sheet[style*="width:612pt"]'), box: box.scrollWidth - box.clientWidth };
+      });
+      assert.ok(r.land.length > 0, "测试前提：本章有横版页");
+      for (const x of r.land) assert.ok(Math.abs(x - r.port[0]) <= 1, `${where}：横版页宽 ${x}，竖版页宽 ${r.port[0]}`);
+      assert.ok(r.box <= 0, `${where}：原版框里还要横向滚动 ${r.box}px`);
+      assert.ok(await noHScroll(page), where + " 整页不应横向滚动");
+    };
+    await s.go(V + "principal-stockholders/");
+    await page.locator('.s1-switch [data-view="original"]').click();
+    await check("原版");
+    await page.locator("[data-enter]").click();
+    await waitPath(page, V + "principal-stockholders/?read=1");
+    await check("全屏阅读");
+    await s.done();
+  });
+
+  test(`${engine}：手机上「全部版本」表的每一项都在屏幕里，不用横向滚动`, async (t) => {
+    const s = await open(t, engine, PHONE[engine]);
+    if (!s) return;
+    const { page } = s;
+    await s.go(R);
+    const out = await page.locator(".s1-versions td").evaluateAll((tds) => tds.filter((td) => td.checkVisibility() && td.getBoundingClientRect().right > document.documentElement.clientWidth + 0.5).map((td) => td.textContent.trim().slice(0, 12)));
+    assert.deepEqual(out, []);
+    assert.equal(await page.locator(".s1-versions").evaluate((t) => t.scrollWidth - t.clientWidth), 0);
+    await s.done();
+  });
+
   test(`${engine}：手机上进入沉浸保持重排版、顶栏放得下、没有横向滚动；窗口变化时原版重新适配`, async (t) => {
     const s = await open(t, engine, PHONE[engine]);
     if (!s) return;
@@ -793,3 +877,50 @@ test("沉浸重排版里跳到下一章的第一页，应打开下一章", async
   await waitBar(page, chapters[2].pages[0]);
   await s.done();
 });
+
+// 手机上缩小显示的原版页里，表格的细线和双线都要画出来。WebKit（Safari，以及 iPhone 上的所有浏览器）在 zoom<1、3 倍屏上
+// 曾把折叠表格的 1pt 细线画成 0 宽：iPhone 上原文表格框线、财务表合计线全部不见（2026-10-28 用户在 iPhone 上发现）；
+// 3pt 双线缩小后只剩一条实线。站内页由 s1.css 按 --s1-z 加粗它们；完整 HTML 和 SEC 原页一样不设 viewport、不自己缩放，
+// 由手机浏览器整页缩小，细线本来就画得出来。这里在边缘截一条，看有没有整列（整行）的深色像素
+const edgeProfile = async (page, sel, edge) => {
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), sel);
+  await settle(page);
+  // 截整个可视区再在画布上裁出边缘：完整 HTML 不设 viewport，手机上整页缩小（visualViewport.scale < 1），
+  // 这时 Chromium 按 clip 截图会重新排版，截不到眼前画出来的样子。坐标换算成可视区里的 CSS 像素
+  const b = await page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(), v = visualViewport; return { x: (r.x - v.offsetLeft) * v.scale, y: (r.y - v.offsetTop) * v.scale, w: r.width * v.scale, h: r.height * v.scale, vw: v.width * v.scale }; }, sel);
+  const clip = edge === "left" ? { x: b.x - 4, y: b.y + 2, width: 10, height: Math.min(b.h - 4, 150) } : { x: b.x + 2, y: b.y + b.h - 6, width: Math.min(b.w - 4, 150), height: 12 };
+  const png = (await page.screenshot()).toString("base64");
+  // 每一列（竖线）或每一行（横线）里深色像素的比例，按顺序返回
+  return page.evaluate(async ([png, edge, clip, vw]) => {
+    const img = new Image(); img.src = "data:image/png;base64," + png; await img.decode();
+    const k = img.width / vw, W = Math.round(clip.width * k), H = Math.round(clip.height * k);
+    const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+    g.drawImage(img, Math.round(clip.x * k), Math.round(clip.y * k), W, H, 0, 0, W, H);
+    const d = g.getImageData(0, 0, W, H).data;
+    const dark = (x, y) => { const i = (y * W + x) * 4; return d[i] + d[i + 1] + d[i + 2] < 300; };
+    const out = [];
+    if (edge === "left") for (let x = 0; x < W; x++) { let n = 0; for (let y = 0; y < H; y++) n += dark(x, y); out.push(n / H); }
+    else for (let y = 0; y < H; y++) { let n = 0; for (let x = 0; x < W; x++) n += dark(x, y); out.push(n / W); }
+    return out;
+  }, [png, edge, clip, b.vw]);
+};
+// 连续的深色线条数：双线应是两条，中间隔着浅色
+const lines = (profile) => profile.map((v) => v > 0.9).reduce((n, on, i, a) => n + (on && !a[i - 1]), 0);
+for (const engine of ENGINES) {
+  test(`${engine}：手机上原版页里表格细线和双线都画得出来（完整 HTML 由浏览器整页缩小，站内原版视图和全屏阅读用 zoom）`, async (t) => {
+    const s = await open(t, engine, PHONE[engine]);
+    if (!s) return;
+    const { page } = s;
+    await s.ctx.addInitScript(() => { try { localStorage.setItem("s1-view-narrow", "original"); } catch {} });
+    const versions = VERSIONS.map((v) => { const d = JSON.parse(readFileSync(join(root, "content/translations/anthropic-s1", v, "_index.md"), "utf8").match(/^downloads: (.+)$/m)?.[1] ?? "null"); return R + v + "/" + (d ? d.html.file.replace(/\.raw$/, "") : "full.html"); });
+    for (const p of [...versions, V + "financial-statements-2/", V + "financial-statements-2/?read=1"]) {
+      await s.go(p);
+      const z = await page.evaluate(() => ({ zoom: document.querySelector(".s1-sheets-inner").style.zoom, viewport: !!document.querySelector("meta[name=viewport]"), scale: visualViewport.scale }));
+      if (versions.includes(p)) assert.ok(!z.viewport && z.zoom === "" && z.scale < 1, `${p} 应像 SEC 原页一样由浏览器整页缩小：${JSON.stringify(z)}`);
+      else assert.ok(+z.zoom < 1, `${p} 应缩小显示`);
+      assert.equal(lines(await edgeProfile(page, '.s1-sheet td[style*="border-left:1pt solid"]', "left")), 1, `${p}：1pt 竖线`);
+      assert.equal(lines(await edgeProfile(page, '.s1-sheet td[style*="border-bottom:3pt double"]', "bottom")), 2, `${p}：3pt 双线`);
+    }
+    await s.done();
+  });
+}

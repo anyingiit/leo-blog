@@ -18,7 +18,7 @@
 [data-theme="dark"] .s1-vtag.s1-latest { border-color: #16a34a; color: #16a34a; }
 .s1-vmenu { position: relative; }
 .s1-vmenu summary { cursor: pointer; text-decoration: underline; }
-.s1-vmenu ul { position: absolute; z-index: 5; inset-inline-start: 0; top: 1.8em; min-width: 260px; list-style: none; margin: 0;
+.s1-vmenu ul { position: absolute; z-index: 5; inset-inline-start: 0; top: 1.8em; min-width: min(260px, 100vw - 2 * var(--gap)); list-style: none; margin: 0;
   padding: 8px 12px; background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 18px rgb(0 0 0 / .12); }
 .s1-vmenu li { margin: 4px 0; }
 .s1-vmenu li[aria-current] a { font-weight: 700; }
@@ -61,13 +61,15 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 [data-theme="dark"] .s1-sheet { filter: brightness(.75); }
 .s1-sheet a { color: #0000ee; text-decoration: underline; box-shadow: none; }
 .s1-sheet img { max-width: none; } /* PaperMod 的 img{max-width:100%} 在没有宽度的绝对定位容器里会把图片算成 0 宽（原文第 2、412 页的黑底图） */
+/* 横版页（792pt 宽，原文的大表格）：缩到和竖版页同宽（818/1058，含 1px 页框），和 PDF 阅读器「适应宽度」一样整页可见。
+   否则手机上右侧约 1/5 要在框内横滑才看得到，全屏阅读里还会把整页撑宽、把顶栏右端推出屏幕。打印时不缩，用横版纸（list.s1full.html） */
+@media screen { .s1-sheet[style*="width:792pt"] { zoom: .7732; --s1-zl: .7732; } } /* --s1-zl：横版页里的细线按两层缩放相乘加粗（见下面的细线规则） */
 @media (max-width: 880px) {
   .s1-sheets { margin-inline: calc(var(--gap) * -1); border-radius: 0; }
 }
 
 .s1-toc li[aria-current] > a { font-weight: 700; }
 .s1-rights { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--secondary); }
-.s1-reflow table { display: block; overflow-x: auto; font-size: 14px; }
 .s1-reflow img { height: auto; }
 
 /* 加宽（params.s1wide）：原版页面跳出 720px 正文栏，最宽 1240px，页面按宽度放大（最多 1.4 倍，见 s1.js） */
@@ -88,15 +90,17 @@ body:has(.s1-original:not([hidden])) .main > .s1-chapter { max-width: none; }
 .s1-read-link { display: flex; align-items: center; padding: 6px 14px; font-size: 14px; border: 1px solid var(--primary); border-radius: var(--radius); background: var(--theme); color: var(--primary) !important; box-shadow: 0 2px 8px rgb(0 0 0 / .08); }
 .s1-read-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .s1-ibar { display: none; }
-body.s1-immersive { padding-top: 52px; }
-html:has(body.s1-immersive) { scroll-padding-top: 60px; }
+/* 顶栏高度：手机竖屏放不下一行时折成两行（见下面的 max-width: 374px），正文留白、锚点停靠、目录面板位置和 s1.js 的 TOP 都跟着它 */
+:root { --s1-ibar-h: 52px; }
+body.s1-immersive { padding-top: var(--s1-ibar-h); }
+html:has(body.s1-immersive) { scroll-padding-top: calc(var(--s1-ibar-h) + 8px); }
 body.s1-immersive :is(.header, .footer, .top-link, .s1-chapter > :not(.s1-original, .s1-ibar, .s1-reflow, .s1-rights)) { display: none !important; }
 body.s1-immersive .main { max-width: none !important; padding: 0; margin: 0; }
 body.s1-immersive .s1-original { width: auto !important; margin: 0 !important; max-width: none !important; }
-body.s1-immersive .s1-sheets { border-radius: 0; margin: 0; min-height: calc(100vh - 52px); overflow: visible; width: max-content; min-width: 100%; }
+body.s1-immersive .s1-sheets { border-radius: 0; margin: 0; min-height: calc(100vh - var(--s1-ibar-h)); overflow: visible; width: max-content; min-width: 100%; }
 body.s1-immersive .s1-rights { max-width: var(--main-width); margin: 0 auto; padding: 16px var(--gap) 32px; }
 body.s1-immersive .s1-reflow { max-width: var(--main-width) !important; margin: 0 auto !important; padding: 16px var(--gap) 48px; }
-body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-index: 50; height: 52px; max-width: none !important; margin: 0 !important;
+body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-index: 50; height: var(--s1-ibar-h); max-width: none !important; margin: 0 !important;
   display: flex; align-items: center; gap: 10px; padding: 0 12px; background: var(--theme); border-bottom: 1px solid var(--border);
   font-size: 14px; white-space: nowrap; }
 .s1-ibar:focus { outline: none; }
@@ -108,9 +112,9 @@ body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-i
 .s1-ibar-toc summary { cursor: pointer; list-style: none; color: var(--secondary); max-width: 100%; }
 .s1-ibar-toc summary::-webkit-details-marker { display: none; }
 .s1-ibar-title { overflow: hidden; text-overflow: ellipsis; }
-.s1-ibar-panel { position: fixed; top: 56px; inset-inline-start: 8px; width: min(440px, calc(100vw - 16px)); max-height: 75vh; display: flex; flex-direction: column;
+.s1-ibar-panel { position: fixed; top: calc(var(--s1-ibar-h) + 4px); inset-inline-start: 8px; width: min(440px, calc(100vw - 16px)); max-height: 75vh; max-height: calc(100dvh - var(--s1-ibar-h) - 16px); display: flex; flex-direction: column;
   background: var(--entry); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 6px 18px rgb(0 0 0 / .15); white-space: normal; line-height: 1.6; }
-.s1-ibar-toc .s1-toc { overflow: auto; margin: 0; padding: 10px 12px 10px 32px; }
+.s1-ibar-toc .s1-toc { overflow: auto; overscroll-behavior: contain; margin: 0; padding: 10px 12px 10px 32px; }
 .s1-ibar-dl { margin: 0; padding: 4px 12px; border-top: 1px solid var(--border); font-size: 14px; }
 .s1-ibar-toc .s1-toc a, .s1-ibar-toc .s1-toc span { min-height: 0; display: inline; }
 .s1-ibar .s1-ibar-page { color: var(--secondary); font-variant-numeric: tabular-nums; padding: 0 6px; }
@@ -120,7 +124,7 @@ body.s1-immersive .s1-chapter > .s1-ibar { position: fixed; inset: 0 0 auto; z-i
 .s1-ibar button { font: inherit; font-size: 14px; border: 0; background: none; color: var(--primary); padding: 0 12px; cursor: pointer; justify-content: center; }
 .s1-ibar-zoom button { min-width: 44px; }
 .s1-ibar [data-zoom="fit"] { min-width: 56px; font-variant-numeric: tabular-nums; }
-.s1-ibar .s1-ibar-exit { border: 1px solid var(--border); border-radius: var(--radius); }
+.s1-ibar .s1-ibar-exit { min-width: 44px; justify-content: center; border: 1px solid var(--border); border-radius: var(--radius); }
 .s1-ibar [data-toggle-view] { border: 1px solid var(--border); border-radius: var(--radius); }
 .s1-ibar-zoom button + button { border-inline-start: 1px solid var(--border); }
 .s1-ibar button:focus-visible, .s1-ibar a:focus-visible, .s1-ibar summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
@@ -132,7 +136,33 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
   .s1-ibar-nav a { min-width: 44px; justify-content: center; padding: 0; }
   .s1-ibar button { padding: 0 8px; }
 }
-@media (max-width: 480px) { .s1-ibar-tag { font-size: 12px; white-space: normal; line-height: 1.2; width: 4em; } }
+/* 手机竖屏（≤600px）：一行放不下全部控件（原来约 508px 宽，目录入口被压成 0 宽、缩放组被裁、「退出」被挤出屏幕）。
+   缩放组隐藏（手机上用双指缩放，原版固定适应宽度，见 s1.js），「非官方 AI 译本」缩成「非官方」，退出只留 ✕；
+   每个控件都不收缩，只有目录标题可以省略，至少留 44px 可点 */
+@media (max-width: 600px) {
+  .s1-ibar-zoom, .s1-ibar-long { display: none !important; }
+  body.s1-immersive .s1-chapter > .s1-ibar { gap: 4px; }
+  .s1-ibar > * { flex-shrink: 0; }
+  .s1-ibar-nav { gap: 0; }
+  .s1-ibar > .s1-ibar-toc { flex-shrink: 1; min-width: 44px; }
+  .s1-ibar-toc summary { min-width: 44px; overflow: hidden; }
+  .s1-ibar-tag { font-size: 12px; min-width: 44px; justify-content: center; }
+  .s1-ibar .s1-ibar-exit { min-width: 44px; padding: 0; }
+}
+/* 横屏手机同样不给缩放按钮（见 s1.js 的 zoomUI） */
+@media (pointer: coarse) and (max-height: 500px) { .s1-ibar-zoom { display: none !important; } }
+/* 更窄（360 宽的安卓、320 宽的 iPhone SE、或 Safari 放大页面后）：折成两行，上行目录和退出，下行页码、翻章、版式。
+   只针对有页码和翻章的 S-1 章节页；双语译文的顶栏只有四项，一行放得下 */
+@media (max-width: 374px) {
+  :root:has(.s1-ibar-page) { --s1-ibar-h: 96px; }
+  body.s1-immersive .s1-chapter > .s1-ibar:has(.s1-ibar-page) { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "tag toc exit" "page nav view"; gap: 0 6px; padding: 2px 6px; }
+  .s1-ibar-tag { grid-area: tag; }
+  .s1-ibar > .s1-ibar-toc { grid-area: toc; }
+  .s1-ibar-exit { grid-area: exit; }
+  .s1-ibar-page { grid-area: page; }
+  .s1-ibar-nav { grid-area: nav; justify-content: center; }
+  .s1-ibar [data-toggle-view] { grid-area: view; }
+}
 
 /* 全文下载（layouts/_partials/s1/downloads.html，params.s1dl 选位置）：都是直链 */
 .s1-dl-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0 24px; }
@@ -150,9 +180,39 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
 @media (max-width: 600px) {
   .s1-dl-line a, .s1-dl-acts a { min-height: 44px; }
   .s1-versions .s1-dl-col { display: none; }  /* 窄屏表格放不下；版本页和首页有下载卡片 */
+  /* 版本表在手机上放不下四列（「说明」列整列在屏幕外），改成每个版本一段：版本号、对应原文和采集时间一行，说明另起一行 */
+  .s1-versions, .s1-versions :is(tbody, tr, td) { display: block; }
+  .s1-versions thead { display: none; }
+  .s1-versions tr { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .s1-versions td { border: 0; padding: 0; }
+  .s1-versions td:nth-child(2), .s1-versions td:nth-child(3) { display: inline; font-size: 14px; color: var(--secondary); }
+  .s1-versions td:nth-child(3) { white-space: nowrap; }
+  .s1-versions td:nth-child(3)::before { content: " · 采集于 "; }
+  .s1-versions td:nth-child(4) { margin-top: 4px; }
 }
 
 /* 重排版里的宽表格（财务报表）在宽屏上跳出正文栏，最多 1100px，居中；窄屏仍在栏内横向滚动 */
 @media (min-width: 1000px) {
   .s1-reflow table { width: max-content; max-width: min(1100px, 100vw - 48px); position: relative; left: 50%; transform: translateX(-50%); }
+}
+/* 缩小时表格细线不消失：WebKit（Safari，以及 iPhone 上的所有浏览器）在 zoom<1、3 倍屏上把折叠表格（border-collapse）的
+   1pt 细线算成 0 宽，iPhone 上原文表格的框线和财务表的合计线全部不见。缩放时把这些细线加粗到至少 1 个 CSS 像素
+   （Chromium 本来就这样处理），双线（合计线）加粗到至少 3 个 CSS 像素，否则两种浏览器都只画成一条实线。压缩 HTML 时 0.75pt 会写成 .75pt，两种都要匹配。--s1-z 是当前缩放倍数，由设置 zoom 的脚本一起设置；
+   页面本身另有缩放时（如横版页）在页面上设 --s1-zl 为它的倍数 */
+.s1-sheets-inner[style*="--s1-z"] td { --s1-1pt: max(1pt, 1px / (var(--s1-z) * var(--s1-zl, 1))); --s1-075pt: max(.75pt, 1px / (var(--s1-z) * var(--s1-zl, 1))); --s1-3pt: max(3pt, 3px / (var(--s1-z) * var(--s1-zl, 1))); }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-top:1pt solid"] { border-top-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-bottom:1pt solid"] { border-bottom-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-left:1pt solid"] { border-left-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-right:1pt solid"] { border-right-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-top:0.75pt solid"], td[style*="border-top:.75pt solid"]) { border-top-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-bottom:0.75pt solid"], td[style*="border-bottom:.75pt solid"]) { border-bottom-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-left:0.75pt solid"], td[style*="border-left:.75pt solid"]) { border-left-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-right:0.75pt solid"], td[style*="border-right:.75pt solid"]) { border-right-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-top:3pt double"] { border-top-width: var(--s1-3pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-bottom:3pt double"] { border-bottom-width: var(--s1-3pt) !important; }
+
+/* 触屏上的点按目标至少 44px 高（版式切换、全屏阅读入口、版本菜单、章节目录） */
+@media (pointer: coarse) {
+  .s1-switch button, .s1-read-link { min-height: 44px; }
+  .s1-vmenu summary, .s1-chtoc summary { padding-block: 10px; }
 }

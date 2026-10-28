@@ -21,6 +21,10 @@ const pages = [
   ["site", "/en/notes/", "site-en-notes", false],
   ["site", "/notes/film-ref/", "site-note-film", true], // 别的文章里的短片封面卡片（docs/films.md）
   ["site", "/notes/film-note/", "site-film-page", true], // 短片的文章：宽幅播放器 + 章节目录 + 文字稿
+  // 双语对照译文（layouts/bilingual/）：电脑上默认原版版式、平板和手机上默认重排版；全屏阅读；英文页只放说明
+  ["site", "/translations/sample-essay/", "site-bilingual", true],
+  ["site", "/translations/sample-essay/?read=1", "site-bilingual-read", false],
+  ["site", "/en/translations/sample-essay/", "site-en-bilingual", false],
   // PaperMod 官方示例站：主题自身的参照
   ["example", "/", "example-home", true],
   ["example", "/posts/markdown-syntax/", "example-markdown", true],

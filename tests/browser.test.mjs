@@ -129,8 +129,68 @@ test("图集：手机上手指左滑翻到下一张", async () => {
   await page.waitForTimeout(100);
   assert.equal(await box.locator(".zoom-count").textContent(), "2 / 12");
   assert.equal(await box.evaluate((d) => d.open), true, "滑动不应关闭图集");
+  // 手指横扫不产生 click：以前滑完留下的「吞掉下一次点击」标记会让第一次点 × 没反应。
+  // （CDP 模拟横扫之后，Chromium 自己会把紧接着的一次 tap 当成停止惯性而不发 click，所以这里用 click() 代替真实点按）
+  assert.equal(await box.evaluate((d) => d.dataset.swiped), undefined, "手指横扫后不应留下吞掉点击的标记");
+  await box.locator(".zoom-next").evaluate((b) => b.click());
+  assert.equal(await box.locator(".zoom-count").textContent(), "3 / 12", "滑动后第一次点 › 应该翻页");
+  await box.locator(".zoom-close").evaluate((b) => b.click());
+  assert.equal(await box.evaluate((d) => d.open), false, "滑动后点 × 应该一次关闭");
+  // 灯箱里能双指放大（宽的文字截图在手机上要放大才看得清）；平时单指拖动留给横扫换图
+  assert.equal(await box.evaluate((d) => getComputedStyle(d).touchAction), "pinch-zoom");
   await ctx.close();
 });
+
+test("图集：电脑上用鼠标拖动换图，松开时不会顺带关掉灯箱", async () => {
+  const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
+  await card(page, "travel-photos").locator(".img-group img").first().click();
+  const box = page.locator("dialog.img-zoom");
+  await page.mouse.move(800, 450);
+  await page.mouse.down();
+  await page.mouse.move(600, 450, { steps: 5 });
+  await page.mouse.up();
+  assert.equal(await box.locator(".zoom-count").textContent(), "2 / 12");
+  assert.equal(await box.evaluate((d) => d.open), true, "拖动松开后的 click 不应关闭灯箱");
+  // 按着鼠标时按 Esc 关掉灯箱，松开发生在灯箱外；再打开时拖动仍能换图（以前按下计数卡住，之后都当成多指）
+  await page.mouse.down();
+  await page.keyboard.press("Escape");
+  await page.mouse.up();
+  await card(page, "travel-photos").locator(".img-group img").first().click();
+  await page.mouse.move(800, 450);
+  await page.mouse.down();
+  await page.mouse.move(600, 450, { steps: 5 });
+  await page.mouse.up();
+  assert.equal(await box.locator(".zoom-count").textContent(), "2 / 12", "关闭时没松开的按下不应影响下一次拖动");
+  assert.equal(await box.evaluate((d) => d.open), true);
+  await ctx.close();
+});
+
+// 逐张检查（有没有图注、横图竖图、长图都不一样），边界用实际视口高度
+for (const device of ["iPhone 13 landscape", "iPhone 13", "iPhone SE"]) {
+  test(`图集：${device} 上每张图的计数、图注、关闭按钮和图片互不遮挡，都在屏幕里`, async () => {
+    const { page, ctx } = await open("/notes/", { ...devices[device] });
+    const n = await page.locator(".md-content img[role=button]").count();
+    assert.ok(n >= 10, `测试前提：短文页有多张可放大的图片（${n}）`);
+    const bad = [];
+    for (let i = 0; i < n; i++) {
+      await page.locator(".md-content img[role=button]").nth(i).evaluate((img) => img.click());
+      const box = page.locator("dialog.img-zoom");
+      await box.locator("figure img").evaluate((im) => im.complete || new Promise((ok) => { im.onload = im.onerror = ok; }));
+      bad.push(...(await box.evaluate((d, i) => {
+        const r = Object.fromEntries(["figure img", "figcaption", ".zoom-count", ".zoom-close"]
+          .map((s) => [s, d.querySelector(s)]).filter(([, e]) => e.checkVisibility() && e.getBoundingClientRect().width).map(([s, e]) => [s, e.getBoundingClientRect()]));
+        const hit = (a, b) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+        const k = Object.keys(r), out = [];
+        for (let x = 0; x < k.length; x++) for (let y = x + 1; y < k.length; y++) if (hit(r[k[x]], r[k[y]])) out.push(`第 ${i + 1} 张：${k[x]} 和 ${k[y]} 重叠`);
+        for (const s of k) if (r[s].top < -0.5 || r[s].bottom > innerHeight + 0.5) out.push(`第 ${i + 1} 张：${s} 超出屏幕`);
+        return out;
+      }, i)));
+      await page.keyboard.press("Escape");
+    }
+    assert.deepEqual(bad, []);
+    await ctx.close();
+  });
+}
 
 test("包在链接里的图片不进图集，点击照常跳转", async () => {
   const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });

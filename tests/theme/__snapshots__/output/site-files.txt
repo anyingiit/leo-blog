@@ -59,6 +59,7 @@ en/tags/testing/page/1/index.html
 en/translations/index.html
 en/translations/index.xml
 en/translations/page/1/index.html
+en/translations/sample-essay/index.html
 films/test-film/index.html
 films/test-film/play/index.html
 films/test-film/play/media/still.svg
@@ -66,6 +67,7 @@ films/test-film/poster_hu_80a0afd65939a82.webp
 index.html
 index.json
 index.xml
+js/s1.min.<hash>.js
 notes/film-note/index.html
 notes/film-ref/index.html
 notes/four-photos/four-photos.assets/IMG_01_hu_899d002f461609c9.webp
@@ -198,5 +200,8 @@ tags/随笔/page/2/index.html
 translations/index.html
 translations/index.xml
 translations/page/1/index.html
+translations/sample-essay/files/sample-essay-zh-en-v1.0.html
+translations/sample-essay/files/sample-essay-zh-en-v1.0.pdf
+translations/sample-essay/index.html
 zh/index.html
 zh/sitemap.xml
