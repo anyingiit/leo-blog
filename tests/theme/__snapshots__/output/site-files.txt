@@ -55,9 +55,11 @@ en/tags/testing/page/1/index.html
 en/translations/index.html
 en/translations/index.xml
 en/translations/page/1/index.html
+en/translations/sample-essay/index.html
 index.html
 index.json
 index.xml
+js/s1.min.<hash>.js
 notes/four-photos/four-photos.assets/IMG_01_hu_899d002f461609c9.webp
 notes/four-photos/four-photos.assets/IMG_01_hu_a3f4d354bff142f4.webp
 notes/four-photos/four-photos.assets/IMG_01_hu_b5042720aed70fd4.webp
@@ -187,5 +189,8 @@ tags/随笔/page/1/index.html
 translations/index.html
 translations/index.xml
 translations/page/1/index.html
+translations/sample-essay/files/sample-essay-zh-en-v1.0.html
+translations/sample-essay/files/sample-essay-zh-en-v1.0.pdf
+translations/sample-essay/index.html
 zh/index.html
 zh/sitemap.xml

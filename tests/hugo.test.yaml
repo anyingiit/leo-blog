@@ -8,6 +8,9 @@ module:
     # S-1 译本模板的测试样例（tests/s1.test.mjs，也出现在预览站 /s1-test/）：15 页节选，v0.9 是演示用的历史版本（还没发布下载文件）
     - source: tests/fixtures/s1-preview/options
       target: content
+    # 双语对照译文的样例（也用于像素截图）：有一段没有译文，tests/bilingual.test.mjs 用它检查
+    - source: tests/theme/site-fixture/content/translations/sample-essay
+      target: content/translations/sample-essay
     - source: assets
       target: assets
     - source: tests/fixtures/s1-preview/assets

@@ -54,6 +54,12 @@
   "title": "第二篇样例长文"
  },
  {
+  "content": "",
+  "permalink": "http://blog.test/translations/sample-essay/",
+  "summary": "视觉回归测试用的双语对照译文。",
+  "title": "一篇测试短文"
+ },
+ {
   "content": "第 7 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。\n",
   "permalink": "http://blog.test/notes/short-7/",
   "summary": "<p>第 7 条短文：用来让短文栏目超过一页（每页 10 条），测试翻页。</p>",
