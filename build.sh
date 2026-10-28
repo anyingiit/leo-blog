@@ -7,10 +7,10 @@
 # 3. 预览构建还会带上 tests/fixtures 里的测试短文（见 tests/hugo.test.yaml），正式构建不带。
 set -euo pipefail
 
-HUGO_VERSION="0.151.0"
+HUGO_VERSION="0.158.0"
 # 下面各平台的 sha256 取自 https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_checksums.txt
 
-# 官方二进制输出 "hugo v0.151.0-<commit>+extended ..."，Homebrew 等自行编译的没有 -<commit>
+# 官方二进制输出 "hugo v0.158.0-<commit>+extended ..."，Homebrew 等自行编译的没有 -<commit>
 hugo_matches() {
   local out
   out="$("$1" version 2>/dev/null)" || return 1
@@ -19,12 +19,13 @@ hugo_matches() {
 
 if ! { command -v hugo >/dev/null 2>&1 && hugo_matches hugo; }; then
   case "$(uname -s)-$(uname -m)" in
-    Linux-x86_64) platform=linux-amd64
-      sha256=f2fe3b4ef90bf053d93c713eca1d4d5a467d8d2d5da858a448d55eb71ad44ddf ;;
-    Linux-aarch64 | Linux-arm64) platform=linux-arm64
-      sha256=b460413b756e477ed2c4273941bee6174576449c1125bc125a276b67c3529270 ;;
-    Darwin-*) platform=darwin-universal
-      sha256=ed58a5c91524273cf9bfcb92f1438887c2fc9888535c6ebca678882319639e93 ;;
+    Linux-x86_64) platform=linux-amd64 ext=tar.gz
+      sha256=c2a724ac3c8e949fca56dd438b868b2128837754420c20a6e7ae345616c4e625 ;;
+    Linux-aarch64 | Linux-arm64) platform=linux-arm64 ext=tar.gz
+      sha256=02882fca35ae3e9729c0a52b70ea5df0c26766fadd947d054ec445c0cee388ac ;;
+    # macOS 从 0.153 起只发 .pkg（不再有 .tar.gz），用系统自带的 pkgutil 解开取出二进制，不安装
+    Darwin-*) platform=darwin-universal ext=pkg
+      sha256=99a9e8360c787d5aa9bb717f58a1394aeba1a33e905466caaeb116cfad683dba ;;
     *) echo "build.sh: 不支持的平台 $(uname -s)-$(uname -m)，请手动安装 Hugo Extended ${HUGO_VERSION}" >&2; exit 1 ;;
   esac
   bin_dir="${XDG_CACHE_HOME:-$HOME/.cache}/leo-blog/hugo-${HUGO_VERSION}"
@@ -32,9 +33,9 @@ if ! { command -v hugo >/dev/null 2>&1 && hugo_matches hugo; }; then
   if ! { [ -x "$bin_dir/hugo" ] && hugo_matches "$bin_dir/hugo"; }; then
     echo "build.sh: 下载 Hugo Extended ${HUGO_VERSION} (${platform})" >&2
     mkdir -p "$bin_dir"
-    tarball="$bin_dir/hugo.tar.gz"
+    tarball="$bin_dir/hugo.${ext}"
     curl -fsSL -o "$tarball" \
-      "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_${platform}.tar.gz"
+      "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_${platform}.${ext}"
     if command -v sha256sum >/dev/null 2>&1; then
       actual="$(sha256sum "$tarball" | cut -d' ' -f1)"
     else
@@ -47,9 +48,16 @@ if ! { command -v hugo >/dev/null 2>&1 && hugo_matches hugo; }; then
     fi
     # 先解压到临时名再改名，中断时不会留下半截的 hugo
     rm -rf "$bin_dir/extract"
-    mkdir "$bin_dir/extract"
-    tar -xzf "$tarball" -C "$bin_dir/extract" hugo
-    mv -f "$bin_dir/extract/hugo" "$bin_dir/hugo"
+    if [ "$ext" = pkg ]; then
+      pkgutil --expand-full "$tarball" "$bin_dir/extract"
+      found="$(find "$bin_dir/extract" -type f -name hugo -perm -u+x | head -n 1)"
+      [ -n "$found" ] || { echo "build.sh: 在 .pkg 里没有找到 hugo" >&2; exit 1; }
+      mv -f "$found" "$bin_dir/hugo"
+    else
+      mkdir "$bin_dir/extract"
+      tar -xzf "$tarball" -C "$bin_dir/extract" hugo
+      mv -f "$bin_dir/extract/hugo" "$bin_dir/hugo"
+    fi
     rm -rf "$tarball" "$bin_dir/extract"
     if ! hugo_matches "$bin_dir/hugo"; then
       echo "build.sh: 下载的 Hugo 版本不是 ${HUGO_VERSION} Extended" >&2
