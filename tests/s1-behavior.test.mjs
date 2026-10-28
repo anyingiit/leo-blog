@@ -793,3 +793,43 @@ test("沉浸重排版里跳到下一章的第一页，应打开下一章", async
   await waitBar(page, chapters[2].pages[0]);
   await s.done();
 });
+
+// 手机上缩小显示的原版页里，表格的细线和双线都要画出来。WebKit（Safari，以及 iPhone 上的所有浏览器）在 zoom<1、3 倍屏上
+// 曾把折叠表格的 1pt 细线画成 0 宽：iPhone 上原文表格框线、财务表合计线全部不见（2026-10-28 用户在 iPhone 上发现）；
+// 3pt 双线缩小后只剩一条实线。s1.css / 完整 HTML 按 --s1-z 加粗它们。这里在边缘截一条，看有没有整列（整行）的深色像素
+const edgeProfile = async (page, sel, edge) => {
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: "center" }), sel);
+  await settle(page);
+  const b = await page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }, sel);
+  const clip = edge === "left" ? { x: b.x - 4, y: b.y + 2, width: 10, height: Math.min(b.h - 4, 150) } : { x: b.x + 2, y: b.y + b.h - 6, width: Math.min(b.w - 4, 150), height: 12 };
+  const png = (await page.screenshot({ clip })).toString("base64");
+  // 每一列（竖线）或每一行（横线）里深色像素的比例，按顺序返回
+  return page.evaluate(async ([png, edge]) => {
+    const img = new Image(); img.src = "data:image/png;base64," + png; await img.decode();
+    const c = document.createElement("canvas"); c.width = img.width; c.height = img.height; const g = c.getContext("2d"); g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, img.width, img.height).data, W = img.width, H = img.height;
+    const dark = (x, y) => { const i = (y * W + x) * 4; return d[i] + d[i + 1] + d[i + 2] < 300; };
+    const out = [];
+    if (edge === "left") for (let x = 0; x < W; x++) { let n = 0; for (let y = 0; y < H; y++) n += dark(x, y); out.push(n / H); }
+    else for (let y = 0; y < H; y++) { let n = 0; for (let x = 0; x < W; x++) n += dark(x, y); out.push(n / W); }
+    return out;
+  }, [png, edge]);
+};
+// 连续的深色线条数：双线应是两条，中间隔着浅色
+const lines = (profile) => profile.map((v) => v > 0.9).reduce((n, on, i, a) => n + (on && !a[i - 1]), 0);
+for (const engine of ENGINES) {
+  test(`${engine}：手机上缩小显示的原版页里表格细线和双线都画得出来（完整 HTML、站内原版视图、全屏阅读）`, async (t) => {
+    const s = await open(t, engine, PHONE[engine]);
+    if (!s) return;
+    const { page } = s;
+    await s.ctx.addInitScript(() => { try { localStorage.setItem("s1-view-narrow", "original"); } catch {} });
+    const versions = VERSIONS.map((v) => { const d = JSON.parse(readFileSync(join(root, "content/translations/anthropic-s1", v, "_index.md"), "utf8").match(/^downloads: (.+)$/m)?.[1] ?? "null"); return R + v + "/" + (d ? d.html.file.replace(/\.raw$/, "") : "full.html"); });
+    for (const p of [...versions, V + "financial-statements-2/", V + "financial-statements-2/?read=1"]) {
+      await s.go(p);
+      assert.ok(+(await page.evaluate(() => document.querySelector(".s1-sheets-inner").style.zoom)) < 1, `${p} 应缩小显示`);
+      assert.equal(lines(await edgeProfile(page, '.s1-sheet td[style*="border-left:1pt solid"]', "left")), 1, `${p}：1pt 竖线`);
+      assert.equal(lines(await edgeProfile(page, '.s1-sheet td[style*="border-bottom:3pt double"]', "bottom")), 2, `${p}：3pt 双线`);
+    }
+    await s.done();
+  });
+}

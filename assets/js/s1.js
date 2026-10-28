@@ -18,7 +18,10 @@
     for (const box of document.querySelectorAll(".s1-sheets")) {
       if (!box.offsetParent) continue;
       const s = immersive() && zoom !== "fit" ? zoom : fitScale(box);
-      box.firstElementChild.style.zoom = s !== 1 ? s.toFixed(4) : "";
+      const inner = box.firstElementChild;
+      inner.style.zoom = s !== 1 ? s.toFixed(4) : "";
+      // 缩小时 s1.css 按这个倍数加粗表格细线，免得 WebKit 把它们画成 0 宽
+      if (s < 1) inner.style.setProperty("--s1-z", s.toFixed(4)); else inner.style.removeProperty("--s1-z");
     }
   };
   const number = (root) => {

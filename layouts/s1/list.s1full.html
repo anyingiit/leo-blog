@@ -23,6 +23,20 @@
    iOS 会把这些字单独放大一倍，而每行的位置和宽度是按原尺寸固定的，放大后的字折成更多行，与下面的行叠在一起。
    站内章节页由 PaperMod 的 reset.css 设置了同样的规则，这个独立文件不用主题样式，要自己设 */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* 缩小时表格细线不消失：WebKit（Safari，以及 iPhone 上的所有浏览器）在 zoom<1、3 倍屏上把折叠表格（border-collapse）的
+   1pt 细线算成 0 宽，iPhone 上原文表格的框线和财务表的合计线全部不见。缩放时把这些细线加粗到至少 1 个 CSS 像素
+   （Chromium 本来就这样处理），双线（合计线）加粗到至少 3 个 CSS 像素，否则两种浏览器都只画成一条实线。压缩 HTML 时 0.75pt 会写成 .75pt，两种都要匹配。--s1-z 是当前缩放倍数，由设置 zoom 的脚本一起设置 */
+.s1-sheets-inner[style*="--s1-z"] td { --s1-1pt: max(1pt, 1px / var(--s1-z)); --s1-075pt: max(.75pt, 1px / var(--s1-z)); --s1-3pt: max(3pt, 3px / var(--s1-z)); }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-top:1pt solid"] { border-top-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-bottom:1pt solid"] { border-bottom-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-left:1pt solid"] { border-left-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-right:1pt solid"] { border-right-width: var(--s1-1pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-top:0.75pt solid"], td[style*="border-top:.75pt solid"]) { border-top-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-bottom:0.75pt solid"], td[style*="border-bottom:.75pt solid"]) { border-bottom-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-left:0.75pt solid"], td[style*="border-left:.75pt solid"]) { border-left-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] :is(td[style*="border-right:0.75pt solid"], td[style*="border-right:.75pt solid"]) { border-right-width: var(--s1-075pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-top:3pt double"] { border-top-width: var(--s1-3pt) !important; }
+.s1-sheets-inner[style*="--s1-z"] td[style*="border-bottom:3pt double"] { border-bottom-width: var(--s1-3pt) !important; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #e9e9e9; color: #1f2328; font: 15px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
 a { color: #0b57d0; }
@@ -97,6 +111,6 @@ a { color: #0b57d0; }
 </main>
 <section class="dl-end" aria-label="译者声明（重复）">{{ partial "s1/notice.html" (dict "v" $v "full" true) }}</section>
 <footer class="dl-rights">{{ partial "s1/rights.html" . }}</footer>
-<script>{const f=()=>{const z=Math.min(1,document.documentElement.clientWidth/836);for(const e of document.querySelectorAll(".s1-sheets-inner"))e.style.zoom=z<1?z.toFixed(4):""};f();addEventListener("resize",f);addEventListener("beforeprint",()=>{for(const e of document.querySelectorAll(".s1-sheets-inner"))e.style.zoom=""});addEventListener("afterprint",f)}</script>
+<script>{const f=()=>{const z=Math.min(1,document.documentElement.clientWidth/836);for(const e of document.querySelectorAll(".s1-sheets-inner")){e.style.zoom=z<1?z.toFixed(4):"";z<1?e.style.setProperty("--s1-z",z.toFixed(4)):e.style.removeProperty("--s1-z")}};f();addEventListener("resize",f);addEventListener("beforeprint",()=>{for(const e of document.querySelectorAll(".s1-sheets-inner")){e.style.zoom="";e.style.removeProperty("--s1-z")}});addEventListener("afterprint",f)}</script>
 </body>
 </html>
