@@ -1,7 +1,7 @@
 ---
 title: 苦涩的教训
 slug: bitter-lesson
-date: 2026-10-27
+date: 2026-10-28
 type: bilingual
 originalTitle: The Bitter Lesson
 author: Rich Sutton（理查德·萨顿）
@@ -19,10 +19,10 @@ ShowWordCount: false
 downloads:
   html:
     file: files/bitter-lesson-zh-en-v1.0.html.raw
-    bytes: 17373
-    sha256: 997c4f5ef741b7d7f033fe4f5599996f920449b14ba1e4785c803c16c136329b
+    bytes: 17653
+    sha256: 3eb2682e1df677b07b1afdfe37af541b13f081f9a953f94a153eb62c288a6b67
   pdf:
     file: files/bitter-lesson-zh-en-v1.0.pdf
     bytes: 226710
-    sha256: 60dc883fb71351bff87a026299aef188d0460765f3dbf760d3d0a6fcda9bdf31
+    sha256: 2cd034c3991cbc74a589501b25a5fdb1ae42cdd25f23293aa474c8e316a44f66
 ---

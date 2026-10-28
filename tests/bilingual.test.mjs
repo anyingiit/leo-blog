@@ -101,6 +101,23 @@ for (const a of articles) {
     }
   });
 
+  // iOS（Safari 和 X、微信等应用内浏览器）会把显示得很小的字单独放大，原版版式缩到屏宽后行与行会叠在一起（S-1 完整 HTML 遇到过，PR #33）。
+  // CI 的 Chromium 和 Linux WebKit 没有这个功能，截图测不出来，所以直接检查样式：站内页靠 PaperMod 的 reset.css，冻结的 HTML 要自己设
+  test(`${a.slug}：显示原版版式的页面都关掉了 iOS 的文字自动放大（text-size-adjust: 100%）`, async () => {
+    const ctx = await browsers.chromium.newContext(devices["iPhone 13"]);
+    const page = await ctx.newPage();
+    for (const u of [p + a.html.file.replace(/\.raw$/, ""), p, p + "?read=1"]) {
+      await page.goto(server.url + u, { waitUntil: "load" });
+      const r = await page.evaluate(() => ({ sheets: document.querySelectorAll(".bl-sheet, template.s1-original-tpl").length, adjust: getComputedStyle(document.documentElement).getPropertyValue("text-size-adjust"), css: [...document.querySelectorAll("style")].map((e) => e.textContent).join("\n"), links: [...document.querySelectorAll("link[rel~=stylesheet]")].map((l) => l.href) }));
+      for (const href of r.links) r.css += "\n" + await (await ctx.request.get(href)).text();
+      assert.ok(r.sheets > 0, `${u} 里没有原版版式`);
+      assert.equal(r.adjust, "100%", u);
+      // iOS 只认带 -webkit- 前缀的写法；Chromium 解析时会丢掉它，所以查样式表原文
+      assert.match(r.css, /(^|[}\s,])html\s*\{[^}]*-webkit-text-size-adjust:\s*100%/, `${u} 缺少 html { -webkit-text-size-adjust: 100% }`);
+    }
+    await ctx.close();
+  });
+
   test(`${a.slug}：导入用的源文件、段落数据、原版片段不单独发布`, () => {
     for (const f of ["source.html.raw", "source.html", "pairs.yaml", "original.html"]) assert.ok(!site.exists(p + f), `${p}${f} 不应发布`);
     const files = readdirSync(join(site.out, p, "files")).sort();

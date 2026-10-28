@@ -3,6 +3,8 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>一篇测试短文（非官方译文 v1.0）</title>
 <style>
+/* 关掉 iOS 的文字自动放大（Safari 及 X、微信等应用内浏览器）：这个独立文件不用主题样式，PaperMod reset.css 里的同一条规则管不到它（见 S-1 完整 HTML，PR #33） */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { margin: 0; background: #eee; }
 .bl-dl-notice { max-width: 816px; box-sizing: border-box; margin: 0 auto; padding: 16px 64px; font: 14px/1.7 system-ui, sans-serif; color: #444; background: #fffbe6; }
 .bl-dl-notice p { margin: 4px 0; }

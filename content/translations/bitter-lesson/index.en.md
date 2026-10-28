@@ -1,7 +1,7 @@
 ---
 title: "The Bitter Lesson (Chinese translation)"
 slug: bitter-lesson
-date: 2026-10-27
+date: 2026-10-28
 type: bilingual
 enStub: true
 originalTitle: The Bitter Lesson

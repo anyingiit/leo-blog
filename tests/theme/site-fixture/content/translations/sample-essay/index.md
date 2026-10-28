@@ -18,10 +18,10 @@ ShowWordCount: false
 downloads:
   html:
     file: files/sample-essay-zh-en-v1.0.html.raw
-    bytes: 3624
-    sha256: 23a45dbb1520b9a7e660fa4950ca3acc5ef92bf50acec5e4e912abb03ff75caa
+    bytes: 3904
+    sha256: c4de508570bb7aac36f39d65837e6175252132c51473021df39f5217b6590723
   pdf:
     file: files/sample-essay-zh-en-v1.0.pdf
     bytes: 110761
-    sha256: 45e8579bdb00eb7fd91fa764531f79e57fb2db7e6c77c9b3969f720d2521d13b
+    sha256: f0e1be4d3c9ea6da687f6b6f35ff8a713727c4479566aa9eb0f608f40e3b7c92
 ---
