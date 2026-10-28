@@ -3,9 +3,10 @@
 
     python3 tools/bilingual-import/release.py content/translations/<slug>
 
-1. 用文章目录里的 original.html（原版版式）和 front matter 的声明信息拼成一个独立的 HTML：
-   首末都是译者声明，中间是原版页面，样式内联，不依赖网站。存成 files/<slug>-zh-en-<版本>.html.raw（网站上发布为 .html）
-2. 用 Chromium 把它打印成同名 PDF（tools/s1-import/pdf.cjs；每页底部印「非官方译文」），
+1. 下载用的 HTML 就是导入时保存的网页 source.html.raw 原样（读者要的是接近原网页的阅读体验，不另做排版），
+   只在 <body> 首末加译者声明（浏览器默认样式）、<head> 里加 noindex。
+   存成 files/<slug>-zh-en-<版本>.html.raw（网站上发布为 .html）
+2. 用 Chromium 把它打印成同名 PDF（打印用的临时副本另加纸张大小和页脚）（tools/s1-import/pdf.cjs；每页底部印「非官方译文」），
    修正文字层里的部首字符、写入元数据，并逐页检查（和 S-1 译本共用 tools/s1-import/release.py 的做法）
 3. 把两个文件的大小和 sha256 写进 front matter 的 downloads（模板 layouts/_partials/s1/downloads.html 读取）
 已发布的版本不再改动：files/ 里已有这个版本的文件时拒绝覆盖（还没上线、确实要重新生成时加 --force）。
@@ -33,43 +34,43 @@ def front_matter(path):
     return yaml.safe_load(m.group(1)), text, m
 
 
-def sheet_css():
-    """原版纸面的样式取自网站的 bilingual.css（.bl-sheet 开头的规则），下载文件和网页上一致"""
-    css = open(os.path.join(REPO, "assets/css/extended/bilingual.css"), encoding="utf-8").read()
-    return "\n".join(l for l in css.splitlines() if l.startswith(".bl-sheet"))
+NOTICE_MARK = "<!-- bl-dl-notice -->"
 
 
-def standalone_html(fm, body, contact):
+def notice_html(fm, contact):
+    """译者声明：只用浏览器默认样式（<hr>、<small>），不给原网页加任何排版"""
     e = html.escape
-    ver = e(str(fm["version"]))
-    notice = f"""<section class="bl-dl-notice">
-<p><strong>非官方中文译文</strong>：{e(fm.get('originalTitle', ''))}，{e(fm.get('author', ''))}，{fm.get('originalDate', '')} 发表。原文：<a href="{e(fm['source'])}">{e(fm['source'])}</a></p>
-<p>翻译方式：{e(fm.get('methodDetail') or fm.get('method', ''))} 原文采集时间：{e(str(fm.get('captured', '')))}。译文版本：{ver}。</p>
-<p>译者与原作者没有关联，译文未经作者审阅，以原文为准；译者不对译文的准确性负责，读者据此作出的判断与行动后果自负。原文著作权归原作者所有，下架请求：{e(contact)}</p>
-</section>"""
-    return f"""<!doctype html>
-<html lang="zh-CN" data-standalone>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
-<title>{e(fm['title'])}（非官方译文 {ver}）</title>
-<style>
-/* 关掉 iOS 的文字自动放大（Safari 及 X、微信等应用内浏览器）：这个独立文件不用主题样式，PaperMod reset.css 里的同一条规则管不到它（见 S-1 完整 HTML，PR #33） */
-html {{ -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }}
-body {{ margin: 0; background: #eee; }}
-.bl-dl-notice {{ max-width: 816px; box-sizing: border-box; margin: 0 auto; padding: 16px 64px; font: 14px/1.7 system-ui, sans-serif; color: #444; background: #fffbe6; }}
-.bl-dl-notice p {{ margin: 4px 0; }}
-.bl-dl-notice a {{ overflow-wrap: anywhere; }} /* 原文长网址在手机上折行，不把整页撑宽 */
-.bl-sheet {{ margin: 0 auto; max-width: 100%; }}
-@media (max-width: 820px) {{ .bl-sheet {{ width: auto !important; padding: 24px 16px !important; }} .bl-dl-notice {{ padding: 12px 16px; }} }}
-@page {{ size: 816px 1056px; margin: 0 0 40px; @bottom-center {{ content: "非官方译文 · {ver} · 以原文为准"; font: 10px sans-serif; color: #888; }} }}
-@media print {{ body {{ background: #fff; }} }}
-{sheet_css()}
-</style></head>
-<body>
-{notice}
-<div class="bl-sheet">{body}</div>
-{notice}
-</body></html>
-"""
+    return f"""{NOTICE_MARK}<small><b>非官方中文译文</b>：{e(fm.get('originalTitle', ''))}，{e(fm.get('author', ''))}，{fm.get('originalDate', '')} 发表。原文：<a href="{e(fm['source'])}">{e(fm['source'])}</a><br>
+翻译方式：{e(fm.get('methodDetail') or fm.get('method', ''))} 原文采集时间：{e(str(fm.get('captured', '')))}。译文版本：{e(str(fm['version']))}。<br>
+译者与原作者没有关联，译文未经作者审阅，以原文为准；译者不对译文的准确性负责，读者据此作出的判断与行动后果自负。原文著作权归原作者所有，下架请求：{e(contact)}</small>"""
+
+
+def asis_html(raw, fm, contact):
+    """下载用的 HTML 就是导入时保存的网页（source.html.raw）原样：作者的排版、沉浸式翻译的段后译文都不动。
+    只加不改排版的两样：<head> 里的 noindex，<body> 首末的译者声明。原网页的好坏特征都保留（用户 2026-10-28：HTML 原样提供）：
+    例如这篇没有 viewport，手机上按 980px 排版再缩小，iOS 的文字自动放大也照常起作用，所以不加 text-size-adjust
+    （S-1 完整 HTML 要关掉它，是因为那是固定位置排版，放大会让行重叠；流式排版的原网页没有这个问题）。
+    原网页可能声明了别的编码（这篇是 windows-1252），而 Cloudflare Pages 发 .html 时响应头写 charset=utf-8、会盖过 <meta>，
+    所以统一转成 UTF-8 并改掉 <meta> 里的 charset：字节变了，显示的字一个不变"""
+    m = re.search(rb'charset=["\']?([\w-]+)', raw[:2000])
+    enc = m.group(1).decode() if m else "utf-8"
+    if enc.lower().replace("_", "-") not in ("utf-8", "utf8"):
+        raw = raw.decode(enc).encode("utf-8")
+        raw = raw[:m.start(1)] + b"utf-8" + raw[m.end(1):]
+    note = notice_html(fm, contact)
+    head = b'<meta name="robots" content="noindex">'
+    top = (note + "<hr>\n").encode()
+    bottom = ("\n<hr>" + note + "\n").encode()
+    m_head, m_body, m_end = re.search(rb"<head[^>]*>", raw, re.I), re.search(rb"<body[^>]*>", raw, re.I), raw.lower().rfind(b"</body>")
+    if not (m_head and m_body and m_end > m_body.end()):
+        raise ValueError("保存的网页缺少 <head>、<body> 或 </body>")
+    return raw[:m_head.end()] + head + raw[m_head.end():m_body.end()] + top + raw[m_body.end():m_end] + bottom + raw[m_end:]
+
+
+def print_css(fm):
+    """只用于打印 PDF 的那份临时副本：纸张和每页底部的「非官方」标记。下载的 HTML 里没有这段"""
+    ver = html.escape(str(fm["version"]))
+    return f'<style>@page {{ size: 816px 1056px; margin: 48px 56px 64px; @bottom-center {{ content: "非官方译文 · {ver} · 以原文为准"; font: 10px sans-serif; color: #888; }} }}</style>'
 
 
 def check_pdf(path):
@@ -137,10 +138,11 @@ def main(argv=None):
         sys.exit(f"release.py: {fm['version']} 已经发布过（{out}），已发布的版本不再改动；要发新版本先改 front matter 的 version")
 
     os.makedirs(out, exist_ok=True)
-    doc = standalone_html(fm, open(os.path.join(a.bundle, "original.html"), encoding="utf-8").read(), contact)
-    open(h, "w", encoding="utf-8").write(doc)
+    doc = asis_html(open(os.path.join(a.bundle, "source.html.raw"), "rb").read(), fm, contact)
+    open(h, "wb").write(doc)
     tmp = os.path.join(out, name + ".print.html")
-    open(tmp, "w", encoding="utf-8").write(doc)
+    hd = re.search(rb"<head[^>]*>", doc, re.I).end()
+    open(tmp, "wb").write(doc[:hd] + print_css(fm).encode() + doc[hd:])
     try:
         subprocess.run(["node", os.path.join(REPO, "tools/s1-import/pdf.cjs"), tmp, pdf], check=True)
     finally:

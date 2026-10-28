@@ -102,11 +102,12 @@ for (const a of articles) {
   });
 
   // iOS（Safari 和 X、微信等应用内浏览器）会把显示得很小的字单独放大，原版版式缩到屏宽后行与行会叠在一起（S-1 完整 HTML 遇到过，PR #33）。
-  // CI 的 Chromium 和 Linux WebKit 没有这个功能，截图测不出来，所以直接检查样式：站内页靠 PaperMod 的 reset.css，冻结的 HTML 要自己设
-  test(`${a.slug}：显示原版版式的页面都关掉了 iOS 的文字自动放大（text-size-adjust: 100%）`, async () => {
+  // CI 的 Chromium 和 Linux WebKit 没有这个功能，截图测不出来，所以直接检查样式：站内页靠 PaperMod 的 reset.css。
+  // 下载的 HTML 不在此列：它是保存的原网页原样（流式排版，没有行重叠的问题），由 tools/bilingual-import/test_release.py 检查没有加这条
+  test(`${a.slug}：站内显示原版版式的页面都关掉了 iOS 的文字自动放大（text-size-adjust: 100%）`, async () => {
     const ctx = await browsers.chromium.newContext(devices["iPhone 13"]);
     const page = await ctx.newPage();
-    for (const u of [p + a.html.file.replace(/\.raw$/, ""), p, p + "?read=1"]) {
+    for (const u of [p, p + "?read=1"]) {
       await page.goto(server.url + u, { waitUntil: "load" });
       const r = await page.evaluate(() => ({ sheets: document.querySelectorAll(".bl-sheet, template.s1-original-tpl").length, adjust: getComputedStyle(document.documentElement).getPropertyValue("text-size-adjust"), css: [...document.querySelectorAll("style")].map((e) => e.textContent).join("\n"), links: [...document.querySelectorAll("link[rel~=stylesheet]")].map((l) => l.href) }));
       for (const href of r.links) r.css += "\n" + await (await ctx.request.get(href)).text();
@@ -115,18 +116,6 @@ for (const a of articles) {
       // iOS 只认带 -webkit- 前缀的写法；Chromium 解析时会丢掉它，所以查样式表原文
       assert.match(r.css, /(^|[}\s,])html\s*\{[^}]*-webkit-text-size-adjust:\s*100%/, `${u} 缺少 html { -webkit-text-size-adjust: 100% }`);
     }
-    await ctx.close();
-  });
-
-  test(`${a.slug}：下载的 HTML 在窄屏手机上不横向滚动（声明里的原文长网址折行）`, async () => {
-    const ctx = await browsers.chromium.newContext(devices["iPhone SE"]);
-    const page = await ctx.newPage();
-    await page.goto(server.url + p + a.html.file.replace(/\.raw$/, ""), { waitUntil: "load" });
-    // 手机浏览器遇到过宽的内容会把布局视口一起撑大（innerWidth 跟着变），所以和设备宽度比，而不是和 innerWidth 比
-    const width = devices["iPhone SE"].viewport.width;
-    const wide = await page.evaluate((w) => [...document.querySelectorAll("body *")].filter((e) => e.getBoundingClientRect().right > w + 0.5).map((e) => e.outerHTML.slice(0, 80)), width);
-    assert.deepEqual(wide, [], "这些元素超出了屏幕宽度");
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= width, "页面比屏幕宽");
     await ctx.close();
   });
 
