@@ -14,7 +14,7 @@
   const selector = ".md-content img";
 
   // ---------- 图集灯箱 ----------
-  let box, big, caption, counter, list = [], index = 0, opener = null;
+  let box, big, caption, counter, list = [], index = 0, opener = null, fitTouch = () => {};
   const show = (i) => {
     index = (i + list.length) % list.length;
     const img = list[index];
@@ -42,18 +42,31 @@
     on(".zoom-next", () => show(index + 1));
     on(".zoom-close", () => box.close());
     box.addEventListener("click", () => box.close());
-    box.addEventListener("close", () => opener && opener.focus());
+    box.addEventListener("close", () => { box.style.touchAction = ""; down.clear(); opener && opener.focus(); });
     box.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft") show(index - 1);
       if (e.key === "ArrowRight") show(index + 1);
     });
+    // 手指或鼠标横扫换图。双指缩放时不算（第二根手指按下就作废）；页面已被双指放大时，单指拖动用来移动画面，也不算，
+    // 而且要把 touch-action 放开，否则放大后拖不动（CSS 里平时只允许双指缩放，见 custom.css 的 .img-zoom）
+    // 按下的指针按 pointerId 记：没收到 pointerup 的（按着时关了灯箱、右键菜单、切走窗口）关闭和打开时清掉，不会一直算成多指
     let x0 = null;
-    box.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
+    const down = new Set();
+    const zoomedIn = () => (window.visualViewport?.scale || 1) > 1.01;
+    fitTouch = () => { box.style.touchAction = zoomedIn() ? "auto" : ""; };
+    window.visualViewport?.addEventListener("resize", () => { if (box.open) fitTouch(); });
+    box.addEventListener("pointerdown", (e) => { down.add(e.pointerId); x0 = down.size === 1 && !zoomedIn() ? e.clientX : null; });
+    box.addEventListener("pointercancel", (e) => { down.delete(e.pointerId); x0 = null; });
     box.addEventListener("pointerup", (e) => {
+      down.delete(e.pointerId);
       if (x0 === null) return;
       const dx = e.clientX - x0;
       x0 = null;
-      if (Math.abs(dx) > 50) { show(index + (dx < 0 ? 1 : -1)); box.dataset.swiped = "1"; }
+      if (Math.abs(dx) <= 50) return;
+      show(index + (dx < 0 ? 1 : -1));
+      // 鼠标拖动松开后浏览器还会补发一次 click（会被当成点空白处关掉灯箱），吞掉它；手指横扫不会产生 click，
+      // 这时不能设标记，否则下一次真正的点按（×、‹ ›）会被吞掉
+      if (e.pointerType === "mouse") box.dataset.swiped = "1";
     });
     box.addEventListener("click", (e) => {
       if (box.dataset.swiped) { delete box.dataset.swiped; e.stopImmediatePropagation(); }
@@ -67,6 +80,7 @@
     opener = img;
     // 第 9 张上标着「+N」，点它从第 10 张（没显示出来的第一张）看起
     show(list.indexOf(img) + (img.closest(".img-more") ? 1 : 0));
+    fitTouch(); // 先把页面放大了再点开图片时，没有 resize 事件
     box.showModal();
     box.focus();
   };
@@ -82,11 +96,9 @@
       more.setAttribute("aria-hidden", "true");
       img.setAttribute("aria-label", label + fmt(t.more, all.length - all.indexOf(img) - 1));
     } else if (!img.alt) img.setAttribute("aria-label", label);
+    // 每张图各自监听点击：iOS 上点在没有自己点击监听的元素上，挂在 document 上的监听不一定收得到
+    img.addEventListener("click", () => open(img));
   }
-  document.addEventListener("click", (e) => {
-    const img = e.target.closest(selector);
-    if (img && zoomable(img)) open(img);
-  });
   document.addEventListener("keydown", (e) => {
     const img = e.target.closest && e.target.closest(selector);
     if (img && zoomable(img) && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(img); }
