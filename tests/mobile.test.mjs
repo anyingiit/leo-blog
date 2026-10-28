@@ -87,8 +87,9 @@ const DEVICES = {
   chromium: ["iPhone SE", "iPhone 13", "iPhone 13 landscape", "Pixel 7"],
   webkit: ["iPhone SE", "iPhone 13", "iPhone 13 landscape"],
 };
-// 本来就该横向滚动的内容：表格、代码块、公式、原版页
-const SCROLLERS = "table, pre, code, .katex-display, .s1-sheets";
+// 本来就该横向滚动的内容：表格、代码块、公式、原版页，以及 PaperMod 的页头菜单（.menu 放不下时 overflow-x: auto 整行横滑，
+// 这是主题原有行为；按项目规则以 PaperMod 为准，不改成折行）
+const SCROLLERS = "table, pre, code, .katex-display, .s1-sheets, #menu";
 
 const inspect = (page) => page.evaluate((SCROLLERS) => {
   const vw = document.documentElement.clientWidth;
