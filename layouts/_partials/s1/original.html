@@ -28,5 +28,5 @@
   <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>
 </div>
 {{- if not .inline }}
-<script>(b=>{const s=Math.min(b.closest("[data-wide]")?1.4:1,b.clientWidth/836);if(s!==1)b.firstElementChild.style.zoom=s.toFixed(4)})(document.currentScript.previousElementSibling)</script>
+<script>(b=>{const s=Math.min(b.closest("[data-wide]")?1.4:1,b.clientWidth/836);if(s!==1)b.firstElementChild.style.zoom=s.toFixed(4);if(s<1)b.firstElementChild.style.setProperty("--s1-z",s.toFixed(4))})(document.currentScript.previousElementSibling)</script>
 {{- end }}

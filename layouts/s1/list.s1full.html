@@ -3,6 +3,8 @@
   样式内联、图片内嵌，离线也能打开；不用站点的页头页脚和脚本。
   文件开头是完整的译者声明，每屏顶部有一条「非官方译本」横幅；打印（tools/s1-import/pdf.cjs 生成 PDF）时
   声明单独成一页，之后每张原文页面各占一页。
+  原样提供：和 SEC 原文 HTML 一样不设 viewport、不自己缩放，手机浏览器按电脑网页整页等比缩小显示，读者自己双指放大。
+  自己用 zoom 缩到屏宽时，iPhone（WebKit）会把原文表格的 1pt 细线画成 0 宽，与原页不一致
 */ -}}
 {{- $v := . -}}
 {{- $p := .Params -}}
@@ -12,14 +14,13 @@
 <html lang="zh-CN" data-standalone>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>{{ $root.Title }} {{ $p.version }}（非官方 AI 译本）</title>
 <meta name="description" content="{{ .Description }}">
 <link rel="canonical" href="{{ .Permalink }}">
 <style>
 :root { color-scheme: light; }
-/* 关掉手机浏览器的「文字自动放大」（iOS Safari 及 X、微信等应用内浏览器）：原文页整体缩到屏宽后正文只有 5px 左右，
+/* 关掉手机浏览器的「文字自动放大」（iOS Safari 及 X、微信等应用内浏览器）：手机上整页缩小后正文只有 5px 左右，
    iOS 会把这些字单独放大一倍，而每行的位置和宽度是按原尺寸固定的，放大后的字折成更多行，与下面的行叠在一起。
    站内章节页由 PaperMod 的 reset.css 设置了同样的规则，这个独立文件不用主题样式，要自己设 */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -97,6 +98,5 @@ a { color: #0b57d0; }
 </main>
 <section class="dl-end" aria-label="译者声明（重复）">{{ partial "s1/notice.html" (dict "v" $v "full" true) }}</section>
 <footer class="dl-rights">{{ partial "s1/rights.html" . }}</footer>
-<script>{const f=()=>{const z=Math.min(1,document.documentElement.clientWidth/836);for(const e of document.querySelectorAll(".s1-sheets-inner"))e.style.zoom=z<1?z.toFixed(4):""};f();addEventListener("resize",f);addEventListener("beforeprint",()=>{for(const e of document.querySelectorAll(".s1-sheets-inner"))e.style.zoom=""});addEventListener("afterprint",f)}</script>
 </body>
 </html>
