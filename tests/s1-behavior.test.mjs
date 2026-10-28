@@ -15,13 +15,15 @@ import { build, serve, root } from "./helpers.mjs";
 
 const BASE = "https://douseful.eu.org";
 const R = "/translations/anthropic-s1/";
-const V = R + "v1.0/";
+const LATEST = readFileSync(join(root, "content/translations/anthropic-s1/_index.md"), "utf8").match(/^latest: (\S+)$/m)[1]; // 译本首页 front matter 指定的最新版本
+const VERSIONS = readdirSync(join(root, "content/translations/anthropic-s1")).filter((d) => /^v\d/.test(d));
+const V = R + LATEST + "/";
 const FIX = "/s1-test/";
 const DESKTOP = { viewport: { width: 1280, height: 800 } };
 const PHONE = { chromium: devices["Pixel 7"], webkit: devices["iPhone 13"] };
 const ENGINES = ["chromium", "webkit"];
 // 版本 front matter 里的章节表（含页码）是目录、翻章、跳页的依据
-const vfm = readFileSync(join(root, "content/translations/anthropic-s1/v1.0/_index.md"), "utf8");
+const vfm = readFileSync(join(root, "content/translations/anthropic-s1", LATEST, "_index.md"), "utf8");
 const chapters = JSON.parse(vfm.match(/^chapters: (.+)$/m)[1]).filter((c) => c.included);
 // 已发布（release.py 冻结）的版本有 downloads：完整 HTML 和 PDF 在 files/ 下；还没发布时只有模板生成的 full.html、没有 PDF。两种状态都要能测
 const downloads = JSON.parse(vfm.match(/^downloads: (.+)$/m)?.[1] ?? "null");
@@ -174,16 +176,16 @@ test("译本首页：完整声明、开始阅读按钮到第一章、英文原�
   const h = read(R);
   assert.match(h, /译者声明（请先阅读）/);
   assert.match(h, /人工没有检查、也没有能力检查译文与原文的一致性/);
-  assert.match(h, new RegExp(`<a class="?s1-btn"? href="?${V}${chapters[0].slug}/"?>开始阅读最新版 v1.0</a>`));
+  assert.match(h, new RegExp(`<a class="?s1-btn"? href="?${V}${chapters[0].slug}/"?>开始阅读最新版 ${LATEST}</a>`));
   assert.match(h, /<a href="?https:\/\/www\.sec\.gov\/[^>]+>英文原文（SEC）<\/a>/);
   // 目录：每章一条，链接存在，页码范围和 front matter 一致
-  const toc = h.split("<h2>目录（v1.0）</h2>")[1].split("</ol>")[0];
+  const toc = h.split(`<h2>目录（${LATEST}）</h2>`)[1].split("</ol>")[0];
   const items = [...toc.matchAll(/<li data-from="?(\d+)"? data-to="?(\d+)"?><a href="?([^" >]+)"?>/g)];
   assert.deepEqual(items.map((m) => [m[3], +m[1], +m[2]]), chapters.map((c) => [V + c.slug + "/", ...c.pages]));
   for (const m of items) assert.ok(site.exists(m[3] + "index.html"), m[3]);
-  // 版本表：v1.0 一行，带「最新」，链接到版本页，有下载列
+  // 版本表：每个版本一行，最新版带「最新」，链接到版本页，有下载列
   const row = h.split('<table class="s1-versions">')[1] ?? h.split("<table class=s1-versions>")[1];
-  assert.match(row, new RegExp(`<a href="?${V}"?>v1.0</a> <span class="?s1-vtag s1-latest"?>最新</span>`));
+  assert.match(row, new RegExp(`<a href="?${V}"?>${LATEST}</a> <span class="?s1-vtag s1-latest"?>最新</span>`));
   assert.match(row, /2026-10-26 16:16 UTC/);
   assert.match(row, /class="?s1-dl-col"?><span class="?s1-dl-line/);
   // 下载卡片：文件都在；已发布的版本显示大小和 sha256 前 12 位，没发布的只有 HTML、没有 PDF
@@ -199,11 +201,12 @@ test("译本首页：完整声明、开始阅读按钮到第一章、英文原�
   assert.match(h, /class="?s1-rights"?>[^<]*下架请求：<a href="?mailto:/);
 });
 
-test("版本页：面包屑回译本首页、版本条「v1.0 · 最新」、只有一个版本时没有「其他版本」菜单、下载卡片、目录 32 章", () => {
+test("最新版本页：面包屑回译本首页、版本条「最新」、有多个版本时版本菜单列出全部版本、下载卡片、目录 32 章", () => {
   const h = read(V);
   assert.match(h, new RegExp(`class="?s1-crumb"?><a href="?${R}"?>`));
-  assert.match(h, /<span class="?s1-vtag s1-latest"?>v1.0 · 最新<\/span>/);
-  assert.doesNotMatch(h, /s1-vmenu/);
+  assert.match(h, new RegExp(`<span class="?s1-vtag s1-latest"?>${LATEST} · 最新</span>`));
+  if (VERSIONS.length > 1) for (const v of VERSIONS) assert.match(h.match(/class="?s1-vmenu[\s\S]*?<\/details>/)[0], new RegExp(`href="?${R}${v}/"?`), v);
+  else assert.doesNotMatch(h, /s1-vmenu/);
   assert.doesNotMatch(h, /class="?s1-old/);
   assert.match(h, /class="?s1-dl-cards/);
   assert.equal([...h.matchAll(/<li data-from=/g)].length, chapters.length);
@@ -212,7 +215,7 @@ test("版本页：面包屑回译本首页、版本条「v1.0 · 最新」、只
 test("32 个章节页：面包屑、「原文第 a–b 页」、上一章/下一章（页脚和沉浸顶栏）、章节目录标出当前章、顶栏总页数、原版页数和页码分隔", () => {
   chapters.forEach((c, i) => {
     const p = V + c.slug + "/", h = read(p);
-    assert.match(h, new RegExp(`class="?s1-crumb"?><a href="?${R}"?>[^<]+</a> › <a href="?${V}"?>v1.0 目录</a>`), p);
+    assert.match(h, new RegExp(`class="?s1-crumb"?><a href="?${R}"?>[^<]+</a> › <a href="?${V}"?>${LATEST} 目录</a>`), p);
     assert.match(h, new RegExp(`<div class="?post-meta"?>原文第 ${c.pages[0]}–${c.pages[1]} 页</div>`), p);
     const nav = h.match(/<nav class="?paginav s1-paginav"?>([\s\S]*?)<\/nav>/)[1];
     const prev = chapters[i - 1], next = chapters[i + 1];
@@ -326,7 +329,7 @@ for (const engine of ENGINES) {
     if (PDF_URL) {
       const [dl] = await Promise.all([page.waitForEvent("download"), page.locator(".s1-dl-card a", { hasText: "下载 .pdf" }).click()]);
       assert.equal(new URL(dl.url()).pathname, PDF_URL);
-      assert.equal(dl.suggestedFilename(), "anthropic-s1-zh-unofficial-v1.0.pdf");
+      assert.equal(dl.suggestedFilename(), `anthropic-s1-zh-unofficial-${LATEST}.pdf`);
       await dl.cancel();
     } else assert.equal(await page.locator(".s1-dl-card a", { hasText: "下载 .pdf" }).count(), 0, "没发布的版本不应有 PDF");
     await s.done();

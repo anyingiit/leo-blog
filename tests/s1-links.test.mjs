@@ -17,8 +17,9 @@ import { chromium, webkit, devices } from "playwright";
 import { build, serve, root } from "./helpers.mjs";
 
 const PROD = "https://douseful.eu.org";
-const V = "/translations/anthropic-s1/v1.0/";
-const NAME = "anthropic-s1-zh-unofficial-v1.0";
+const LATEST = readFileSync(join(root, "content/translations/anthropic-s1/_index.md"), "utf8").match(/^latest: (\S+)$/m)[1];
+const V = `/translations/anthropic-s1/${LATEST}/`;
+const NAME = `anthropic-s1-zh-unofficial-${LATEST}`;
 const CONTENT = join(root, "content", V);
 const SEC = /^https:\/\/www\.sec\.gov\/Archives\/edgar\/data\/2130357\/000162828026067168\/[a-z0-9-]+\.htm$/;
 

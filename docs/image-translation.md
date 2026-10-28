@@ -94,7 +94,7 @@ patches:                        # 可选，每块中文一个
 
 ## 测试
 
-改 `render.py` 后先跑回归测试（CI 的 Test 任务也会跑）：
+改 `render.py` 后先跑回归测试（CI 的 Lint and build 任务也会跑）：
 
 ```bash
 pip install -r tools/image-i18n/requirements.txt

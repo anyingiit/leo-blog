@@ -9,7 +9,7 @@ This section hosts an **unofficial Chinese translation** of the S-1 registration
 
 Translation method: the original HTM filing was downloaded from SEC EDGAR and translated by Claude (multiple agents working in parallel), followed by several rounds of AI review; a person then checked the layout before finalizing. **No person has checked, or is able to check, whether the translation is consistent with the original**, so it may contain mistranslations, omissions, or errors in numbers and terms.
 
-Current version: v1.0 (finalized 2026-10-27). Original captured 2026-10-26 16:16 UTC.
+Current version: v1.1 (finalized 2026-10-27; v1.0 is kept). Original captured 2026-10-26 16:16 UTC.
 
 The translation is for reference only and is not investment advice; the translator accepts no liability for its use.
 
