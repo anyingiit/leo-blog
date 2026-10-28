@@ -35,7 +35,6 @@ permalinks:
     notes: /notes/:slug/
 
 params:
-  displayFullLangName: true   # 文章页的译文链接写「中文」「English」，而不是 Zh / En
   env: production
   # S-1 译本的下架联系方式（声明、版权行、下载文件里都会出现；tools/s1-import/release.py 要求设置）
   s1Contact: leoycwan@gmail.com
