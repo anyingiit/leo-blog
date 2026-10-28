@@ -9,13 +9,13 @@ filmLang: zh
 aliases: [/en/films/anthropic-money-power/]
 ---
 
-How the five share classes in the prospectus (A / N / T / F / E), the Long-Term Benefit Trust (LTBT), the Founder LLC and the 7-seat board check and balance one another. It takes the structure apart in an order engineers will recognise: data structure, permission table, board, checks and balances, and how it changes over time. Translated from the Chinese original.
+No single party controls Anthropic: the founders control the shareholder vote, the Long-Term Benefit Trust (LTBT) elects a majority of the board, and employees settle disputes over one key board seat. The film and the transcript below take the prospectus apart in an order engineers will recognise: data structure, permission table, board, checks and balances, and how it changes over time.
 
 <!--more-->
 
 {{< film name="anthropic-money-power" >}}
 
-Based on the sections of Anthropic's S-1 prospectus on its governance structure and objectives, description of capital stock, management and related risk factors. Not investment advice; the prospectus is the authority.
+Based on the sections of Anthropic's S-1 prospectus on its governance structure and objectives, description of capital stock, management and related risk factors. Not investment advice; the prospectus is the authority. Translated from the Chinese original.
 
 ## Transcript {#transcript}
 
