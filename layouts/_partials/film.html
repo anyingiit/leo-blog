@@ -1,0 +1,54 @@
+{{- /*
+  短片（docs/films.md）：assets/films/<名字>/ 是一部自包含的 HTML 短片（index.html 和它引用的配音、图片），
+  原样发布到 /films/<名字>/play/，只在 index.html 里插入三样东西：
+  - 关掉 iOS 文字自动放大（-webkit-text-size-adjust:100%），否则 iPhone 上缩小显示的画面文字会被放大、互相重叠；
+  - 桥接脚本 assets/js/film-bridge.js（深浅色、Esc、高度，经 postMessage 传给博客）；
+  - noindex 和指向短片文章的 canonical（搜索引擎收录文章，不收录裸播放器）。
+  poster.png/jpg 不发布，缩成 WebP 当封面；有 poster.en.png/jpg 时英文页用它（封面上有中文字时，见 docs/films.md）。
+  短片的文章：front matter 写了 film: <名字> 的那篇（博客页头页尾、导语、播放器、文字稿），可选；minutes、filmLang 也写在那里。
+  参数：dict "name" 短片名 "page" 当前页面。返回 dict：play、page（短片文章，没有时为空）、poster、width、height、title、minutes、lang。
+*/ -}}
+{{- $name := .name -}}
+{{- $ctx := .page -}}
+{{- $files := resources.Match (printf "films/%s/**" $name) -}}
+{{- if not $files }}{{ errorf "找不到短片 assets/films/%s/" $name }}{{ end -}}
+{{- $filmPage := false -}}
+{{- range first 1 (where site.AllPages "Params.film" $name) }}{{ $filmPage = index .AllTranslations 0 }}{{ end -}}
+{{- $base := printf "films/%s/play/" $name -}}
+{{- $title := $name -}}
+{{- range $files -}}
+  {{- $rel := strings.TrimPrefix (printf "films/%s/" $name) (strings.TrimPrefix "/" .Name) -}}
+  {{- if hasPrefix $rel "poster." }}{{ continue }}{{ end -}}
+  {{- if eq $rel "index.html" -}}
+    {{- $html := .Content -}}
+    {{- with findRESubmatch `<title>([^<]+)</title>` $html 1 }}{{ $title = index (index . 0) 1 }}{{ end -}}
+    {{- $bridge := resources.Get "js/film-bridge.js" | minify -}}
+    {{- $head := `<meta name="robots" content="noindex">` -}}
+    {{- /* 中英两种语言的页面发布的是同一份播放器，canonical 固定指向默认语言的短片文章 */ -}}
+    {{- with $filmPage }}{{ $head = printf `%s<link rel="canonical" href="%s">` $head (index .AllTranslations 0).Permalink }}{{ end -}}
+    {{- $head = printf `%s<style>html{-webkit-text-size-adjust:100%%;text-size-adjust:100%%}</style><script>%s</script>` $head $bridge.Content -}}
+    {{- $html = replaceRE `(?i)(<head[^>]*>)` (printf "${1}%s" $head) $html 1 -}}
+    {{- $_ := (resources.FromString (printf "%sindex.html" $base) $html).RelPermalink -}}
+  {{- else -}}
+    {{- $_ := (resources.Copy (printf "%s%s" $base $rel) .).RelPermalink -}}
+  {{- end -}}
+{{- end -}}
+{{- $poster := dict -}}
+{{- $suffix := cond (and $ctx (ne $ctx.Lang site.Sites.Default.Language.Lang)) (printf ".%s" ($ctx.Lang | default "")) "" -}}
+{{- with or (resources.Get (printf "films/%s/poster%s.png" $name $suffix)) (resources.Get (printf "films/%s/poster%s.jpg" $name $suffix)) (resources.Get (printf "films/%s/poster.png" $name)) (resources.Get (printf "films/%s/poster.jpg" $name)) -}}
+  {{- $img := .Process "resize 1280x webp q85" -}}
+  {{- $poster = dict "src" $img.RelPermalink "width" $img.Width "height" $img.Height -}}
+{{- end -}}
+{{- $page := "" -}}
+{{- $minutes := 0 -}}
+{{- $lang := "" -}}
+{{- with $filmPage -}}
+  {{- $p := . -}}
+  {{- with $ctx }}{{ range $filmPage.AllTranslations }}{{ if eq .Lang $ctx.Lang }}{{ $p = . }}{{ end }}{{ end }}{{ end -}}
+  {{- $page = $p.RelPermalink -}}
+  {{- $title = $p.Title -}}
+  {{- $minutes = $p.Params.minutes | default 0 -}}
+  {{- $lang = $p.Params.filmLang | default "" -}}
+{{- end -}}
+{{- $play := printf "/%s" $base | relURL -}}
+{{- return dict "play" $play "page" $page "poster" $poster.src "width" $poster.width "height" $poster.height "title" $title "minutes" $minutes "lang" $lang -}}

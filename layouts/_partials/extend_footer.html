@@ -133,3 +133,126 @@
   }
 })();
 </script>
+{{- /*
+  3. 短片（docs/films.md）：
+     - 正文里的封面和「播放短片」按钮（_shortcodes/film.html）是指向短片文章的链接；有脚本时普通点击改为在全窗口对话框里放映，
+       返回键、Esc、关闭按钮都关掉对话框、留在原文原处；关闭时移除播放器，声音随之停止。
+     - 读者已经点过播放，所以打开时带 ?autoplay=1，焦点交给画面（空格、方向键直接可用）；短片加载完之前先显示封面。
+     - 记住看到第几句（sessionStorage），再打开时带 ?at= 接着放；放完显示「重看」「文字稿」。
+     - 短片自己的文章里（_partials/film_stage.html）播放器原地放，高度按短片报来的撑开；章节目录的「从这里播放」发 film:seek。
+     短片放在沙箱 iframe 里（和博客不同源），双方只通过 postMessage 交换深浅色、高度、Esc、进度（assets/js/film-bridge.js）。
+*/ -}}
+<script>
+(() => {
+  const openers = document.querySelectorAll("a[data-play]");
+  const frames = document.querySelectorAll("iframe.film-frame");
+  if (!openers.length && !frames.length) return;
+  const root = document.documentElement;
+  const theme = () => root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const all = () => [...document.querySelectorAll("iframe.film-frame")];
+  const tell = (f) => f.contentWindow?.postMessage({ type: "film:theme", theme: theme() }, "*");
+  new MutationObserver(() => all().forEach(tell)).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  const saved = (k, v) => {
+    try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch {}
+  };
+  let box, frame, link, opener, film, key;
+  addEventListener("message", (e) => {
+    const f = all().find((x) => x.contentWindow === e.source);
+    if (!f || !e.data) return;
+    if (e.data.type === "film:ready") tell(f);
+    if (e.data.type === "film:size" && f !== frame && e.data.height > 0) f.style.height = Math.min(e.data.height, 4000) + "px";
+    if (f !== frame) {
+      // 文章里的播放器：画好之前显示封面；开播后收起大播放按钮；章节目录标上每章的开始时间
+      const stage = f.closest(".film-stage");
+      if (e.data.type === "film:ready") f.style.backgroundImage = "";
+      // 浏览器不让没点过画面的 iframe 出声（iOS）时，短片自己在画面上放一个播放按钮，这边的就收起
+      if (e.data.type === "film:playing" || e.data.type === "film:blocked") stage?.querySelector(".film-start")?.remove();
+      if (e.data.type === "film:chapters" && Array.isArray(e.data.starts)) {
+        const mmss = (t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+        document.querySelectorAll(".film-seek .film-at").forEach((s, i) => { if (Number.isFinite(e.data.starts[i])) s.textContent = mmss(e.data.starts[i]); });
+      }
+      return;
+    }
+    if (e.data.type === "film:escape") box.close();
+    if (e.data.type === "film:progress") { saved(key, String(e.data.cue | 0)); box.classList.remove("ended"); }
+    if (e.data.type === "film:ended") { saved(key, null); box.classList.add("ended"); box.querySelector(".film-again").focus(); }
+  });
+  for (const f of frames) f.addEventListener("load", () => tell(f));
+  // 文章里的播放器上的大播放按钮：读者第一眼就知道这是能放的，控制条在下面也不用找
+  for (const b of document.querySelectorAll(".film-start")) {
+    const f = b.closest(".film-stage").querySelector("iframe");
+    b.hidden = false;
+    b.addEventListener("click", () => { f.contentWindow?.postMessage({ type: "film:play" }, "*"); f.focus(); });
+  }
+  // 章节目录里的「从这里播放」：把章节号发给同一篇里的播放器，并把播放器滚到眼前
+  for (const b of document.querySelectorAll(".film-seek")) {
+    const f = document.querySelector(".film-stage iframe");
+    if (!f) continue;
+    b.hidden = false;
+    b.addEventListener("click", () => {
+      f.contentWindow?.postMessage({ type: "film:seek", chapter: +b.dataset.chapter }, "*");
+      f.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+      f.focus({ preventScroll: true });
+    });
+  }
+  // 没有 <dialog> 的浏览器（iOS 15.3 及更早）不拦截，点封面照常打开短片文章
+  if (!openers.length || typeof HTMLDialogElement !== "function") return;
+  const build = () => {
+    box = document.createElement("dialog");
+    box.className = "film-dialog";
+    // 顶栏在 DOM 里放在画面后面（样式上仍在顶上），从短片里按 Tab 接着就是「文字稿」和关闭按钮，不会跑到后面的页面
+    box.innerHTML = '<div class="film-view"><div class="film-end"><button type="button" class="btn btn-primary film-again">{{ i18n "film_again" }}</button><a class="btn btn-outline film-tab">{{ i18n "film_transcript" }}</a></div></div>' +
+      '<div class="film-bar"><span class="film-name"></span><a class="film-tab">{{ i18n "film_transcript" }}</a><button type="button" class="film-close" aria-label="{{ i18n "zoom_close" }}">×</button></div>';
+    link = box.querySelectorAll(".film-tab");
+    box.querySelector(".film-close").onclick = () => box.close();
+    box.querySelector(".film-again").onclick = () => { saved(key, null); load(film, true); };
+    // 从对话框去文字稿：用短片文章顶替打开对话框时多出的那条历史记录，返回时直接回到原文
+    for (const a of link) a.addEventListener("click", (e) => {
+      if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || !history.state?.film) return;
+      e.preventDefault();
+      location.replace(a.href);
+    });
+    box.addEventListener("close", () => {
+      frame?.remove(); frame = null;
+      if (history.state?.film) history.back();
+      opener?.focus({ preventScroll: true });
+    });
+    document.body.append(box);
+  };
+  // 每次放映都换一个新的 iframe：改已有 iframe 的地址会在浏览历史里多记一笔，返回键就得按两下
+  const load = (a, fresh) => {
+    frame?.remove();
+    box.classList.remove("ended");
+    frame = document.createElement("iframe");
+    frame.className = "film-frame";
+    frame.title = a.dataset.title;
+    frame.sandbox = "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation";
+    frame.allow = "fullscreen; autoplay";
+    frame.allowFullscreen = true;
+    const poster = a.closest(".film")?.querySelector("img");
+    if (poster) frame.style.backgroundImage = `url("${poster.currentSrc || poster.src}")`;
+    const at = fresh ? null : saved(key);
+    const q = "embed=fit&autoplay=1" + (at ? "&at=" + at : "");
+    frame.src = a.dataset.play + (a.dataset.play.includes("?") ? "&" : "?") + q;
+    frame.addEventListener("load", () => { frame.style.backgroundImage = ""; frame.focus(); }, { once: true });
+    box.querySelector(".film-view").prepend(frame);
+  };
+  // 返回键：先关短片，不离开文章
+  addEventListener("popstate", () => { if (box?.open) { history.replaceState(null, ""); box.close(); } });
+  for (const a of openers) a.addEventListener("click", (e) => {
+    if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (!box) build();
+    // 封面不进 Tab 顺序，从封面打开时，关闭后焦点回到同一张卡片的「播放短片」按钮
+    opener = a.tabIndex < 0 ? a.closest(".film")?.querySelector(".film-play-btn") ?? a : a;
+    film = a; key = "film:" + a.dataset.play;
+    box.querySelector(".film-name").textContent = a.dataset.title;
+    box.setAttribute("aria-label", a.dataset.title);
+    // 没有短片文章（也就没有文字稿）时不显示「文字稿」
+    for (const l of link) { l.hidden = !a.dataset.transcript; l.href = a.dataset.transcript || ""; }
+    history.pushState({ film: a.dataset.title }, "");
+    box.showModal();
+    load(a);
+  });
+})();
+</script>

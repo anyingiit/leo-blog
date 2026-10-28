@@ -6,8 +6,32 @@
 <description>Recent content on Leoblog</description>
 <generator>Hugo</generator>
 <language>zh-CN</language>
-<lastBuildDate>Thu, 05 Mar 2026 09:00:00 +0000</lastBuildDate>
+<lastBuildDate>Sun, 25 Oct 2026 08:00:00 +0000</lastBuildDate>
 <atom:link href="http://blog.test/index.xml" rel="self" type="application/rss+xml"/>
+<item>
+<title>【测试】短片</title>
+<link>http://blog.test/notes/film-note/</link>
+<pubDate>Sun, 25 Oct 2026 08:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/film-note/</guid>
+<description>&lt;p&gt;短片文章的导语：用 Markdown 写，和博客正文一样排版。&lt;/p&gt;</description>
+</item>
+<item>
+<title>【测试】引用短片</title>
+<link>http://blog.test/notes/film-ref/</link>
+<pubDate>Sun, 25 Oct 2026 07:00:00 +0000</pubDate>
+<guid>http://blog.test/notes/film-ref/</guid>
+<description>&lt;p&gt;别的文章里引用短片，显示为封面卡片：&lt;/p&gt;
+&lt;figure class="film film-cover"&gt;
+&lt;a class="film-open" href="http://blog.test/notes/film-note/" data-play="/films/test-film/play/" data-title="【测试】短片" data-transcript="/notes/film-note/#transcript" tabindex="-1" aria-hidden="true"&gt;&lt;img src="http://blog.test/films/test-film/poster_hu_80a0afd65939a82.webp" width="1280" height="720" alt="" loading="lazy" decoding="async" class="in-text"&gt;&lt;span class="film-play"&gt;&lt;/span&gt;
+&lt;/a&gt;
+&lt;figcaption&gt;&lt;strong&gt;【测试】短片&lt;/strong&gt;&lt;span&gt;约 2 分钟&lt;/span&gt;&lt;/figcaption&gt;
+&lt;div class="film-acts"&gt;
+&lt;a class="btn btn-primary film-play-btn" href="http://blog.test/notes/film-note/" data-play="/films/test-film/play/" data-title="【测试】短片" data-transcript="/notes/film-note/#transcript" aria-haspopup="dialog"&gt;播放短片&lt;/a&gt;
+&lt;a class="btn btn-outline" href="http://blog.test/notes/film-note/#transcript"&gt;阅读文字稿&lt;/a&gt;
+&lt;/div&gt;
+&lt;/figure&gt;
+&lt;p&gt;卡片后面的一段文字。&lt;/p&gt;</description>
+</item>
 <item>
 <title>一条短文</title>
 <link>http://blog.test/notes/sample-note/</link>

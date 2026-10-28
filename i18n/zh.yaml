@@ -14,6 +14,20 @@
   translation: "查看图片 %d / %d"
 - id: zoom_more
   translation: "，还有 %d 张"
+- id: film_play
+  translation: 播放短片
+- id: film_minutes
+  translation: "约 %d 分钟"
+- id: film_again
+  translation: 重看
+- id: film_chapters
+  translation: 章节
+- id: film_from_here
+  translation: 从这里播放
+- id: film_transcript
+  translation: 文字稿
+- id: film_read_transcript
+  translation: 阅读文字稿
 # 双语对照译文（layouts/bilingual/）
 - id: bl_published
   translation: "原文发表于"

@@ -1,7 +1,7 @@
 // 构建产物检查（关闭 JavaScript 读取生成的 HTML）：图片缩放、原位分组、文案、原图不上线、转义、警告
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { chromium } from "playwright";
 import { build, serve, root } from "./helpers.mjs";
 
@@ -143,4 +143,62 @@ test("CSS 括号配平（多一个 } 会让后面的规则整条失效）", () =
   let depth = 0;
   for (const ch of css) { if (ch === "{") depth++; if (ch === "}") depth--; assert.ok(depth >= 0, "多了 }"); }
   assert.equal(depth, 0, "少了 }");
+});
+
+// 视频（render-image.html 的视频分支，docs/video.md）
+const videos = (path) => ctx.newPage().then(async (page) => {
+  await page.goto(server.url + path);
+  const r = await page.evaluate(() => [...document.querySelectorAll(".post-content video")].map((v) => ({
+    ...Object.fromEntries([...v.attributes].map((a) => [a.name, a.value])),
+    parent: v.parentElement.tagName, fallback: v.querySelector("a")?.getAttribute("href"), grouped: !!v.closest(".img-group"),
+  })));
+  await page.close();
+  return r;
+});
+
+test("视频：![说明](片名.mp4) 输出 <video>，带控件、只预载元数据、手机内联播放", async () => {
+  const [clip] = await videos("/notes/video-note/");
+  assert.equal(clip.src, "/notes/video-note/clip.mp4");
+  for (const a of ["controls", "playsinline"]) assert.equal(clip[a], "", a);
+  assert.equal(clip.preload, "metadata");
+  assert.equal(clip.class, "video");
+  assert.equal(clip["aria-label"], '一段"测试"视频', "alt 当无障碍名称，引号原样");
+  assert.equal(clip.title, "视频标题");
+  assert.equal(clip.fallback, clip.src, "不支持视频的浏览器显示下载链接");
+  assert.ok(site.exists("notes/video-note/clip.mp4"), "视频原样发布");
+});
+
+test("视频：同名 jpg/png 当封面，缩成 WebP，宽高和 --ar 按封面写好占位；原封面图不发布", async () => {
+  const [clip, vertical] = await videos("/notes/video-note/");
+  assert.match(clip.poster, /^\/notes\/video-note\/clip_hu_[0-9a-f]+\.webp$/);
+  assert.deepEqual([clip.width, clip.height, clip.style], ["640", "360", "--ar:1.7778"]);
+  assert.match(vertical.src, /video-note\.assets\/vertical\.mp4$/, "Typora 的 .assets 文件夹可用");
+  assert.match(vertical.poster, /video-note\.assets\/vertical_hu_[0-9a-f]+\.webp$/);
+  assert.deepEqual([vertical.width, vertical.height, vertical.style], ["360", "640", "--ar:0.5625"]);
+  assert.ok(site.exists(clip.poster.slice(1)));
+  assert.equal(site.exists("notes/video-note/video-note.assets/vertical.png"), false);
+});
+
+test("视频：没有封面时照样输出，不写宽高，构建给出警告", async () => {
+  const v = (await videos("/notes/video-note/")).find((x) => x.src.endsWith("no-poster.mp4"));
+  assert.equal(v.poster, undefined);
+  assert.equal(v.width, undefined);
+  assert.match(site.log, /video-note\/index\.md: 视频 "\.\/no-poster\.mp4" 没有封面/);
+});
+
+test("视频：短文栏目里不进图片分组，紧挨着的图片也不和它分组；英文页共用同一个视频文件", async () => {
+  const list = await videos("/notes/");
+  assert.equal(list.length, 4);
+  assert.ok(list.every((v) => !v.grouped && v.parent === "P"));
+  assert.equal((await inspect("/notes/", "video-note")).groups.length, 0);
+  const [en] = await videos("/en/notes/video-note/");
+  assert.equal(en.src, "/notes/video-note/clip.mp4", "中英文共用同一个视频文件");
+  assert.equal(site.exists("en/notes/video-note/clip.mp4"), false, "视频不为英文页再发布一份");
+  assert.equal(en["aria-label"], "A test video");
+});
+
+test("没有超过 25 MiB 的文件（Cloudflare Pages 单个文件的上限，超了整站部署失败）", () => {
+  const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(`${d}/${e.name}`) : [`${d}/${e.name}`]);
+  const big = walk(site.out).filter((f) => statSync(f).size > 25 * 1024 * 1024);
+  assert.deepEqual(big, []);
 });

@@ -19,6 +19,8 @@ const pages = [
   ["site", "/en/", "site-en-home", false],
   ["site", "/en/posts/sample-post/", "site-en-post", false],
   ["site", "/en/notes/", "site-en-notes", false],
+  ["site", "/notes/film-ref/", "site-note-film", true], // 别的文章里的短片封面卡片（docs/films.md）
+  ["site", "/notes/film-note/", "site-film-page", true], // 短片的文章：宽幅播放器 + 章节目录 + 文字稿
   // 双语对照译文（layouts/bilingual/）：电脑上默认原版版式、平板和手机上默认重排版；全屏阅读；英文页只放说明
   ["site", "/translations/sample-essay/", "site-bilingual", true],
   ["site", "/translations/sample-essay/?read=1", "site-bilingual-read", false],
@@ -56,6 +58,24 @@ for (const [site, path, name, dark] of pages) {
       await context.close();
     });
   }
+}
+
+// 短片全窗口放映：对话框、标题栏和沙箱里的短片（深浅色经 postMessage 同步）
+for (const scheme of ["light", "dark"]) {
+  test(`site-film-dialog · ${scheme}`, async ({ browser }, info) => {
+    const context = await browser.newContext({ ...info.project.use, colorScheme: scheme });
+    await connect(context);
+    const page = await context.newPage();
+    await page.goto(hosts.site + "/notes/film-ref/", { waitUntil: "load" });
+    await settle(page);
+    await page.click(".film-open");
+    const film = page.frameLocator(".film-dialog iframe");
+    await film.locator("#theme").filter({ hasText: scheme }).waitFor();
+    await film.locator("img").evaluate((img) => img.decode());
+    await settle(page);
+    await expect(page).toHaveScreenshot(`site-film-dialog-${scheme}.png`);
+    await context.close();
+  });
 }
 
 // 网络状态：图片还没到、CDN 不可用（KaTeX 样式和 Mermaid 加载失败）时，版面也要稳定可读

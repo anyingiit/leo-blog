@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>测试短片</title>
+<!-- 回归测试用的短片：和真实短片一样是自包含的页面，不知道自己会被嵌进博客。
+     颜色跟随 <html data-theme>（博客经桥接脚本设置），没有就跟随系统；高度固定，便于测试播放器的高度。 -->
+<style>
+:root { --bg: #f4f1ea; --fg: #222; --stage: #1b2a41; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #111; --fg: #eee; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #111; --fg: #eee; color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 sans-serif; }
+header, footer { padding: 16px; }
+[data-embed] header, [data-embed] footer { display: none; }
+.player { background: var(--stage); color: #fff; }
+.stage { aspect-ratio: 16 / 9; display: grid; place-items: center; }
+.stage img { width: 40%; }
+.ctrls { height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 16px; }
+</style>
+</head>
+<body>
+<header><h1>测试短片</h1><p>独立打开时显示的标题和说明。</p></header>
+<div class="player">
+  <div class="stage"><img src="media/still.svg" alt="静帧"></div>
+  <div class="ctrls"><button id="play" type="button">▶ 播放</button><button id="next" type="button">下一句</button><button id="end" type="button">放完</button><span id="theme"></span> <span id="at"></span></div>
+</div>
+<footer>独立打开时显示的页脚。</footer>
+<script>
+const t = document.getElementById("theme");
+const show = () => { t.textContent = document.documentElement.dataset.theme || "system"; };
+show();
+new MutationObserver(show).observe(document.documentElement, { attributes: true });
+const play = document.getElementById("play");
+play.onclick = () => { play.textContent = "❚❚ 暂停"; if (parent !== window) parent.postMessage({ type: "film:playing" }, "*"); };
+// 博客可选的约定（film-bridge.js）：?at= 从第几句开始、?autoplay=1 直接开播；换句时报 film:progress，放完报 film:ended
+const q = new URLSearchParams(location.search);
+let cue = +q.get("at") || 0;
+document.getElementById("at").textContent = "第 " + cue + " 句";
+if (q.get("autoplay") === "1") play.click();
+const tell = (m) => { if (parent !== window) parent.postMessage(m, "*"); };
+document.getElementById("next").onclick = () => { cue++; document.getElementById("at").textContent = "第 " + cue + " 句"; tell({ type: "film:progress", cue }); };
+document.getElementById("end").onclick = () => tell({ type: "film:ended" });
+addEventListener("message", (e) => {
+  if (e.source !== parent) return;
+  if (e.data?.type === "film:play") play.click();
+  if (e.data?.type !== "film:seek") return;
+  document.getElementById("at").textContent = "第 " + e.data.chapter + " 章";
+  play.click();
+});
+tell({ type: "film:chapters", starts: [0, 65] });
+</script>
+</body>
+</html>

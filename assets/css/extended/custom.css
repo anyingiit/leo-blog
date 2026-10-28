@@ -54,6 +54,89 @@
   .note-entry .post-content p:has(+ .img-group) { margin-bottom: 0.5rem; }
   .note-entry .post-content p + .img-group { margin-top: 0.5rem; }
 }
+/* 视频（render-image.html 输出的 <video>）：按封面宽高比占位；单篇页最高 80vh，短文时间线里和图片一样最高 24rem */
+.md-content video { display: block; width: min(100%, calc(80vh * var(--ar, 1.7778))); height: auto; margin: 1rem 0; background: #000; border-radius: 4px; }
+.note-entry .post-content video { width: min(100%, calc(24rem * var(--ar, 1.7778))); }
+/* 短片（docs/films.md）：封面卡片（链接到短片文章）+ 全窗口放映 + 短片文章里的宽幅播放器 */
+.film { margin: 1.5rem 0; }
+.film-open { position: relative; display: block; border-radius: var(--radius); overflow: hidden; background: #0f1522; box-shadow: none !important; }
+.film-open img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; margin: 0 !important; transition: opacity .2s; }
+@media (hover: hover) { .film-open:hover img { opacity: .85; } }
+.film-open:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.film-play { position: absolute; left: .75rem; bottom: .75rem; width: 2.75rem; height: 2.75rem; border-radius: 50%; background: rgb(0 0 0 / .65); }
+.film-play::before { content: ""; position: absolute; left: 52%; top: 50%; width: .9rem; height: 1rem; transform: translate(-50%, -50%); background: #fff; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.film-cover figcaption { display: flex; flex-wrap: wrap; gap: .25rem .75rem; align-items: baseline; margin-top: .5rem; font-size: .875rem; color: var(--secondary); text-align: left; }
+.film-cover figcaption strong { color: var(--primary); font-weight: 600; font-size: 1rem; }
+.film-cover figcaption span { font-weight: 400; }
+.film-acts { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .9rem; }
+.film-acts .btn { flex: 1 1 0; max-width: 14rem; }
+.film-play-btn::before { content: ""; width: .6rem; height: .7rem; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+/* 短片文章里，播放器下面的章节目录：折叠，每章一行，右边是「从这里播放」 */
+.film-chapters { margin: 0 0 var(--gap); border: 1px solid var(--border); border-radius: var(--radius); }
+.film-chapters summary { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: 0 1rem; cursor: pointer; font-weight: 600; }
+.film-chapters summary span { font-weight: 400; color: var(--secondary); font-size: .875rem; }
+.film-chapters ol { margin: 0 !important; padding: 0 0 .25rem !important; list-style: none; border-top: 1px solid var(--border); }
+.film-chapters li { display: flex; align-items: center; margin: 0 !important; padding: 0 .25rem 0 1rem; }
+.film-chapters li a { flex: 1; padding: .55rem 0; box-shadow: none !important; text-decoration: none !important; color: var(--primary); }
+@media (hover: hover) { .film-chapters li a:hover { color: var(--secondary); } }
+.film-seek { flex: none; display: inline-flex; align-items: center; justify-content: flex-end; gap: .5rem; min-width: 44px; height: 44px; padding: 0 .75rem; border: 0; border-radius: 22px; background: transparent; color: var(--secondary); font-size: .8rem; cursor: pointer; }
+@media (hover: hover) { .film-seek:hover { background: var(--code-bg); color: var(--primary); } }
+.film-seek:focus-visible, .film-chapters summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.film-dialog { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0f1522; display: none; flex-direction: column; }
+.film-dialog[open] { display: flex; }
+.film-dialog::backdrop { background: rgb(0 0 0 / .7); }
+/* 放映时后面的文章不跟着滚（PaperMod 给 html 设了 overflow-y: scroll，只锁 body 不够） */
+html:has(.film-dialog[open]) { overflow: hidden; }
+.film-dialog { overscroll-behavior: contain; }
+/* 顶栏和画面同一个深色，不随博客深浅色变；按钮、链接都不小于 44px */
+.film-bar { order: -1; display: flex; align-items: center; gap: .5rem; padding: 0 max(.5rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left)); padding-top: env(safe-area-inset-top); background: #0f1522; border-bottom: 1px solid rgb(255 255 255 / .12); color: #e8ecf3; font-size: .9rem; }
+.film-name { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.film-bar .film-tab { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .75rem; color: #c3cad6; white-space: nowrap; }
+@media (hover: hover) { .film-bar .film-tab:hover { color: #fff; } }
+.film-close { width: 44px; height: 44px; font-size: 1.6rem; line-height: 1; color: #e8ecf3; background: transparent; border: 0; border-radius: 50%; cursor: pointer; }
+@media (hover: hover) { .film-close:hover { background: rgb(255 255 255 / .1); } }
+.film-bar :focus-visible, .film-end :focus-visible { outline: 2px solid #e8ecf3; outline-offset: 2px; }
+.film-view { position: relative; flex: 1; min-height: 0; display: flex; }
+/* 短片加载完之前先显示封面 */
+.film-dialog iframe { flex: 1; width: 100%; border: 0; background: #0f1522 center / contain no-repeat; }
+/* 放完：盖住整个画面（字幕也盖住），按钮居中 */
+.film-end { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: .75rem; background: rgb(15 21 34 / .82); }
+.film-dialog.ended .film-end { display: flex; }
+.film-end .btn-primary { background: #e8ecf3; color: #0f1522; border-color: #e8ecf3; }
+.film-end .btn-outline { background: rgb(15 21 34 / .85); color: #e8ecf3; border-color: rgb(255 255 255 / .5); }
+.film-end [hidden] { display: none; }
+/* 手机横屏：顶栏不占一整行，只留右上角的关闭按钮（文字稿在片尾面板和文章里） */
+@media (max-height: 500px) {
+  .film-bar { position: absolute; top: 0; right: 0; z-index: 1; padding-left: 0; border: 0; border-bottom-left-radius: var(--radius); background: rgb(15 21 34 / .7); }
+  .film-bar .film-name, .film-bar .film-tab { display: none; }
+}
+.film-stage { --w: min(1000px, 100vw - 2 * var(--gap), (100vh - 240px) * 16 / 9); --w: min(1000px, 100vw - 2 * var(--gap), (100svh - 240px) * 16 / 9); /* 整个播放器（画面 + 约 200px 的字幕和控制条）放得进一屏 */ width: var(--w); margin: 0 0 var(--gap) calc(50% - var(--w) / 2); }
+.film-still { display: block; width: 100%; height: auto; border-radius: var(--radius); }
+.film-stage { position: relative; }
+.film-stage iframe { display: block; width: 100%; background: center / contain no-repeat; height: calc(var(--w) * 9 / 16 + 200px); border: 0; background: transparent; }
+
+/* 按钮（短片的操作按钮；S-1 译本的「开始阅读」也可以用）：实心是主操作，描边是次操作。
+   写成 .md-content a.btn:not(.anchor)，压过 PaperMod 给正文链接加的下划线，不靠样式表的先后 */
+.btn, .md-content a.btn:not(.anchor) { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: 8px 18px; border: 1px solid var(--primary); border-radius: var(--radius); font-size: .95rem; line-height: 1.3; white-space: nowrap; text-decoration: none; box-shadow: none; }
+.btn-primary, .md-content a.btn-primary:not(.anchor) { background: var(--primary); color: var(--theme); }
+.btn-primary:hover { opacity: .88; }
+.btn-outline, .md-content a.btn-outline:not(.anchor) { border-color: var(--secondary); color: var(--primary); }
+.btn-outline:hover { background: var(--code-bg); }
+.btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) { .film-open img { transition: none; } }
+
+/* 文章里的播放器：开播前画面左侧正中一个大播放按钮（画面中央有内容；放在下沿的话桌面上常常落在首屏之外） */
+.film-start { position: absolute; left: 1.25rem; top: calc(var(--w) * 9 / 32 - 2rem); width: 4rem; height: 4rem; border: 0; border-radius: 50%; background: rgb(0 0 0 / .6); cursor: pointer; }
+.film-start::before { content: ""; position: absolute; left: 54%; top: 50%; width: 1.4rem; height: 1.6rem; transform: translate(-50%, -50%); background: #fff; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+@media (hover: hover) { .film-start:hover { background: rgb(0 0 0 / .75); } }
+.film-start:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.film-seek .film-at { font-variant-numeric: tabular-nums; font-size: .85rem; }
+/* 手机横屏这类矮窗口：按高度收窄会把播放器挤成一条，改为铺满宽度 */
+/* 手机横屏放不下整个播放器，至少让画面本身不超过一屏 */
+@media (max-height: 500px) { .film-stage { --w: min(1000px, 100vw - 2 * var(--gap), (100vh - 1rem) * 16 / 9); --w: min(1000px, 100vw - 2 * var(--gap), (100svh - 1rem) * 16 / 9); } }
+/* 手机竖屏画面矮，大播放按钮放到画面下方的空白处，不压住开场的五个方块 */
+@media (max-width: 640px) { .film-start { left: calc(50% - 1.5rem); top: calc(var(--w) * 9 / 16 * .82 - 1.5rem); width: 3rem; height: 3rem; } .film-start::before { width: 1.05rem; height: 1.2rem; } }
 /* 能横向滚动的宽内容（表格、代码块、公式）：右边（滚动后左边）有一道阴影，表示那边还有内容。
    iOS 平时不显示滚动条，没有阴影时读者会以为表格只有露出的那几列。纯 CSS：遮罩（local）跟着内容走、阴影（scroll）固定在框边，
    滚到头时遮罩正好盖住阴影；内容不超宽时两边都被盖住，和原来逐像素一样（遮罩的实色部分 ≥ 阴影宽度） */

@@ -1,0 +1,7 @@
+# 主题测试的本站参照站：再挂上测试短片 tests/fixtures/assets/films/test-film（内容目录由 --contentDir 指定）
+module:
+  mounts:
+    - source: assets
+      target: assets
+    - source: tests/fixtures/assets
+      target: assets

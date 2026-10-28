@@ -1,0 +1,24 @@
+{{- /* 短片封面卡片（_shortcodes/film.html、notes/list.html）。参数：f（partial "film.html" 的结果）、page 当前页面、minutes 可选，覆盖短片文章里的时长 */ -}}
+{{- $f := .f -}}
+{{- $minutes := or .minutes $f.minutes -}}
+{{- $play := $f.play -}}
+{{- if and $f.lang (ne $f.lang .page.Lang) }}{{ $play = printf "%s?lang=%s" $play .page.Lang }}{{ end -}}
+{{- $href := or $f.page $f.play -}}
+{{- $data := printf `data-play="%s" data-title="%s"` $play $f.title -}}
+{{- with $f.page }}{{ $data = printf `%s data-transcript="%s#transcript"` $data . }}{{ end -}}
+<figure class="film film-cover">
+<a class="film-open" href="{{ $href }}" {{ $data | safeHTMLAttr }} tabindex="-1" aria-hidden="true">
+{{- with $f.poster }}<img src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="" loading="lazy" decoding="async" class="in-text">{{ end -}}
+<span class="film-play"></span>
+</a>
+{{- /* 卡片在短片自己的文章（列表里）时，标题就在上面，不再重复 */ -}}
+{{- if or (ne $f.page .page.RelPermalink) $minutes }}
+<figcaption>{{ if ne $f.page .page.RelPermalink }}<strong>{{ $f.title }}</strong>{{ end }}{{ with $minutes }}<span>{{ printf (i18n "film_minutes") (int .) }}</span>{{ end }}</figcaption>
+{{- end }}
+<div class="film-acts">
+<a class="btn btn-primary film-play-btn" href="{{ $href }}" {{ $data | safeHTMLAttr }} aria-haspopup="dialog">{{ i18n "film_play" }}</a>
+{{- with $f.page }}
+<a class="btn btn-outline" href="{{ . }}#transcript">{{ i18n "film_read_transcript" }}</a>
+{{- end }}
+</div>
+</figure>

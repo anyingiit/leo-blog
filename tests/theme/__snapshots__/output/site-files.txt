@@ -9,9 +9,12 @@ en/404.html
 en/archives/index.html
 en/categories/index.html
 en/categories/index.xml
+en/films/test-film/index.html
 en/index.html
 en/index.json
 en/index.xml
+en/notes/film-note/index.html
+en/notes/film-ref/index.html
 en/notes/four-photos/index.html
 en/notes/index.html
 en/notes/index.xml
@@ -43,6 +46,7 @@ en/tags/index.xml
 en/tags/notes/index.html
 en/tags/notes/index.xml
 en/tags/notes/page/1/index.html
+en/tags/notes/page/2/index.html
 en/tags/style/index.html
 en/tags/style/index.xml
 en/tags/style/page/1/index.html
@@ -56,10 +60,16 @@ en/translations/index.html
 en/translations/index.xml
 en/translations/page/1/index.html
 en/translations/sample-essay/index.html
+films/test-film/index.html
+films/test-film/play/index.html
+films/test-film/play/media/still.svg
+films/test-film/poster_hu_80a0afd65939a82.webp
 index.html
 index.json
 index.xml
 js/s1.min.<hash>.js
+notes/film-note/index.html
+notes/film-ref/index.html
 notes/four-photos/four-photos.assets/IMG_01_hu_899d002f461609c9.webp
 notes/four-photos/four-photos.assets/IMG_01_hu_a3f4d354bff142f4.webp
 notes/four-photos/four-photos.assets/IMG_01_hu_b5042720aed70fd4.webp
@@ -186,6 +196,7 @@ tags/测试/page/1/index.html
 tags/随笔/index.html
 tags/随笔/index.xml
 tags/随笔/page/1/index.html
+tags/随笔/page/2/index.html
 translations/index.html
 translations/index.xml
 translations/page/1/index.html

@@ -287,3 +287,50 @@ test("读屏：没写说明的图片念「查看图片 3 / 12」，第 9 张加�
     await ctx.close();
   }
 });
+
+// 视频（docs/video.md）：按封面宽高比占位，短文栏目里最高 24rem，单篇页最高 80vh，不进图集
+const videoBoxes = (page) => page.locator(".post-content video").evaluateAll((els) => els.map((v) => {
+  const r = v.getBoundingClientRect();
+  return { src: v.getAttribute("src"), w: r.width, h: r.height, ar: parseFloat(v.style.getPropertyValue("--ar")) };
+}));
+for (const [name, opts] of [["手机", devices["iPhone 13"]], ["电脑", { viewport: { width: 1280, height: 900 } }]]) {
+  test(`${name}：视频加载前按封面宽高比占好位置，短文栏目里最高 24rem，不超出正文、不横向滚动`, async () => {
+    const { page, ctx, errors } = await open("/notes/", opts);
+    const rem = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
+    const width = await card(page, "video-note").locator(".note-body").evaluate((b) => b.clientWidth);
+    const boxes = (await videoBoxes(card(page, "video-note"))).filter((b) => b.ar);
+    assert.equal(boxes.length, 3);
+    for (const b of boxes) {
+      assert.ok(Math.abs(b.w / b.h - b.ar) < 0.02, `${b.src} 宽高比 ${b.w / b.h}，应为 ${b.ar}`);
+      assert.ok(b.h <= 24 * rem + 1, `${b.src} 高 ${b.h}px`);
+      assert.ok(b.w <= width + 0.5, `${b.src} 宽 ${b.w}px 超出正文 ${width}px`);
+    }
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${name}：单篇页里横屏视频铺满正文宽度，竖屏视频最高 80vh`, async () => {
+    const { page, ctx } = await open("/notes/video-note/", opts);
+    const width = await page.locator(".post-content").evaluate((b) => b.clientWidth);
+    const vh = await page.evaluate(() => innerHeight);
+    const [clip, vertical] = await videoBoxes(page);
+    assert.ok(Math.abs(clip.w - Math.min(width, 0.8 * vh * clip.ar)) < 1, `横屏宽 ${clip.w}px，正文 ${width}px`);
+    assert.ok(Math.abs(clip.w / clip.h - clip.ar) < 0.02);
+    assert.ok(vertical.h <= 0.8 * vh + 1 && Math.abs(vertical.w / vertical.h - vertical.ar) < 0.02, `竖屏 ${vertical.w}×${vertical.h}`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await ctx.close();
+  });
+}
+
+test("视频不进图集：点视频不打开放大层，旁边的图片图集里也没有视频", async () => {
+  const { page, ctx } = await open("/notes/video-note/", { viewport: { width: 1280, height: 900 } });
+  const v = page.locator(".post-content video").first();
+  await v.scrollIntoViewIfNeeded();
+  await v.click({ position: { x: 20, y: 20 } });
+  assert.equal(await page.locator("dialog.img-zoom[open]").count(), 0);
+  await page.locator('.post-content img[alt="封面图"]').click();
+  assert.equal(await page.locator("dialog.img-zoom .zoom-count").textContent().catch(() => ""), "");
+  assert.equal(await page.locator("dialog.img-zoom[open] img").count(), 1);
+  await ctx.close();
+});

@@ -5,9 +5,13 @@
   - 写上 width/height，懒加载的图片在加载前就占好位置，页面不会边看边跳。
   - Typora 的 ./文件名.assets/图.png 写法原样可用，只要把 .assets 文件夹一起放进文章文件夹。
   - gif/svg 与外链图片保持原样；相对路径找不到图片时构建会给出警告。
+  - 文章文件夹里的视频（mp4/webm）也用图片写法插入：![说明](片名.mp4)，输出 <video>。
+    同名的 jpg/png/webp（片名.jpg）是封面，缩成 WebP，并用它的宽高给视频占位；没有封面构建会给出警告。
+    视频原样发布：Cloudflare Pages 单个文件不能超过 25 MiB，要先压缩（见 docs/video.md）。
 */ -}}
 {{- $u := urls.Parse .Destination -}}
 {{- $src := $u.String -}}
+{{- $video := false -}}
 {{- $attrs := dict "alt" (.Text | htmlUnescape) "title" (.Title | replaceRE `\\(.)` "$1" | htmlUnescape) "loading" "lazy" "decoding" "async" -}}
 {{- if not $u.IsAbs -}}
   {{- $path := strings.TrimPrefix "./" $u.Path -}}
@@ -15,7 +19,9 @@
   {{- with $u.RawQuery }}{{ $suffix = printf "?%s" . }}{{ end -}}
   {{- with $u.Fragment }}{{ $suffix = printf "%s#%s" $suffix . }}{{ end -}}
   {{- with or (.PageInner.Resources.Get $path) (resources.Get $path) -}}
-    {{- if and (eq .ResourceType "image") (in (slice "jpeg" "png" "webp") .MediaType.SubType) -}}
+    {{- if eq .MediaType.MainType "video" -}}
+      {{- $video = . -}}
+    {{- else if and (eq .ResourceType "image") (in (slice "jpeg" "png" "webp") .MediaType.SubType) -}}
       {{- $img := .Filter images.AutoOrient -}}
       {{- $max := cond (gt $img.Width 1600) 1600 $img.Width -}}
       {{- $full := $img.Process (printf "resize %dx webp q85" $max) -}}
@@ -46,6 +52,30 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
+{{- with $video -}}
+  {{- $base := strings.TrimSuffix (path.Ext .Name) .Name -}}
+  {{- $poster := false -}}
+  {{- range slice "jpg" "jpeg" "png" "webp" -}}
+    {{- if not $poster -}}{{ $poster = $.PageInner.Resources.Get (printf "%s.%s" $base .) }}{{- end -}}
+  {{- end -}}
+  {{- $v := dict "src" .RelPermalink "controls" "" "preload" "metadata" "playsinline" "" "class" "video" "aria-label" ($.Text | htmlUnescape) "title" ($.Title | replaceRE `\\(.)` "$1" | htmlUnescape) -}}
+  {{- with $poster -}}
+    {{- $img := .Filter images.AutoOrient -}}
+    {{- $p := $img.Process (printf "resize %dx webp q85" (cond (gt $img.Width 1600) 1600 $img.Width)) -}}
+    {{- $v = merge $v (dict "poster" $p.RelPermalink "width" (string $p.Width) "height" (string $p.Height)
+      "style" (printf "--ar:%.4f" (div (float $p.Width) $p.Height))) -}}
+  {{- else -}}
+    {{- warnf "%s: 视频 %q 没有封面，请在同一文件夹放一张同名的 jpg/png/webp（见 docs/video.md）" $.PageInner.File.Path $.Destination -}}
+  {{- end -}}
+<video
+  {{- range $k, $val := $v -}}
+    {{- if eq $val "" -}}
+      {{- if in (slice "controls" "playsinline") $k }}{{ printf " %s" $k | safeHTMLAttr }}{{ end -}}
+    {{- else -}}
+      {{- printf " %s=\"%s\"" $k (htmlEscape $val) | safeHTMLAttr -}}
+    {{- end -}}
+  {{- end -}}><a href="{{ .RelPermalink }}">{{ or ($.Text | htmlUnescape) .Name }}</a></video>
+{{- else -}}
 {{- $attrs = merge .Attributes $attrs (dict "src" $src) -}}
 <img
   {{- range $k, $v := $attrs -}}
@@ -53,4 +83,5 @@
       {{- printf " %s=\"%s\"" $k (htmlEscape $v) | safeHTMLAttr -}}
     {{- end -}}
   {{- end -}}>
+{{- end -}}
 {{- /**/ -}}

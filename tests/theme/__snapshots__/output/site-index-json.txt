@@ -1,5 +1,17 @@
 [
  {
+  "content": "短片文章的导语：用 Markdown 写，和博客正文一样排版。\n章节2 · 约 2 分钟 01 第一段▶ 02 第二段▶ 来源和免责声明。\n文字稿 01 第一段 第一句旁白。\n02 第二段 第二句旁白。\n",
+  "permalink": "http://blog.test/notes/film-note/",
+  "summary": "<p>短片文章的导语：用 Markdown 写，和博客正文一样排版。</p>",
+  "title": "【测试】短片"
+ },
+ {
+  "content": "别的文章里引用短片，显示为封面卡片：\n【测试】短片约 2 分钟 播放短片 阅读文字稿 卡片后面的一段文字。\n",
+  "permalink": "http://blog.test/notes/film-ref/",
+  "summary": "<p>别的文章里引用短片，显示为封面卡片：</p>\n<figure class=\"film film-cover\">\n<a class=\"film-open\" href=\"/notes/film-note/\" data-play=\"/films/test-film/play/\" data-title=\"【测试】短片\" data-transcript=\"/notes/film-note/#transcript\" tabindex=\"-1\" aria-hidden=\"true\"><img src=\"/films/test-film/poster_hu_80a0afd65939a82.webp\" width=\"1280\" height=\"720\" alt=\"\" loading=\"lazy\" decoding=\"async\" class=\"in-text\"><span class=\"film-play\"></span>\n</a>\n<figcaption><strong>【测试】短片</strong><span>约 2 分钟</span></figcaption>\n<div class=\"film-acts\">\n<a class=\"btn btn-primary film-play-btn\" href=\"/notes/film-note/\" data-play=\"/films/test-film/play/\" data-title=\"【测试】短片\" data-transcript=\"/notes/film-note/#transcript\" aria-haspopup=\"dialog\">播放短片</a>\n<a class=\"btn btn-outline\" href=\"/notes/film-note/#transcript\">阅读文字稿</a>\n</div>\n</figure>\n\n<p>卡片后面的一段文字。</p>",
+  "title": "【测试】引用短片"
+ },
+ {
   "content": "短文直接在栏目里展开全文。这里有两段文字。\n第二段，带一个 链接。\n",
   "permalink": "http://blog.test/notes/sample-note/",
   "summary": "<p>短文直接在栏目里展开全文。这里有两段文字。</p>\n<p>第二段，带一个 <a href=\"https://example.com\">链接</a>。</p>",

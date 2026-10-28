@@ -58,7 +58,7 @@ const isDraft = (f) => field(frontMatter(join(root, "content", f)), "draft") ===
 // 短文：content/notes 下除 _index 以外的 .md（文件夹形式取 index.md）
 const notes = contentFiles
   .filter((f) => f.startsWith("notes/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
-  .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^notes\/|(\/index)?\.md$/g, "") }));
+  .map((f) => ({ file: f, film: field(frontMatter(join(root, "content", f)), "film"), slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^notes\/|(\/index)?\.md$/g, "") }));
 const posts = contentFiles
   .filter((f) => f.startsWith("posts/") && !f.endsWith(".en.md") && !isDraft(f))
   .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^posts\/|(\/index)?\.md$/g, "") }));
@@ -95,6 +95,8 @@ for (const [lang, prefix] of [["中文", ""], ["英文", "en/"]]) {
     for (const n of notes) {
       const entry = entries.find((e) => e.includes(`${PROD}${prefix}notes/${n.slug}/`));
       assert.ok(entry, `短文栏目缺少 ${n.slug}`);
+      // 短片的文章（front matter 有 film）例外：栏目里只放导语和封面卡片，播放器和文字稿在单篇页（film.test.mjs 检查）
+      if (n.film) continue;
       // 展开全文：栏目里的正文和单篇页的正文一致，而不是摘要
       const single = site.read(`${prefix}notes/${n.slug}/`).split(/<div class="?post-content[^>]*>/)[1].split(/<\/div>\s*<footer/)[0];
       assert.ok(entry.includes(single.trim()), `${n.slug} 在栏目里不是全文`);
@@ -203,6 +205,33 @@ test("有英文版的配图：英文页用 .en 图，中文页用原图（docs/i
     const enStem = enImg.replace(/\.[^.]+$/, "");
     assert.ok(site.read(`en/${section}/${slug}/`).includes(enStem), `英文页 /en/${section}/${slug}/ 没有用 ${enImg}`);
     assert.ok(!site.read(`${section}/${slug}/`).includes(enStem), `中文页 /${section}/${slug}/ 不该用 ${enImg}`);
+  }
+});
+
+// 文章里的视频（docs/video.md）：原样发布，所以要先压好。读 MP4 顶层 box 和样本描述，不依赖 ffprobe
+function mp4Info(buf) {
+  const top = [];
+  for (let i = 0; i + 8 <= buf.length;) {
+    let size = buf.readUInt32BE(i);
+    const type = buf.toString("latin1", i + 4, i + 8);
+    if (size === 1) size = Number(buf.readBigUInt64BE(i + 8));
+    if (size === 0) size = buf.length - i;
+    if (size < 8) break;
+    top.push(type);
+    i += size;
+  }
+  const s = buf.toString("latin1");
+  return { top, codecs: ["avc1", "hvc1", "hev1", "vp09", "av01"].filter((c) => s.includes(c)), aac: s.includes("mp4a") };
+}
+
+test("文章里的视频：H.264 编码（Chrome、Safari 都能播），moov 在前（边下边播），不超过 25 MiB", () => {
+  const mp4s = walk(join(root, "content")).filter((f) => /\.mp4$/i.test(f));
+  for (const f of mp4s) {
+    const name = relative(root, f);
+    assert.ok(statSync(f).size <= 25 * 1024 * 1024, `${name} 超过 Cloudflare Pages 单文件 25 MiB 的上限`);
+    const { top, codecs } = mp4Info(readFileSync(f));
+    assert.deepEqual(codecs, ["avc1"], `${name} 的视频编码是 ${codecs}，应只用 H.264（avc1）`);
+    assert.ok(top.includes("moov") && top.indexOf("moov") < top.indexOf("mdat"), `${name} 的 moov 在 mdat 后面，要用 -movflags +faststart 重新封装：${top}`);
   }
 });
 

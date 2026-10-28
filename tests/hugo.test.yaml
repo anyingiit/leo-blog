@@ -1,4 +1,5 @@
-# 回归测试用的额外配置：在正式内容之外再挂上 tests/fixtures/content 里的测试短文（正式构建不会包含它们）
+# 回归测试用的额外配置：在正式内容之外再挂上 tests/fixtures 里的测试短文和测试短片（正式构建不会包含它们）
+# 写了某一类挂载（content、assets）就不再有默认挂载，所以正式目录也要列出来
 module:
   mounts:
     - source: content
@@ -12,6 +13,8 @@ module:
     - source: tests/theme/site-fixture/content/translations/sample-essay
       target: content/translations/sample-essay
     - source: assets
+      target: assets
+    - source: tests/fixtures/assets
       target: assets
     - source: tests/fixtures/s1-preview/assets
       target: assets

@@ -9,7 +9,8 @@
 | `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 用量」） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集、文章里的视频（见 [tests/README.md](../tests/README.md)、[video.md](video.md)）；构建结果没有超过 25 MiB 的文件 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/film.test.mjs` | 短片（见 [films.md](films.md)）：播放器原样发布并只插入桥接脚本、noindex、canonical；封面卡片是链接、没有脚本也能打开短片页；全窗口放映的沙箱、深浅色同步、返回键/Esc/关闭、修饰键点击不拦截；短片页按短片高度撑开；真实短片不引用外部样式和脚本、手机横屏画面够大；英文页放英文版（无中文、英文配音、英文封面）；卡片下的「播放短片」「阅读文字稿」按钮、Tab 顺序、从对话框去短片页后的返回；打开即开播、焦点在画面、背景不滚动、关掉再打开返回键按一下就关、记住进度、片尾「重看」；真实短片没有动画帧时照样往下放 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：站点生成的每个自带 `<html>` 的页面（含短片等独立页面；内容目录里原样提供的 `.html.raw` 下载文件不查，保留原始 HTML 的一切特征）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Lint and build → Test image-i18n |
@@ -21,10 +22,10 @@
 | `tests/bilingual.test.mjs` | 双语对照译文（[bilingual-translations.md](bilingual-translations.md)）：全文下载是冻结文件原样发布（大小、sha256）、直链无门槛、小文件按 KB 显示；站内显示原版版式的页面都关掉了 iOS 文字自动放大；导入用的源文件不发布；版本条、声明、版权行；重排版段落齐全；英文页只放说明不放原文全文、中英互链；Chromium 和 WebKit 上的首次默认版式（电脑原版、手机重排）、版式和「中文/对照/English」记住选择、全屏阅读进出（按钮、Esc、后退）、缩放、无横向滚动、深色模式纸面不反色且纸面里每个元素的文字颜色和浅色模式一致、本机存储被禁用、不开脚本、段落锚点 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tools/bilingual-import/test_import.py` | 导入脚本 `import.py`：沉浸式翻译网页拆成段落对（标题/作者进 header、行内 Markdown、特殊字符转义、插件注入的脚本/弹窗去掉）、原版片段（作者样式加 `.bl-sheet` 前缀、译文换成统一的 span）；仓库里每篇用 `source.html.raw` 重新导入，结果逐字节不变 | Lint and build → Test bilingual-import |
 | `tools/bilingual-import/test_release.py` | 发布脚本 `release.py`（不覆盖已发布版本；下载的 HTML 是保存的原网页原样，去掉加的声明和 noindex 后与原网页逐字节相同；和 S-1 共用文字层修正），以及每篇已发布的冻结 HTML/PDF：大小和 sha256、和 `source.html.raw` 对得上、首末有声明、没有加原网页没有的样式、PDF 每页「非官方」标记、无部首字符、尺寸、元数据、标签结构 | Lint and build → Test bilingual-import |
-| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面（含短片封面、短片页、全窗口放映），Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
-| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、短片放映和短片页、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium) |
 | `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint and build |
 
@@ -36,6 +37,7 @@
 - **中英文副本**（项目规则）：每篇已发布的文章都有对应的 `.en.md`，反之亦然；slug、date 一致，页面互相链接；标签数量相同，「随笔」译为「Notes」。
 - **英文配图**：有 `.i18n.yaml` 的图，英文页引用 `.en` 版，中文页用原图，构建结果里也是如此。
 - **公式、Mermaid、提示框**（`layouts/_markup/`、`layouts/_partials/extend_head.html`）：用草稿 `content/posts/markdown-test/` 检查 `$…$`/`$$…$$` 渲染成 KaTeX、` ```mermaid ` 输出 `<pre class=mermaid>`、`> [!NOTE]` 等提示框带中文标题；KaTeX 样式和 Mermaid 脚本只在需要的页面加载；正文不会被误当成公式（例如英文里成对出现的美元金额）。
+- **文章里的视频**（[video.md](video.md)）：`content/` 里每个 mp4 都是 H.264、moov 在文件开头、不超过 Cloudflare Pages 的 25 MiB 单文件上限。
 - **`build.sh`**：预览构建（`CF_PAGES_BRANCH` 不是 `main`）的链接和 RSS 指向 `CF_PAGES_URL`，`main` 用正式域名。
 
 这些断言都做过反向验证：分别人为破坏 13 处（例如首页收入短文、栏目只给摘要、删掉渲染钩子、预览不换地址、英文页用中文图、删掉英文副本、撤销美元转义），每一处都会让对应的测试失败。
@@ -47,7 +49,7 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 **两个参照站**（每次测试都用仓库锁定的 Hugo 和 `themes/PaperMod` 重新构建，`--clock` 固定"当前时间"）：
 
 - `tests/theme/example-site/`：PaperMod 官方 exampleSite 原样拷贝（来源见其中的 `SOURCE.md`），代表主题自身的行为，包括多语言、RTL、个人主页模式、封面图、代码高亮等。
-- `tests/theme/site-fixture/content/`：本站的模板、样式和配置，加上一套固定的测试文章（中英文长文、短文、带图短文）。用固定文章而不是真实文章，发新文章时不需要更新基准图。
+- `tests/theme/site-fixture/content/`：本站的模板、样式和配置，加上一套固定的测试文章（中英文长文、短文、带图短文、带短片的短文和短片页；测试短片在 `tests/fixtures/assets/films/test-film/`，由 `site-fixture.yaml` 挂载）。用固定文章而不是真实文章，发新文章时不需要更新基准图。
 
 **像素级比对**：`toHaveScreenshot` 容差为 0（`maxDiffPixels: 0, threshold: 0`），整页截图，关闭动画、隐藏光标。为了让同一页每次截图完全一致，截图前会等图片加载完、字体就绪、Mermaid 画完、版面连续 10 帧不变，并把视口拉到整页高度、让整页重新绘制一遍再截（`helpers.mjs` 的 `settle`、`fullPage`、`repaint`，原因见下面的「截图与绘制历史」「整页截图与 vh」）。浏览器的所有请求都由测试直接返回本地文件，不访问外网；页面用到的 KaTeX、Mermaid 由 `tests/theme/package.json` 锁定的本地副本提供，版本与线上一致（`tests/site.test.mjs` 会检查这一点）。
 

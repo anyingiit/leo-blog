@@ -1,0 +1,14 @@
+{{- /*
+  短片（docs/films.md）：{{< film name="短片名" >}}。
+  - 在短片自己的文章里（front matter 写了 film: 短片名）：原地放宽幅播放器，下面是可折叠的章节目录，
+    每章可以从这里开始放（章节取自文章里「文字稿」下的三级标题，按顺序对应短片的章节）。
+  - 在别的文章里：封面卡片，「播放短片」在全窗口对话框里放映，「阅读文字稿」到短片文章的 #transcript。
+    封面和「播放短片」都是指向短片文章的普通链接，没有脚本、在 RSS 里也能点开；封面不进 Tab 顺序，键盘只停在两个按钮上。
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $f := partial "film.html" (dict "name" $name "page" .Page) -}}
+{{- if eq .Page.Params.film $name -}}
+{{- partial "film_stage.html" (dict "f" $f "page" .Page) -}}
+{{- else -}}
+{{- partial "film_card.html" (dict "f" $f "page" .Page "minutes" (.Get "minutes")) -}}
+{{- end -}}
