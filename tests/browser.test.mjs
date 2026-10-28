@@ -165,8 +165,8 @@ test("图集：电脑上用鼠标拖动换图，松开时不会顺带关掉灯�
   await ctx.close();
 });
 
-// 从图片外的黑底开始拖，会在灯箱里拉出一段包住大图的选区；之后按在图片上拖，浏览器把它当成拖走选区
-// （dragstart + pointercancel），换图就没反应了。上面那个测试偶发失败就是这个原因：第一次拖动时大图还没加载出来，按下点落在黑底上
+// 从图片外的黑底开始拖，以前会在灯箱里拉出一段包住大图的选区；之后按在图片上拖，浏览器把它当成拖走选区
+// （dragstart + pointercancel），换图就没反应了（灯箱现在不可选中，也不响应 dragstart）。上面那个测试偶发失败就是这个原因：第一次拖动时大图还没加载出来，按下点落在黑底上
 test("图集：电脑上先从黑底拖一次，再按在图片上拖，仍能换图", async () => {
   const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
   await card(page, "travel-photos").locator(".img-group img").first().click();
@@ -180,7 +180,7 @@ test("图集：电脑上先从黑底拖一次，再按在图片上拖，仍能�
   await page.mouse.move(r.x + r.width / 2, r.y + r.height / 2, { steps: 6 });
   await page.mouse.up();
   assert.equal(await box.locator(".zoom-count").textContent(), "2 / 12");
-  assert.equal(await page.evaluate(() => getSelection().type), "Range", "测试前提：第一次拖动留下了选区");
+  assert.notEqual(await page.evaluate(() => getSelection().type), "Range", "在灯箱里拖动不应拉出选区");
   await loaded();
   r = await img.boundingBox();
   await page.mouse.move(r.x + r.width / 2 + 100, r.y + r.height / 2);

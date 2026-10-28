@@ -21,7 +21,7 @@
 .note-body.is-folded { max-height: 40rem; overflow: hidden; -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent); }
 .note-expand { display: block; margin: 0.75rem auto 0; padding: 0.25rem 1rem; color: var(--primary); background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
 .md-content img[role="button"]:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.img-zoom { max-width: 100vw; max-height: 100vh; max-height: 100dvh; padding: 0; border: 0; background: none; cursor: zoom-out; overflow: visible; touch-action: none; touch-action: pinch-zoom; outline: none; }
+.img-zoom { max-width: 100vw; max-height: 100vh; max-height: 100dvh; padding: 0; border: 0; background: none; cursor: zoom-out; -webkit-user-select: none; user-select: none; overflow: visible; touch-action: none; touch-action: pinch-zoom; outline: none; }
 .img-zoom::backdrop { background: rgb(0 0 0 / 0.96); }
 .img-zoom figure { margin: 0; padding-top: 4rem; text-align: center; }
 /* 顶部 4rem 留给计数和关闭按钮（图片居中时不会顶上去压住它们），下面留给图注；
