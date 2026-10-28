@@ -333,7 +333,8 @@ for (const [name, opts] of [["手机", PHONE.chromium], ["电脑（默认原版�
     }
     await s.go(P + "#p3");
     assert.equal(await shown(s.page), "reflow");
-    await until(s.page, () => { const t = document.getElementById("p3").getBoundingClientRect().top; return t >= 0 && t < 200; });
+    // 滚动位置按设备像素取整，段落顶边可能落在 -0.x px
+    await until(s.page, () => { const t = document.getElementById("p3").getBoundingClientRect().top; return t >= -1 && t < 200; });
     if (opts === DESKTOP) {
       await s.go(P);
       assert.equal(await shown(s.page), "original", "不带段落链接时还是读者选的原版");

@@ -9,6 +9,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { chromium, webkit, devices } from "playwright";
 import { build, serve, root } from "./helpers.mjs";
@@ -26,9 +27,11 @@ after(async () => { for (const b of Object.values(browsers)) await b?.close(); s
 
 // ---------- 1. 静态检查 ----------
 
-// 构建结果里站点生成的 HTML：内容目录里的 .html.raw 会以 .html 的名字原样发布，按文件内容排除
+// 构建结果里站点生成的 HTML：.html.raw 会以 .html 的名字原样发布，按文件内容排除
 const htmlFiles = () => {
-  const raw = new Set(readdirSync(join(root, "content"), { recursive: true }).map(String).filter((f) => f.endsWith(".html.raw")).map((f) => readFileSync(join(root, "content", f), "utf8")));
+  // 测试站点还会挂载 tests/ 下的样例内容（tests/hugo.test.yaml），所以查整个仓库里登记的 .html.raw
+  const files = spawnSync("git", ["ls-files", "*.html.raw"], { cwd: root, encoding: "utf8" }).stdout.split("\n").filter(Boolean);
+  const raw = new Set(files.map((f) => readFileSync(join(root, f), "utf8")));
   return readdirSync(site.out, { recursive: true }).map(String).filter((f) => f.endsWith(".html")).map((f) => join(site.out, f)).filter((f) => !raw.has(readFileSync(f, "utf8")));
 };
 // iOS 只认带 -webkit- 前缀的写法；Chromium 解析时会丢掉它，所以查原文
@@ -76,6 +79,8 @@ const PAGES = [
 const LATEST = readFileSync(join(root, "content/translations/anthropic-s1/_index.md"), "utf8").match(/^latest: (\S+)$/m)[1];
 const S1 = `/translations/anthropic-s1/${LATEST}/`;
 PAGES.push(S1, S1 + "summary-financial-data/", S1 + "principal-stockholders/");
+// 双语译文沿用 S-1 的阅读界面（含全屏阅读顶栏）
+PAGES.push("/translations/bitter-lesson/", "/translations/bitter-lesson/?read=1");
 
 // 320 宽的 iPhone SE（也相当于 iPhone 13 上 Safari 把页面放大到约 120%）、iPhone 13 竖屏和横屏；安卓只在 Chromium 上有意义
 const DEVICES = {

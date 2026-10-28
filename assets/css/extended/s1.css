@@ -151,10 +151,11 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
 }
 /* 横屏手机同样不给缩放按钮（见 s1.js 的 zoomUI） */
 @media (pointer: coarse) and (max-height: 500px) { .s1-ibar-zoom { display: none !important; } }
-/* 更窄（360 宽的安卓、320 宽的 iPhone SE、或 Safari 放大页面后）：折成两行，上行目录和退出，下行页码、翻章、版式 */
+/* 更窄（360 宽的安卓、320 宽的 iPhone SE、或 Safari 放大页面后）：折成两行，上行目录和退出，下行页码、翻章、版式。
+   只针对有页码和翻章的 S-1 章节页；双语译文的顶栏只有四项，一行放得下 */
 @media (max-width: 374px) {
-  :root { --s1-ibar-h: 96px; }
-  body.s1-immersive .s1-chapter > .s1-ibar { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "tag toc exit" "page nav view"; gap: 0 6px; padding: 2px 6px; }
+  :root:has(.s1-ibar-page) { --s1-ibar-h: 96px; }
+  body.s1-immersive .s1-chapter > .s1-ibar:has(.s1-ibar-page) { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "tag toc exit" "page nav view"; gap: 0 6px; padding: 2px 6px; }
   .s1-ibar-tag { grid-area: tag; }
   .s1-ibar > .s1-ibar-toc { grid-area: toc; }
   .s1-ibar-exit { grid-area: exit; }
