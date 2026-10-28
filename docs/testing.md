@@ -24,7 +24,7 @@
 | `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
-| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染、能横滑的表格和代码块有边缘阴影（放得下时除圆角外逐像素不变） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium) |
 | `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint and build |
 
@@ -93,7 +93,7 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 
 2026-10-28 用户在 iPhone 上发现 S-1 完整 HTML 文字重叠，随后对全站做了一次手机端检查（问题清单见项目文件 `mobile-audit/`）。找到的问题都在上面那套截图测试看不到的地方：
 
-- **截图测试不开手机模式**：为了基准稳定，主题截图在 DPR 1、不开 isMobile 下拍，390 宽是它唯一的手机宽度。320 宽（iPhone SE，也相当于 Safari 把页面放大到 120%）、横屏、安卓 360 宽都没有测，英文菜单被裁、全屏阅读顶栏挤坏都出在这些宽度。
+- **截图测试不开手机模式**：为了基准稳定，主题截图在 DPR 1、不开 isMobile 下拍，390 宽是它唯一的手机宽度。320 宽（iPhone SE，也相当于 Safari 把页面放大到 120%）、横屏、安卓 360 宽都没有测，全屏阅读顶栏挤坏就出在这些宽度。（英文菜单在 320 宽放不下时整行横滑，是 PaperMod 原有行为，按项目规则保留，检查时把 `#menu` 当作横向滚动的容器。）
 - **只看 scrollWidth 测不出「被压扁」**：flex 布局放不下时先压缩子元素，不会溢出。全屏阅读顶栏的目录入口被压成 0 宽、缩放组被裁，`scrollWidth <= clientWidth` 照样成立。现在逐个量控件：完整可见、在容器和屏幕里、至少 44×44。
 - **iOS 独有的行为 CI 的浏览器都没有**：文字自动放大、按设备像素取整的细线、地址栏收放后 `vh` 和可见高度不一致、点击事件委托、没有元素全屏 API、跨源 iframe 不能自动播放。能写成规则的写成静态检查（`mobile.test.mjs` 查站点生成的每个独立页面的 `-webkit-text-size-adjust`，原样提供的下载 HTML 不改也不查；全屏层用 `dvh` 并保留 `vh` 回退）；S-1 原文页表格细线按设备像素取整后消失的问题，由框线修复单独处理和测试；其余的只能在 iOS 上看。
 
