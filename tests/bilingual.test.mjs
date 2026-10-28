@@ -270,7 +270,7 @@ for (const engine of ENGINES) {
     await s.done();
   });
 
-  test(`${engine}：深色模式下原版纸面不反色（白底黑字，和 S-1 一样只调暗亮度）`, async (t) => {
+  test(`${engine}：深色模式下原版纸面不反色（白底黑字、纸面里的文字颜色和浅色模式一样，和 S-1 一样只调暗亮度）`, async (t) => {
     const s = await open(t, engine, { ...DESKTOP, colorScheme: "dark" });
     if (!s) return;
     await s.go(P);
@@ -278,7 +278,17 @@ for (const engine of ENGINES) {
     assert.equal(await s.page.evaluate(() => getComputedStyle(document.body).backgroundColor), "rgb(29, 30, 32)", "测试前提：页面是深色");
     const c = await s.page.locator(".bl-sheet").evaluate((e) => [getComputedStyle(e).backgroundColor, getComputedStyle(e).color]);
     assert.deepEqual(c, ["rgb(255, 255, 255)", "rgb(0, 0, 0)"]);
+    // 纸面里每个元素的文字颜色都和浅色模式一样（只看纸面的 background 不够：标题曾继承主题的浅灰字，白纸上几乎看不见）
+    const colors = (page) => page.locator(".bl-sheet").evaluate((e) => [...e.querySelectorAll("*")].map((x) => `${x.tagName} ${getComputedStyle(x).color}`));
+    const dark = await colors(s.page);
     await s.done();
+    const l = await open(t, engine, DESKTOP);
+    await l.go(P);
+    await until(l.page, () => !document.querySelector(".s1-original").hidden);
+    const light = await colors(l.page);
+    assert.ok(light.length > 10, "测试前提：纸面里有正文元素");
+    assert.deepEqual(dark, light);
+    await l.done();
   });
 
   test(`${engine}：本机存储被禁用时照常显示和切换`, async (t) => {

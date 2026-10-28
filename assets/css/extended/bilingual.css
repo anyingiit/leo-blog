@@ -33,6 +33,8 @@
 .bl-sheet h1 { font-size: 2em; margin: 0.67em 0; font-weight: bold; }
 .bl-sheet h2 { font-size: 1.5em; margin: 0.83em 0; font-weight: bold; }
 .bl-sheet h3 { font-size: 1.17em; margin: 1em 0; font-weight: bold; }
+/* 标题颜色跟纸面走：PaperMod 给 h1–h6 设了 var(--primary)，深色模式下会变成浅灰字落在白纸上 */
+.bl-sheet :is(h1, h2, h3, h4, h5, h6) { color: inherit; }
 /* 沉浸式翻译的「段后译文」：标题后面接两个空格，正文段落另起一行 */
 .bl-sheet .bl-tr { margin-inline-start: 0.5em; }
 .bl-sheet .bl-tr-block { display: block; margin: 0.4em 0 0; }
