@@ -137,6 +137,25 @@ test("正文里的链接不指向页面自己（Markdown 站内链接会被换�
   assert.deepEqual(self, []);
 });
 
+// 旧地址跳转（front matter 的 aliases）：从 Hugo 0.158 起，英文页的 alias 相对于语言根目录，
+// 写 /posts/x/ 生成 /en/posts/x/；写成 /en/posts/x/ 会生成 /en/en/posts/x/，旧链接就失效了
+test("aliases 里的旧地址都能跳到文章（英文页的 alias 不带 /en 前缀）", () => {
+  let checked = 0;
+  for (const f of contentFiles.filter((f) => !isDraft(f))) {
+    const list = (field(frontMatter(join(root, "content", f)), "aliases") || "").replace(/^\[|\]$/g, "").split(",").map((a) => a.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+    const en = f.endsWith(".en.md");
+    for (const a of list) {
+      assert.ok(!(en && a.startsWith("/en/")), `${f} 的 alias ${a} 不要带 /en 前缀（会生成 /en/en/…）`);
+      const path = `${en ? "en" : ""}${a}`.replace(/^\//, "");
+      assert.ok(site.exists(`${path}index.html`), `${f} 的旧地址 /${path} 没有生成跳转页`);
+      assert.match(site.read(path), /http-equiv="?refresh/, `/${path} 不是跳转页`);
+      checked++;
+    }
+  }
+  assert.ok(!site.exists("en/en"), "生成了 /en/en/ 目录（英文 alias 写成了带 /en 的形式）");
+  assert.ok(checked > 0, "content 里没有 aliases，这条测试没有覆盖到");
+});
+
 test("草稿不发布", () => {
   for (const f of contentFiles.filter(isDraft)) {
     const slug = field(frontMatter(join(root, "content", f)), "slug");
