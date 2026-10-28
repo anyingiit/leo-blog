@@ -220,11 +220,7 @@ test("长短文折叠：展开、收起", async ({ browser }, info) => {
   await btn.scrollIntoViewIfNeeded();
   await btn.click();
   await expect(body).toHaveClass(/is-folded/);
-  // 这条短文靠近页尾时页面滚不到让它贴顶，这时要求已滚到底（再往下没有内容可遮住它的开头）
-  await expect.poll(() => entry.evaluate((e) => {
-    const atBottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
-    return atBottom ? 0 : Math.round(e.getBoundingClientRect().top);
-  })).toBeLessThanOrEqual(10);
+  await expect.poll(() => entry.evaluate((e) => Math.round(e.getBoundingClientRect().top))).toBeLessThanOrEqual(10);
   expect(await entry.evaluate((e) => e.getBoundingClientRect().top)).toBeGreaterThanOrEqual(-1);
   expect(await entry.evaluate((e) => e.getBoundingClientRect().top < innerHeight / 2)).toBe(true);
   await context.close();
