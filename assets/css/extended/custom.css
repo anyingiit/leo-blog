@@ -1,5 +1,4 @@
-/* 写成 .md-content blockquote.alert：PaperMod 的 .md-content blockquote 色条规则更具体，会把各类提示框的颜色盖成同一种 */
-.md-content blockquote.alert { border-inline-start: 4px solid var(--alert-color); padding: 0.5rem 1rem; }
+.alert { border-inline-start: 4px solid var(--alert-color); padding: 0.5rem 1rem; }
 .alert .alert-title { font-weight: 600; color: var(--alert-color); margin-bottom: 0.25rem; }
 .alert-note { --alert-color: #0969da; }
 .alert-tip { --alert-color: #1a7f37; }
@@ -22,7 +21,7 @@
 .note-expand { display: block; margin: 0.75rem auto 0; padding: 0.25rem 1rem; color: var(--primary); background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
 .md-content img[role="button"]:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .img-zoom { max-width: 100vw; max-height: 100vh; max-height: 100dvh; padding: 0; border: 0; background: none; cursor: zoom-out; overflow: visible; touch-action: none; touch-action: pinch-zoom; outline: none; }
-.img-zoom::backdrop { background: rgb(0 0 0 / 0.96); }
+.img-zoom::backdrop { background: rgb(0 0 0 / 0.88); }
 .img-zoom figure { margin: 0; padding-top: 4rem; text-align: center; }
 /* 顶部 4rem 留给计数和关闭按钮（图片居中时不会顶上去压住它们），下面留给图注；
    dvh 是 iOS 工具栏展开时实际可见的高度（vh 按工具栏收起算，会把图注挤出屏幕） */
@@ -56,7 +55,7 @@
 }
 /* 能横向滚动的宽内容（表格、代码块、公式）：右边（滚动后左边）有一道阴影，表示那边还有内容。
    iOS 平时不显示滚动条，没有阴影时读者会以为表格只有露出的那几列。纯 CSS：遮罩（local）跟着内容走、阴影（scroll）固定在框边，
-   滚到头时遮罩正好盖住阴影；内容不超宽时两边都被盖住，和原来逐像素一样（遮罩的实色部分 ≥ 阴影宽度） */
+   滚到头时遮罩正好盖住阴影；内容不超宽时两边都被盖住，和原来看不出差别（只有圆角抗锯齿差 1–3 个色阶）。偏离 PaperMod，用户 2026-10-28 批准保留（docs/papermod-deviations.md） */
 .md-content table, .md-content pre code, .post-content .katex-display {
   --scroll-bg: var(--theme);
   --scroll-shadow: rgb(0 0 0 / 0.3);
@@ -72,14 +71,3 @@
 [data-theme="dark"] :is(.md-content table, .md-content pre code, .post-content .katex-display) { --scroll-shadow: rgb(0 0 0 / 0.7); }
 /* 代码块在两种主题下都是深底，黑色阴影看不见 */
 :root .md-content pre code { --scroll-shadow: rgb(255 255 255 / 0.3); }
-/* 页头菜单：PaperMod 放不下时整行横向滚动，手机上看不出还能滑，英文菜单在 320 宽或 Safari 放大页面后 Tags、Search 直接看不到。
-   改成放不下就折行；放得下时（中文菜单、390 宽以上的英文菜单）和原来完全一样 */
-#menu { flex-wrap: wrap; row-gap: 0.25rem; overflow-x: visible; }
-/* 英文菜单在 320 宽放不下一行（约 302px），折行后每行仍是页头的 60px 行高，第二行孤零零地隔得很远 */
-@media (max-width: 374px) { :lang(en) #menu { line-height: 2.5rem; row-gap: 0; } }
-/* 归档页月份标题 PaperMod 固定 200px 宽，Safari 页面放大到约 175% 以上时整页能左右拖 */
-.archive-month-header { max-width: 100%; }
-/* 触屏没有悬停：PaperMod 的「复制」按钮只在鼠标悬停代码块时出现，手机上永远看不到，改成一直显示 */
-@media (hover: none) { .copy-code { display: block; } }
-/* 短文卡片在窄屏上内边距减半：卡片自己的 24px 叠在页面的边距上，320 宽时正文每行只剩约 11 个字 */
-@media (max-width: 480px) { .note-entry { padding: 1rem 0.875rem; } }

@@ -319,3 +319,55 @@ test("键盘焦点：短文图片的焦点框", async ({ browser }, info) => {
   await expect(page).toHaveScreenshot("site-focus-image.png", { clip: { x: Math.max(0, box.x - 8), y: box.y - 8, width: Math.min(box.width + 16, page.viewportSize().width), height: 40 } });
   await context.close();
 });
+
+// 横滑提示阴影（偏离 PaperMod 的例外，用户 2026-10-28 批准保留，docs/papermod-deviations.md）：
+// 表格、代码块、公式超出宽度能左右滑时，边缘有一道看得见的阴影；放得下时除圆角外和去掉这条样式逐像素相同
+// 只比较去掉上下圆角那几行（圆角半径 + 2px：元素位置有小数时圆角会跨到下一行）之后的部分：
+// 有背景图时圆角的抗锯齿会差 1–3 个色阶，肉眼看不出，和阴影无关
+async function maxDiff(page, a, b, skipRows) {
+  return page.evaluate(async ([a, b, skipRows]) => {
+    const load = async (s) => createImageBitmap(await (await fetch("data:image/png;base64," + s)).blob());
+    const [x, y] = [await load(a), await load(b)];
+    if (x.width !== y.width || x.height !== y.height) return 255;
+    const px = (img) => { const c = new OffscreenCanvas(img.width, img.height).getContext("2d"); c.drawImage(img, 0, 0); return c.getImageData(0, 0, img.width, img.height).data; };
+    const [p, q] = [px(x), px(y)];
+    let m = 0;
+    for (let i = skipRows * x.width * 4; i < p.length - skipRows * x.width * 4; i++) m = Math.max(m, Math.abs(p[i] - q[i]));
+    return m;
+  }, [a.toString("base64"), b.toString("base64"), skipRows]);
+}
+test("能横滑的表格、代码块、公式有边缘阴影，放得下的没有", async ({ browser }, info) => {
+  // 测试文章里的表格、代码块、公式在各设备上都放得下；超宽的情况在页面里临时插入一张宽表格和一段长代码来造（不改测试文章，不影响截图基准）
+  const sel = ".md-content table, .md-content pre code, .post-content .katex-display";
+  const { context, page } = await open(browser, info, SITE + "/");
+  let wide = 0, fit = 0;
+  for (const path of ["/posts/sample-post/", "/en/posts/sample-post/"]) {
+    await page.goto(SITE + path, { waitUntil: "load" });
+    await settle(page);
+    await page.evaluate(() => {
+      const cell = "很长的一格内容".repeat(30);
+      document.querySelector(".md-content").insertAdjacentHTML("beforeend",
+        `<table data-wide><thead><tr><th>项目</th><th>说明</th></tr></thead><tbody><tr><td>一</td><td>${cell}</td></tr></tbody></table>` +
+        `<pre data-wide><code>${"const 很长的一行代码 = 1; ".repeat(40)}</code></pre>`);
+    });
+    const els = page.locator(sel);
+    for (let i = 0; i < await els.count(); i++) {
+      const el = els.nth(i);
+      if (!await el.isVisible()) continue;
+      const [sw, cw, radius] = await el.evaluate((e) => { e.scrollLeft = 0; e.scrollIntoView({ block: "center" });
+        const r = (n) => parseFloat(getComputedStyle(n).borderTopLeftRadius) || 0;
+        return [e.scrollWidth, e.clientWidth, Math.ceil(Math.max(r(e), r(e.parentElement), r(e.parentElement.parentElement)))]; });
+      if (cw === 0) continue;
+      const withShadow = await el.screenshot();
+      await el.evaluate((e) => e.style.setProperty("background-image", "none", "important"));
+      const without = await el.screenshot();
+      await el.evaluate((e) => e.style.removeProperty("background-image"));
+      const d = await maxDiff(page, withShadow, without, radius + 2), where = `${path} 第 ${i + 1} 个（内容 ${sw}px / 可见 ${cw}px），最大色差 ${d}`;
+      if (sw > cw + 1) { wide++; expect(d, `${where}：能横滑却没有看得见的阴影`).toBeGreaterThanOrEqual(20); }
+      else { fit++; expect(d, `${where}：放得下却画了阴影`).toBe(0); }
+    }
+  }
+  expect(fit, "没有找到放得下的元素，没覆盖「不画阴影」").toBeGreaterThan(0);
+  expect(wide, "没有找到能横滑的元素，没覆盖「画阴影」").toBeGreaterThan(0);
+  await context.close();
+});
