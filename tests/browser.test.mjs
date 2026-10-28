@@ -129,6 +129,43 @@ test("图集：手机上手指左滑翻到下一张", async () => {
   await page.waitForTimeout(100);
   assert.equal(await box.locator(".zoom-count").textContent(), "2 / 12");
   assert.equal(await box.evaluate((d) => d.open), true, "滑动不应关闭图集");
+  // 手指横扫不产生 click：以前滑完留下的「吞掉下一次点击」标记会让第一次点 × 没反应。
+  // （CDP 模拟横扫之后，Chromium 自己会把紧接着的一次 tap 当成停止惯性而不发 click，所以这里用 click() 代替真实点按）
+  assert.equal(await box.evaluate((d) => d.dataset.swiped), undefined, "手指横扫后不应留下吞掉点击的标记");
+  await box.locator(".zoom-next").evaluate((b) => b.click());
+  assert.equal(await box.locator(".zoom-count").textContent(), "3 / 12", "滑动后第一次点 › 应该翻页");
+  await box.locator(".zoom-close").evaluate((b) => b.click());
+  assert.equal(await box.evaluate((d) => d.open), false, "滑动后点 × 应该一次关闭");
+  // 灯箱里能双指放大（宽的文字截图在手机上要放大才看得清）；平时单指拖动留给横扫换图
+  assert.equal(await box.evaluate((d) => getComputedStyle(d).touchAction), "pinch-zoom");
+  await ctx.close();
+});
+
+test("图集：电脑上用鼠标拖动换图，松开时不会顺带关掉灯箱", async () => {
+  const { page, ctx } = await open("/notes/", { viewport: { width: 1280, height: 900 } });
+  await card(page, "travel-photos").locator(".img-group img").first().click();
+  const box = page.locator("dialog.img-zoom");
+  await page.mouse.move(800, 450);
+  await page.mouse.down();
+  await page.mouse.move(600, 450, { steps: 5 });
+  await page.mouse.up();
+  assert.equal(await box.locator(".zoom-count").textContent(), "2 / 12");
+  assert.equal(await box.evaluate((d) => d.open), true, "拖动松开后的 click 不应关闭灯箱");
+  await ctx.close();
+});
+
+test("图集：横屏手机上计数、图注、关闭按钮和图片互不遮挡", async () => {
+  const { page, ctx } = await open("/notes/", { ...devices["iPhone 13 landscape"] });
+  const img = card(page, "travel-photos").locator(".img-group img").first();
+  await img.scrollIntoViewIfNeeded();
+  await img.tap();
+  const box = page.locator("dialog.img-zoom");
+  await box.locator("figure img").evaluate((i) => i.complete || new Promise((ok) => (i.onload = ok)));
+  const r = await box.evaluate((d) => Object.fromEntries(["figure img", "figcaption", ".zoom-count", ".zoom-close"].map((s) => [s, d.querySelector(s).getBoundingClientRect().toJSON()])));
+  const hit = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  const keys = Object.keys(r);
+  for (let i = 0; i < keys.length; i++) for (let j = i + 1; j < keys.length; j++) assert.ok(!hit(r[keys[i]], r[keys[j]]), `${keys[i]} 和 ${keys[j]} 重叠`);
+  for (const k of keys) assert.ok(r[k].bottom <= 390 + 0.5 && r[k].top >= -0.5, `${k} 超出屏幕`);
   await ctx.close();
 });
 

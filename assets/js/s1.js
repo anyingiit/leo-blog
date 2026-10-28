@@ -12,12 +12,15 @@
   let zoom = "fit"; // 沉浸阅读里的缩放："fit" 或具体倍数
   try { const z = localStorage.getItem("s1-zoom"); if (z && z !== "fit") zoom = +z; } catch {}
   const immersive = () => document.body.classList.contains("s1-immersive");
+  // 手机竖屏（≤600px）的顶栏没有缩放按钮（s1.css），原版固定适应宽度，放大用双指；电脑上记下的缩放不带过来
+  const zoomUI = () => !matchMedia("(max-width: 600px)").matches;
+  const zoomed = () => immersive() && zoom !== "fit" && zoomUI();
 
   const fitScale = (box) => Math.min(wide || immersive() ? 1.4 : 1, (immersive() ? document.documentElement.clientWidth : box.clientWidth) / 836);
   const fit = () => {
     for (const box of document.querySelectorAll(".s1-sheets")) {
       if (!box.offsetParent) continue;
-      const s = immersive() && zoom !== "fit" ? zoom : fitScale(box);
+      const s = zoomed() ? zoom : fitScale(box);
       box.firstElementChild.style.zoom = s !== 1 ? s.toFixed(4) : "";
     }
   };
@@ -47,7 +50,8 @@
     }
   };
   // 阅读位置 = 原文页码 + 在这一页里读到的比例，切换版式、缩放、进出沉浸时保持
-  const TOP = () => (immersive() ? 60 : 80); // 沉浸阅读里和 s1.css 的 scroll-padding-top 一致，锚点跳到的页算作当前页
+  // 沉浸阅读里和 s1.css 的 scroll-padding-top（顶栏高度 + 8）一致，锚点跳到的页算作当前页；顶栏在很窄的屏幕上折成两行
+  const TOP = () => (immersive() ? (ibar?.offsetHeight || 52) + 8 : 80);
   const firstPage = +(chapter?.dataset.firstPage || 0) || null;
   const lastPage = +(chapter?.dataset.lastPage || 0) || Infinity;
   const pageBlocks = () => {
@@ -105,7 +109,7 @@
     if (toggleBtn) toggleBtn.textContent = view() === "original" ? "重排版" : "原版";
     if (fitBtn) {
       const box = original?.querySelector(".s1-sheets");
-      fitBtn.textContent = box?.offsetParent ? Math.round((zoom === "fit" ? fitScale(box) : zoom) * 100) + "%" : "适应";
+      fitBtn.textContent = box?.offsetParent ? Math.round((zoomed() ? zoom : fitScale(box)) * 100) + "%" : "适应";
       fitBtn.title = zoom === "fit" ? "当前：适应宽度" : "恢复适应宽度";
     }
   };

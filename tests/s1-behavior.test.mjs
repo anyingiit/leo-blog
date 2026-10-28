@@ -72,7 +72,8 @@ const noHScroll = (page) => page.evaluate(() => document.documentElement.scrollW
 
 // 当前在读的原文页：页面顶部（顶栏/页头下沿）所在的那一页。原版看 .s1-sheet，重排版看「原文第 N 页」分隔（分隔线在第 N 页末尾）
 const pageAt = (page) => page.evaluate(() => {
-  const y = document.body.classList.contains("s1-immersive") ? 61 : 81; // s1.js 的 TOP（沉浸 60、普通 80）下面一像素
+  // s1.js 的 TOP（沉浸为顶栏高度 + 8，普通 80）下面一像素
+  const y = (document.body.classList.contains("s1-immersive") ? document.querySelector(".s1-ibar").offsetHeight + 8 : 80) + 1;
   const o = document.querySelector(".s1-original");
   if (!o.hidden) {
     let p = null;
@@ -86,7 +87,7 @@ const pageAt = (page) => page.evaluate(() => {
 // 滚到原文第 n 页（frac 是在这一页里的比例），等滚动停下
 const scrollToPage = async (page, n, frac = 0.3) => {
   await page.evaluate(([n, frac]) => {
-    const imm = document.body.classList.contains("s1-immersive"), top = imm ? 60 : 80;
+    const imm = document.body.classList.contains("s1-immersive"), top = imm ? document.querySelector(".s1-ibar").offsetHeight + 8 : 80;
     const o = document.querySelector(".s1-original");
     let el, next;
     if (!o.hidden) { el = o.querySelector(`.s1-sheet[data-page="${n}"]`); next = el.nextElementSibling; }
@@ -756,6 +757,74 @@ for (const engine of ENGINES) {
     // 缩到最小一档后再按 − 不变
     for (let i = 0; i < 12; i++) await page.locator('.s1-ibar [data-zoom="out"]').click();
     assert.equal(await z(), 0.5);
+    await s.done();
+  });
+
+  // 2026-10-28 手机端检查：原来的顶栏一行放不下（约 508px），控件被 flex 压缩而不是溢出，scrollWidth 看不出来——
+  // 目录入口被压成 0 宽、缩放组被裁、「退出」被推出 320 宽的屏幕。所以逐个量控件：完整可见、在顶栏和屏幕里、够大好点
+  for (const device of ["iPhone SE", engine === "webkit" ? "iPhone 13" : "Pixel 7"]) {
+    test(`${engine} · ${device}：全屏阅读顶栏的每个控件都完整可见、在顶栏和屏幕里、至少 44×44；电脑上记的缩放不带到手机上`, async (t) => {
+      const s = await open(t, engine, devices[device]);
+      if (!s) return;
+      const { page } = s;
+      await page.addInitScript(() => localStorage.setItem("s1-zoom", "1.5"));
+      await s.go(V + "risk-factors/?read=1");
+      for (const view of ["reflow", "original"]) {
+        if ((await shown(page)) !== view) await page.locator(".s1-ibar [data-toggle-view]").click();
+        const bad = await page.evaluate(() => {
+          const vw = document.documentElement.clientWidth, bar = document.querySelector(".s1-ibar").getBoundingClientRect(), out = [];
+          for (const el of document.querySelectorAll(".s1-ibar > :is(a, button, details, span), .s1-ibar :is(a, button, summary)")) {
+            if (el.closest(".s1-ibar-panel") || !el.checkVisibility()) continue;
+            const r = el.getBoundingClientRect(), name = (el.className || el.tagName) + "「" + el.textContent.trim().slice(0, 8) + "」";
+            if (r.left < -0.5 || r.right > vw + 0.5) out.push(name + " 超出屏幕");
+            if (r.top < bar.top - 0.5 || r.bottom > bar.bottom + 0.5) out.push(name + " 超出顶栏");
+            if (el.matches("a, button, summary") && (r.width < 44 || r.height < 44)) out.push(`${name} ${Math.round(r.width)}×${Math.round(r.height)}`);
+            if (el.matches(".s1-ibar-zoom") && el.scrollWidth > el.clientWidth) out.push("缩放组被裁");
+          }
+          return out;
+        });
+        assert.deepEqual(bad, [], view);
+        assert.ok(await noHScroll(page), view + " 不应横向滚动");
+      }
+      // 手机上没有缩放按钮，原版固定适应宽度（双指缩放照常可用）
+      const z = await page.evaluate(() => +document.querySelector(".s1-original .s1-sheets-inner").style.zoom);
+      assert.ok(Math.abs(z - (await page.evaluate(() => document.documentElement.clientWidth)) / 836) < 0.001, `原版缩放 ${z} 不是适应宽度`);
+      await s.done();
+    });
+  }
+
+  test(`${engine}：手机上横版页缩到和竖版页同宽，原版和全屏阅读都不用横向滚动`, async (t) => {
+    const s = await open(t, engine, PHONE[engine]);
+    if (!s) return;
+    const { page } = s;
+    const check = async (where) => {
+      const r = await page.evaluate(() => {
+        const o = document.querySelector(".s1-original"), box = o.querySelector(".s1-sheets");
+        const w = (sel) => [...o.querySelectorAll(sel)].map((e) => Math.round(e.getBoundingClientRect().width));
+        return { land: w('.s1-sheet[style*="width:792pt"]'), port: w('.s1-sheet[style*="width:612pt"]'), box: box.scrollWidth - box.clientWidth };
+      });
+      assert.ok(r.land.length > 0, "测试前提：本章有横版页");
+      for (const x of r.land) assert.ok(Math.abs(x - r.port[0]) <= 1, `${where}：横版页宽 ${x}，竖版页宽 ${r.port[0]}`);
+      assert.ok(r.box <= 0, `${where}：原版框里还要横向滚动 ${r.box}px`);
+      assert.ok(await noHScroll(page), where + " 整页不应横向滚动");
+    };
+    await s.go(V + "principal-stockholders/");
+    await page.locator('.s1-switch [data-view="original"]').click();
+    await check("原版");
+    await page.locator("[data-enter]").click();
+    await waitPath(page, V + "principal-stockholders/?read=1");
+    await check("全屏阅读");
+    await s.done();
+  });
+
+  test(`${engine}：手机上「全部版本」表的每一项都在屏幕里，不用横向滚动`, async (t) => {
+    const s = await open(t, engine, PHONE[engine]);
+    if (!s) return;
+    const { page } = s;
+    await s.go(R);
+    const out = await page.locator(".s1-versions td").evaluateAll((tds) => tds.filter((td) => td.checkVisibility() && td.getBoundingClientRect().right > document.documentElement.clientWidth + 0.5).map((td) => td.textContent.trim().slice(0, 12)));
+    assert.deepEqual(out, []);
+    assert.equal(await page.locator(".s1-versions").evaluate((t) => t.scrollWidth - t.clientWidth), 0);
     await s.done();
   });
 
