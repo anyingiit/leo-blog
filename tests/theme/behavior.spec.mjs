@@ -231,6 +231,10 @@ test("短文图集灯箱：有选区时鼠标拖动图片照样换图", async ({
 test("长短文折叠：展开、收起", async ({ browser }, info) => {
   const { context, page } = await open(browser, info, SITE + "/notes/");
   await settle(page);
+  // 页尾补一屏高的空白：这条短文排在第几条、下面还剩多少内容都不影响它能否滚到贴顶。
+  // 不补的话，它靠近页尾时浏览器只能滚到底，而收起时页面变短、滚动位置本来就会被夹到底，
+  // 去掉 scrollIntoView 断言也照样通过
+  await page.evaluate(() => document.body.append(Object.assign(document.createElement("div"), { style: `height:${innerHeight}px` })));
   const entry = page.locator(".note-entry", { has: page.locator('a[href$="/notes/long-text/"]') });
   const body = entry.locator(".note-body"), btn = entry.locator(".note-expand");
   await expect(body).toHaveClass(/is-folded/);
