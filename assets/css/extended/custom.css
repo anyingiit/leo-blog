@@ -53,3 +53,21 @@
   .note-entry .post-content p:has(+ .img-group) { margin-bottom: 0.5rem; }
   .note-entry .post-content p + .img-group { margin-top: 0.5rem; }
 }
+/* 能横向滚动的宽内容（表格、代码块、公式）：右边（滚动后左边）有一道阴影，表示那边还有内容。
+   iOS 平时不显示滚动条，没有阴影时读者会以为表格只有露出的那几列。纯 CSS：遮罩（local）跟着内容走、阴影（scroll）固定在框边，
+   滚到头时遮罩正好盖住阴影；内容不超宽时两边都被盖住，和原来看不出差别（只有圆角抗锯齿差 1–3 个色阶）。偏离 PaperMod，用户 2026-10-28 批准保留（docs/papermod-deviations.md） */
+.md-content table, .md-content pre code, .post-content .katex-display {
+  --scroll-bg: var(--theme);
+  --scroll-shadow: rgb(0 0 0 / 0.3);
+  background-image: linear-gradient(to right, var(--scroll-bg) 1rem, transparent 2.5rem), linear-gradient(to left, var(--scroll-bg) 1rem, transparent 2.5rem),
+    radial-gradient(farthest-side at 0 50%, var(--scroll-shadow), transparent), radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow), transparent) !important;
+  background-position: left center, right center, left center, right center !important;
+  background-size: 2.5rem 100%, 2.5rem 100%, 1rem 100%, 1rem 100% !important;
+  background-repeat: no-repeat !important;
+  background-attachment: local, local, scroll, scroll !important;
+}
+.md-content pre code { --scroll-bg: var(--code-block-bg); }
+.note-entry .md-content :is(table, .katex-display) { --scroll-bg: var(--entry); }
+[data-theme="dark"] :is(.md-content table, .md-content pre code, .post-content .katex-display) { --scroll-shadow: rgb(0 0 0 / 0.7); }
+/* 代码块在两种主题下都是深底，黑色阴影看不见 */
+:root .md-content pre code { --scroll-shadow: rgb(255 255 255 / 0.3); }
