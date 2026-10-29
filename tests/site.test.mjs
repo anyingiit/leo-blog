@@ -316,6 +316,7 @@ test("访问统计只在正式站加载：main 分支每个站点页面都有，
       else if (!/<meta http-equiv="?refresh/.test(html)) {
         assert.equal(html.split(BEACON).length - 1, 1, `${f} 应当正好加载一次统计脚本`);
         assert.ok(html.includes(`data-cf-beacon='{"token":"test-token-123"}'`), `${f} 的令牌不对`);
+        assert.match(html, /<script type="?module"? src="?https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/, `${f}：脚本要和后台给的片段一样用 type=module，不能阻塞页面`);
       }
     }
     for (const f of ["", "en/", "notes/", "translations/anthropic-s1/", "404.html"]) assert.ok(prod.read(f).includes(BEACON), `${f || "首页"} 没有统计脚本`);

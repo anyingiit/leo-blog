@@ -4,10 +4,10 @@
   2. 短文栏目：超过约一屏的短文先折叠，可展开、收起；图片加载后重新判断。
      多张图片的原位分组在构建时完成，见 notes/list.html。
   3. Cloudflare Web Analytics（docs/analytics.md）：只在正式站（Cloudflare Pages 的 main 分支构建）且配了令牌时加载。
-     放在 PaperMod 的页脚扩展点里，所以只出现在站点页面上；原样提供的下载 HTML 不经过这里，不会被注入。
+     写法同 Cloudflare 后台给的片段（type=module，相当于 defer）；放在 PaperMod 的页脚扩展点里，所以只出现在站点页面上；原样提供的下载 HTML 不经过这里，不会被注入。
 */ -}}
 {{- with site.Params.cfAnalyticsToken }}{{ if eq (os.Getenv "CF_PAGES_BRANCH") "main" }}
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ dict "token" . | jsonify }}'></script>
+<script type=module src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ dict "token" . | jsonify }}'></script>
 {{- end }}{{ end }}
 <script>
 (() => {

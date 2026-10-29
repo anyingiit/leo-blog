@@ -6,7 +6,7 @@
 
 不用 Cloudflare 后台的「自动注入」（它在边缘改写所有 HTML，包括原样提供的下载文件，和 Email Address Obfuscation 是同一类问题）。改为手动放脚本：
 
-- 令牌写在 `hugo.yaml` 的 `params.cfAnalyticsToken`。令牌是公开值，本来就会出现在页面里。留空就不加载。
+- 令牌写在 `hugo.yaml` 的 `params.cfAnalyticsToken`。令牌是公开值，本来就会出现在页面里。留空就不加载。脚本标签和后台给的片段一致（`type=module`，不阻塞页面）。
 - 脚本在 `layouts/_partials/extend_footer.html`，也就是 PaperMod 的页脚扩展点，所以只出现在用主题页脚的站点页面上。S-1 冻结 HTML、双语译文全文、S-1 单文件 `full.html` 都不经过这里。
 - 只在 Cloudflare Pages 的 `main` 分支构建里加载（`CF_PAGES_BRANCH`，`hugo.yaml` 的 `security.funcs.getenv` 放行了这个变量）。预览站、本地构建和 CI 都不加载，所以测试不会访问外网，预览流量也不会混进统计。
 
