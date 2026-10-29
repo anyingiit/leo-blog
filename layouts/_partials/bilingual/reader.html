@@ -82,7 +82,6 @@
     <div class="s1-sheets" data-first-page="1">
       <div class="s1-sheets-inner"><div class="s1-sheet bl-sheet">{{ with $page.Resources.Get "original.html" }}{{ .Content | safeHTML }}{{ end }}</div></div>
     </div>
-    <script>(b=>{const s=Math.min(b.closest("[data-wide]")?1.4:1,b.clientWidth/836);if(s!==1)b.firstElementChild.style.zoom=s.toFixed(4)})(document.currentScript.previousElementSibling)</script>
   </template>
   {{- if $page.Content }}<div class="post-content md-content bl-afterword">{{ $page.Content }}</div>{{ end }}
   <p class="s1-rights">原文版权归{{ $p.author | default "原作者" }}所有，本站提供的是非官方译文，以原文为准。下架请求：{{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}。</p>

@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { chromium, webkit, devices } from "playwright";
-import { build, serve, root, sheetMargins } from "./helpers.mjs";
+import { build, serve, root, sheetMargins, cfEmailObfuscation } from "./helpers.mjs";
 
 const BASE = "https://douseful.eu.org";
 const DESKTOP = { viewport: { width: 1280, height: 800 } };
@@ -190,6 +190,22 @@ for (const engine of ENGINES) {
     const w = await s.page.locator(".bl-sheet").evaluate((e) => e.getBoundingClientRect().width);
     assert.ok(w <= (await s.page.evaluate(() => innerWidth)), `纸面 ${w}px 超出屏幕`);
     assert.ok(await noHScroll(s.page));
+    await s.done();
+  });
+
+  test(`${engine}：Cloudflare 邮件地址混淆下（解码脚本落进原版模板的最坏情况），打开原版、切换版式都没有脚本错误，原版里不留脚本，下架邮箱照常解开`, async (t) => {
+    const s = await open(t, engine);
+    if (!s) return;
+    await cfEmailObfuscation(s.ctx, server.url, { intoTemplate: true });
+    await s.go(P);
+    await until(s.page, () => !document.querySelector(".s1-original").hidden);
+    await s.page.click(".s1-switch [data-view=reflow]");
+    await s.page.click(".s1-switch [data-view=original]");
+    await s.page.waitForLoadState("networkidle");
+    assert.equal(await s.page.locator(".s1-original script").count(), 0);
+    assert.equal(await s.page.locator(".__cf_email__").count(), 0);
+    assert.equal(await s.page.locator(".s1-rights a").textContent(), "leoycwan@gmail.com");
+    assert.equal(await s.page.locator(".s1-original .s1-sheets-inner").evaluate((e) => +e.style.zoom), 1.4);
     await s.done();
   });
 

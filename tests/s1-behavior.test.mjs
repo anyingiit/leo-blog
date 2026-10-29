@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium, webkit, devices } from "playwright";
-import { build, serve, root, sheetMargins } from "./helpers.mjs";
+import { build, serve, root, sheetMargins, cfEmailObfuscation, CF_DECODER } from "./helpers.mjs";
 
 const BASE = "https://douseful.eu.org";
 const R = "/translations/anthropic-s1/";
@@ -497,6 +497,45 @@ for (const engine of ENGINES) {
     await s.done();
   });
 }
+
+// 正式站开着 Cloudflare 的邮件地址混淆，它把解码脚本插在声明里的邮箱后面第一个 <script 前。原版的 <template> 里以前有一段缩放脚本，
+// 解码脚本就落进了模板；原版插入页面时模板里的脚本跟着执行，这个解码脚本在被移走后执行、报错（线上 Chrome 和 Safari 各 2 个错误）。
+// 现在：模板里不放脚本，解码脚本落在模板外；万一模板里有脚本（intoTemplate 模拟），s1.js 插入原版前去掉，不执行
+for (const engine of ENGINES) {
+  test(`${engine}：Cloudflare 邮件地址混淆下，章节页打开原版、切换版式都没有脚本错误，下架邮箱照常解开（解码脚本在模板外、在模板里两种情况）`, async (t) => {
+    for (const [opts, intoTemplate] of [[DESKTOP, false], [DESKTOP, true], [PHONE[engine], true]]) {
+      const s = await open(t, engine, opts);
+      if (!s) return;
+      const { page } = s;
+      const served = await cfEmailObfuscation(s.ctx, server.url, { intoTemplate });
+      await s.go(V + "prospectus-summary/");
+      const html = served.get(V + "prospectus-summary/");
+      const tpl = html.match(/<template class="?s1-original-tpl[\s\S]*?<\/template>/)[0];
+      assert.equal(tpl.includes(CF_DECODER), intoTemplate, intoTemplate ? "模拟应把解码脚本插进原版模板" : "模板里没有脚本，解码脚本不应落进模板");
+      if (await shown(page) === "reflow") await page.locator('.s1-switch [data-view="original"]').click();
+      await page.locator('.s1-switch [data-view="reflow"]').click();
+      await page.locator('.s1-switch [data-view="original"]').click();
+      await page.waitForLoadState("networkidle");
+      await settle(page);
+      assert.equal(await page.locator(".s1-original script").count(), 0, "原版里不留脚本");
+      assert.equal(await page.locator(".__cf_email__").count(), 0, "页面上的邮箱都已解开");
+      assert.equal(await page.locator(".s1-rights a").getAttribute("href"), "mailto:leoycwan@gmail.com");
+      assert.equal(await page.locator(".s1-rights a").textContent(), "leoycwan@gmail.com");
+      // 原版照常按宽度缩放（以前由模板里的内联脚本先设，现在全由 s1.js）
+      assert.ok(await page.evaluate(() => { const b = document.querySelector(".s1-original .s1-sheets"); return Math.abs((+b.firstElementChild.style.zoom || 1) - Math.min(b.closest("[data-wide]") ? 1.4 : 1, b.clientWidth / 836)) < 1e-3; }));
+      await s.done();
+    }
+  });
+}
+
+test("原版模板（章节页、双语译文）里没有脚本：Cloudflare 的解码脚本不会落进模板", () => {
+  const pages = [...chapters.map((c) => V + c.slug + "/"), ...readdirSync(join(root, "content/translations")).filter((d) => d !== "anthropic-s1" && !d.startsWith("_")).map((d) => `/translations/${d}/`)];
+  for (const p of pages) {
+    const tpl = read(p).match(/<template class="?s1-original-tpl[\s\S]*?<\/template>/)?.[0];
+    if (!tpl) continue;
+    assert.ok(!/<script/i.test(tpl), `${p} 的原版模板里有 <script>`);
+  }
+});
 
 test("浏览器禁用本地存储（隐私模式等）时照常可用：按屏宽给默认版式，可以切换、进出沉浸和缩放，没有脚本错误", async (t) => {
   const s = await open(t, "chromium");
