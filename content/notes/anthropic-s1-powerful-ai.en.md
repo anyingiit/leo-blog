@@ -1,5 +1,5 @@
 ---
-title: "Powerful AI"
+title: "AI is Transforming Intelligence"
 slug: anthropic-s1-powerful-ai
 date: 2026-10-29T15:01:32Z
 tags: [Notes]

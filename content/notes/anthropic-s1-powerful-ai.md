@@ -1,5 +1,5 @@
 ---
-title: "强大AI"
+title: "AI正在变革智能"
 slug: anthropic-s1-powerful-ai
 date: 2026-10-29T15:01:32Z
 tags: [随笔]
