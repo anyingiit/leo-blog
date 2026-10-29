@@ -1,5 +1,5 @@
 ---
-title: "“Accessible on Demand” in Anthropic’s Prospectus"
+title: "Intelligence on Demand"
 slug: anthropic-s1-on-demand
 date: 2026-10-29T13:42:16Z
 tags: [Notes]

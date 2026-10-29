@@ -1,5 +1,5 @@
 ---
-title: "Anthropic招股书中的“按需获取”"
+title: "按需获取智能"
 slug: anthropic-s1-on-demand
 date: 2026-10-29T13:42:16Z
 tags: [随笔]
