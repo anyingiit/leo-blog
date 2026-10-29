@@ -254,6 +254,9 @@ jobs:
         with:
           pattern: visual-*
           path: ${{ runner.temp }}/visual
+          # 只有一个浏览器失败时只有一个产物，不合并的话它会直接解压到 path 下（没有 visual-<浏览器>/ 子目录），
+          # 下面按子目录找就什么也拷不到、误报"没有变化"。两个产物的目录互不重叠，合并解压不会互相覆盖
+          merge-multiple: true
 
       - name: Push baselines branch
         env:
@@ -262,9 +265,7 @@ jobs:
           VISUAL: ${{ runner.temp }}/visual
         run: |
           set -euo pipefail
-          for d in "$VISUAL"/visual-*/; do
-            [ -d "$d/__snapshots__" ] && cp -R "$d/__snapshots__/." tests/theme/__snapshots__/
-          done
+          cp -R "$VISUAL/__snapshots__/." tests/theme/__snapshots__/
           git add -A tests/theme/__snapshots__
           if git diff --cached --quiet; then echo "基准图没有变化"; exit 0; fi
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
