@@ -1,0 +1,44 @@
+{{- /*
+  Hugo 自带的站点地图模板（hugo v0.158.0 tpl/tplimpl/embedded/templates/sitemap.xml）原样照抄，
+  只在末尾加上 S-1 译本最新版本的版本页和章节：它们是 build.list: local（不进首页、RSS、站内搜索），
+  Hugo 自带模板因此会漏掉它们。历史版本不加（它们 noindex，见译本首页 _index.md 的 cascade）。
+  升级 Hugo 时对照上游模板，有变化就同步。
+*/ -}}
+{{ printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  {{ range where .Pages "Sitemap.Disable" "ne" true }}
+    {{- if .Permalink -}}
+  <url>
+    <loc>{{ .Permalink }}</loc>{{ if not .Lastmod.IsZero }}
+    <lastmod>{{ safeHTML ( .Lastmod.Format "2006-01-02T15:04:05-07:00" ) }}</lastmod>{{ end }}{{ with .Sitemap.ChangeFreq }}
+    <changefreq>{{ . }}</changefreq>{{ end }}{{ if ge .Sitemap.Priority 0.0 }}
+    <priority>{{ .Sitemap.Priority }}</priority>{{ end }}{{ if .IsTranslated }}{{ range .Translations }}
+    <xhtml:link
+                rel="alternate"
+                hreflang="{{ .Language.Locale }}"
+                href="{{ .Permalink }}"
+                />{{ end }}
+    <xhtml:link
+                rel="alternate"
+                hreflang="{{ .Language.Locale }}"
+                href="{{ .Permalink }}"
+                />{{ end }}
+  </url>
+    {{- end -}}
+  {{ end }}
+  {{- range where .Pages "Type" "s1" }}
+    {{- if and .IsSection .Params.latest }}
+      {{- with .GetPage .Params.latest }}
+        {{- range (slice .) | append .RegularPages }}
+          {{- if and .Permalink (ne .Sitemap.Disable true) }}
+  <url>
+    <loc>{{ .Permalink }}</loc>{{ if not .Lastmod.IsZero }}
+    <lastmod>{{ safeHTML ( .Lastmod.Format "2006-01-02T15:04:05-07:00" ) }}</lastmod>{{ end }}
+  </url>
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+</urlset>

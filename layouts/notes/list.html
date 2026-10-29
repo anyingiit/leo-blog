@@ -14,8 +14,9 @@
     </a>
     {{- end }}
   </h1>
+  {{- /* description 只放纯文字（也是搜索引擎摘要）；带链接的补充句写在 _index.md 正文里，接在后面显示 */}}
   {{- with .Description }}
-  <div class="post-description">{{ . | markdownify }}</div>
+  <div class="post-description">{{ . | markdownify }}{{ with strings.TrimSpace $.RawContent }}{{ if ne site.Language.Lang "zh" }} {{ end }}{{ $.RenderString . }}{{ end }}</div>
   {{- end }}
 </header>
 

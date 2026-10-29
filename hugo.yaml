@@ -36,6 +36,9 @@ permalinks:
 
 params:
   env: production
+  # 作者只写进 <meta name=author> 和结构化数据（BlogPosting.author）；长文、短文的 _index.md 用 cascade 设 hideAuthor，日期那一行照旧不显示作者
+  # （译文另有原作者 author，照常显示）
+  author: Leo
   # S-1 译本的下架联系方式（声明、版权行、下载文件里都会出现；tools/s1-import/release.py 要求设置）
   s1Contact: leoycwan@gmail.com
   # 首页、归档、上一篇/下一篇只收长文（content/posts）；短文（content/notes）在 /notes/ 单独成栏
