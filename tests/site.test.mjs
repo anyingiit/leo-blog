@@ -315,3 +315,28 @@ test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，
     for (const img of images) assert.equal(v, img, `${file} 的 ${name} 是 ${v}，CI 镜像是 v${img}`);
   }
 });
+
+// ── 网站图标（static/，tools/favicon/build.mjs 生成，docs/favicon.md）──────────────
+
+const iconHrefs = (html) => [...html.matchAll(/<link [^>]*rel="?(?:icon|apple-touch-icon|mask-icon)"?[^>]*>/g)].map((m) => m[0].match(/href="?([^"\s>]+)/)[1]);
+
+test("每个页面都有 PaperMod 的 5 个图标链接，指向的文件都存在（中英文页、404、S-1、双语译文）", () => {
+  const pages = walk(site.out).map((f) => relative(site.out, f)).filter((f) => f.endsWith(".html") && !/\/files\//.test(f));
+  for (const must of ["index.html", "en/index.html", "404.html", "en/404.html", "translations/anthropic-s1/index.html", "translations/bitter-lesson/index.html"]) assert.ok(pages.includes(must), must);
+  for (const p of pages) {
+    const html = readFileSync(join(site.out, p), "utf8");
+    if (/<meta http-equiv="?refresh/.test(html)) continue; // aliases 生成的跳转页只有跳转，没有完整的 <head>
+    const icons = iconHrefs(html);
+    assert.equal(icons.length, 5, `${p} 的图标链接数`);
+    for (const href of icons) {
+      assert.ok(href.startsWith(PROD), `${p}: ${href} 用正式域名的绝对地址`);
+      assert.ok(site.exists(href.slice(PROD.length)), `${p}: ${href} 指向的文件不存在`);
+    }
+  }
+});
+
+test("可下载的完整 HTML 保持原样，不带图标链接", () => {
+  const files = walk(site.out).map((f) => relative(site.out, f)).filter((f) => /\/files\/[^/]+\.html$/.test(f));
+  assert.ok(files.length >= 2, `找到 ${files.length} 个下载文件`);
+  for (const f of files) assert.deepEqual(iconHrefs(readFileSync(join(site.out, f), "utf8")), [], f);
+});

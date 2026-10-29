@@ -11,6 +11,7 @@
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：站点生成的每个自带 `<html>` 的页面（含短片等独立页面；内容目录里原样提供的 `.html.raw` 下载文件不查，保留原始 HTML 的一切特征）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/favicon.test.mjs` | 网站图标（[favicon.md](favicon.md)）：`favicon.ico` 含 16/32/48 三档且与单独的 PNG 相同；16px 图标逐像素符合设计（整像素的白色 L、主题色底、灰色内圈、透明圆角），32px 的 L 也落在整像素上；`apple-touch-icon.png` 180×180 不透明；Safari 固定标签图是单色剪影；提交的文件就是 `tools/favicon/build.mjs` 的输出 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Lint and build → Test image-i18n |
 | `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；完整 HTML 和 SEC 原页一样不设 viewport、不用脚本缩放（原样提供，手机由浏览器整页缩小）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Browser tests (chromium) 里的 Run regression tests 步骤 |
@@ -37,6 +38,7 @@
 - **中英文副本**（项目规则）：每篇已发布的文章都有对应的 `.en.md`，反之亦然；slug、date 一致，页面互相链接；标签数量相同，「随笔」译为「Notes」。
 - **英文配图**：有 `.i18n.yaml` 的图，英文页引用 `.en` 版，中文页用原图，构建结果里也是如此。
 - **公式、Mermaid、提示框**（`layouts/_markup/`、`layouts/_partials/extend_head.html`）：用草稿 `content/posts/markdown-test/` 检查 `$…$`/`$$…$$` 渲染成 KaTeX、` ```mermaid ` 输出 `<pre class=mermaid>`、`> [!NOTE]` 等提示框带中文标题；KaTeX 样式和 Mermaid 脚本只在需要的页面加载；正文不会被误当成公式（例如英文里成对出现的美元金额）。
+- **网站图标**：除跳转页外的每个页面（中英文页、404、S-1、双语译文）都有 PaperMod 的 5 个图标链接，指向的文件都存在；可下载的完整 HTML 不带图标链接。
 - **`build.sh`**：预览构建（`CF_PAGES_BRANCH` 不是 `main`）的链接和 RSS 指向 `CF_PAGES_URL`，`main` 用正式域名。
 
 这些断言都做过反向验证：分别人为破坏 13 处（例如首页收入短文、栏目只给摘要、删掉渲染钩子、预览不换地址、英文页用中文图、删掉英文副本、撤销美元转义），每一处都会让对应的测试失败。
