@@ -6,3 +6,12 @@ privacy:
     disable: true
   instagram:
     disable: true
+# 示例站里同一个标签大小写写法不同（Markdown 语法页 html、音视频页 HTML），Hugo 0.153 起每次构建随机取一种作标签名，
+# 标签页和这两篇文章因此不固定。在 example-site-terms 里用 _index.md 固定标题（docs/testing.md「构建必须可复现」），
+# 示例站内容本身不改。列出 mounts 会替换默认挂载，所以 content 要重新写上。
+module:
+  mounts:
+    - source: content
+      target: content
+    - source: ../example-site-terms
+      target: content
