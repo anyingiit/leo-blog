@@ -13,7 +13,3 @@ So that’s what it means. The phrase “rather than confining its reasoning to 
 
 - One is whether the harness can collect the subagents’ problems while they run, hand them to the model to reason over, and produce new steps
 - The other is whether the model is able to take in scattered information and make new judgments
-
-Other places in the prospectus that mention interleaved thinking:
-
-- [Business: “parallel execution and interleaved thinking between tool calls”](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm#ica694c859b8e458dbf6a73f56dde9d42_9895604651111:~:text=interleaved%20thinking%20between%20tool%20calls)
