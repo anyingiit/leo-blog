@@ -13,6 +13,8 @@ PaperMod 的 `head.html` 默认会输出下面 5 个链接，`hugo.yaml` 里没�
 | `apple-touch-icon.png` | 180×180，iPhone 主屏和 Safari 个人收藏。满版不透明方形，不带圆角和灰边，由 iOS 自己切圆角 |
 | `safari-pinned-tab.svg` | 旧版 Safari 的固定标签，单色剪影。新版已经不用，但主题总会输出这个链接，不放会 404 |
 
+另外生成站点默认分享图 `share.png`（1200×630，满版主题色底、L 原大小放在正中，不透明），由 `hugo.yaml` 的 `params.images` 引用，用法见 [seo.md](seo.md)。
+
 所有页面都用 PaperMod 的同一个 `<head>`，包括 S-1 和双语译文。可下载的完整 HTML 用的是独立模板，不带图标链接，文件保持原样。
 
 ## 设计要点

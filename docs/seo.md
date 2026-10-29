@@ -21,4 +21,4 @@
 
 ## 分享图
 
-有配图的文章在 front matter 写 `images: [配图文件名]`（英文页写英文图），PaperMod 就会输出 `og:image`、`twitter:image` 和大图卡片。站点级默认分享图（`params.images`）等网站图标定下来再加。
+有配图的文章在 front matter 写 `images: [配图文件名]`（英文页写英文图），PaperMod 就会输出 `og:image`、`twitter:image` 和大图卡片。其他页面用站点默认分享图 `static/share.png`（`hugo.yaml` 的 `params.images`）：1200×630，网站图标的深色底和白色 L，和图标一起由 `tools/favicon/build.mjs` 生成（见 [favicon.md](favicon.md)）。图里不放文字，各平台会在图下显示站名和标题。

@@ -30,7 +30,9 @@
 <meta property="og:description" content="Notes on learning, practice and thinking. Write it down first, polish it later.">
 <meta property="og:locale" content="en_US">
 <meta property="og:type" content="website">
-<meta name=twitter:card content="summary">
+<meta property="og:image" content="http://blog.test/share.png">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="http://blog.test/share.png">
 <meta name=twitter:title content="Leoblog">
 <meta name=twitter:description content="Notes on learning, practice and thinking. Write it down first, polish it later.">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","name":"Leoblog","url":"http://blog.test/en/","description":"Notes on learning, practice and thinking. Write it down first, polish it later.","logo":"http://blog.test/favicon.ico","sameAs":[]}</script>

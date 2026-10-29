@@ -37,7 +37,9 @@
 <meta property="og:description" content="随笔、感想和零碎的想法，篇幅短，不成体系。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:type" content="website">
-<meta name=twitter:card content="summary">
+<meta property="og:image" content="http://blog.test/share.png">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="http://blog.test/share.png">
 <meta name=twitter:title content="短文">
 <meta name=twitter:description content="随笔、感想和零碎的想法，篇幅短，不成体系。">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"短文","item":"http://blog.test/notes/"}]}</script>

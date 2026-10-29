@@ -37,7 +37,9 @@
 <meta property="og:description" content="Short thoughts and impressions, unpolished and unstructured.">
 <meta property="og:locale" content="en_US">
 <meta property="og:type" content="website">
-<meta name=twitter:card content="summary">
+<meta property="og:image" content="http://blog.test/share.png">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="http://blog.test/share.png">
 <meta name=twitter:title content="Notes">
 <meta name=twitter:description content="Short thoughts and impressions, unpolished and unstructured.">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Notes","item":"http://blog.test/en/notes/"}]}</script>

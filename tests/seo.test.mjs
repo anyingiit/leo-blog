@@ -3,7 +3,7 @@
 //   - S-1 译本：最新版本的版本页和章节在站点地图里；历史版本 noindex、不在站点地图里
 //   - 每个要求收录的页面都有像样的搜索摘要：不是 PaperMod 的兜底文字、不含 Markdown、不从图注开始
 //   - 文章的作者写进 <meta name=author> 和结构化数据，但不显示在日期那一行（译文的原作者照常显示）
-//   - 带配图的短文用它的配图作分享图（og:image / twitter:image），英文页用英文图
+//   - 带配图的短文用它的配图作分享图（og:image / twitter:image），英文页用英文图；其他页面用站点默认分享图
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -138,4 +138,23 @@ test("带配图的短文和长文用自己的配图作分享图，英文页用�
     }
   }
   assert.ok(checked >= 4, `只检查到 ${checked} 篇带图的文章`);
+});
+
+test("没有自己配图的页面用站点默认分享图（hugo.yaml 的 params.images），图已发布且是 1200×630", () => {
+  const share = readFileSync(join(root, "hugo.yaml"), "utf8").match(/^ {2}images: \[(\S+)\]$/m)?.[1];
+  assert.ok(share, "hugo.yaml 没有设 params.images");
+  const png = readFileSync(join(out, share));
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1200, 630], `${share} 的尺寸`);
+  let fallback = 0;
+  for (const p of pages().filter((p) => p.robots === "index, follow" && !/(^|\/)404\.html$/.test(p.f))) {
+    const og = meta(p.h, "og:image");
+    assert.ok(og, `${p.f} 没有分享图`);
+    assert.ok(existsSync(join(out, urlToFile(og))), `${p.f} 的分享图 ${og} 没有发布`);
+    assert.equal(meta(p.h, "twitter:image"), og, p.f);
+    assert.equal(meta(p.h, "twitter:card"), "summary_large_image", p.f);
+    if (og === BASE + share) fallback++;
+  }
+  assert.ok(fallback > 20, `只有 ${fallback} 个页面用了默认分享图`);
+  assert.equal(meta(read("index.html"), "og:image"), BASE + share);
+  assert.equal(meta(read("en/index.html"), "og:image"), BASE + share);
 });
