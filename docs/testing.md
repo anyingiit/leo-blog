@@ -6,7 +6,7 @@
 
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
-| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、访问统计只在正式站加载、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 用量」） | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
@@ -38,6 +38,7 @@
 - **英文配图**：有 `.i18n.yaml` 的图，英文页引用 `.en` 版，中文页用原图，构建结果里也是如此。
 - **公式、Mermaid、提示框**（`layouts/_markup/`、`layouts/_partials/extend_head.html`）：用草稿 `content/posts/markdown-test/` 检查 `$…$`/`$$…$$` 渲染成 KaTeX、` ```mermaid ` 输出 `<pre class=mermaid>`、`> [!NOTE]` 等提示框带中文标题；KaTeX 样式和 Mermaid 脚本只在需要的页面加载；正文不会被误当成公式（例如英文里成对出现的美元金额）。
 - **网站图标**：除跳转页外的每个页面（中英文页、404、S-1、双语译文）都有 PaperMod 的 5 个图标链接，指向的文件都存在；可下载的完整 HTML 不带图标链接。
+- **访问统计**（[analytics.md](analytics.md)）：Cloudflare Web Analytics 的脚本只在 `main` 分支构建时加载，每个站点页面正好一次，原样提供的下载文件、预览站、本地构建里都没有。
 - **`build.sh`**：预览构建（`CF_PAGES_BRANCH` 不是 `main`）的链接和 RSS 指向 `CF_PAGES_URL`，`main` 用正式域名。
 
 这些断言都做过反向验证：分别人为破坏 13 处（例如首页收入短文、栏目只给摘要、删掉渲染钩子、预览不换地址、英文页用中文图、删掉英文副本、撤销美元转义），每一处都会让对应的测试失败。
