@@ -479,7 +479,7 @@ for (const engine of ENGINES) {
 
   // iPhone 的 Safari 网慢时，从短文点「招股书原文」打开章节：脚本已切到原版、滚到了目标，页面却停在章首（2026-10-29 录屏）。
   // CI 的浏览器复现不了，这里用一个拖住 load 的请求，在加载完成前把页面拉回顶部来模拟
-  test(`${engine}：短文里链到 S-1 原版某处的链接，加载完成前页面被拉回顶部也会回到目标；读者自己动过、或 :~:text= 已把句子滚到屏幕中间时不再拉`, async (t) => {
+  test(`${engine}：短文里链到 S-1 原版某处的链接，加载完成前页面被拉回顶部也会回到目标；读者自己动过就不再拉；:~:text= 滚到的句子处不被拉回 id，加载后被设回 0 也回到句子处`, async (t) => {
     const notes = readdirSync(join(root, "content/notes")).filter((f) => f.endsWith(".md")).map((f) => readFileSync(join(root, "content/notes", f), "utf8"));
     const links = [...new Set(notes.flatMap((s) => [...s.matchAll(/\]\((\/translations\/anthropic-s1\/v[\d.]+\/[\w-]+\/#[^)\s]+)\)/g)].map((m) => m[1])))].sort();
     assert.ok(links.length >= 3, "短文里应有链到 S-1 原版的链接");
@@ -517,15 +517,17 @@ for (const engine of ENGINES) {
     await visit(href, async () => { await page.evaluate(() => scrollTo(0, 0)); await page.keyboard.press("PageDown"); await page.waitForTimeout(300); y0 = await y(); });
     await page.waitForTimeout(1200); // 最后一次检查在 load 后 1 秒
     assert.equal(await y(), y0, "读者动过页面后不应再被拉回目标");
-    // 3. 带 :~:text= 的完整链接：浏览器把句子滚到屏幕中间（目标 id 在屏幕上方）后，不被拉回 id
-    if (links[0].includes(":~:")) {
-      await visit(links[0]);
-      await page.waitForTimeout(1200);
+    // 3. 带 :~:text= 的完整链接：浏览器把句子滚到屏幕中间（目标 id 在屏幕上半）后不被拉回 id；
+    //    加载完成后不久页面又被设回 0（iOS Safari 真实点击时出现过）：回到句子处，而不是 id 处
+    for (const full of links.filter((l) => l.includes(":~:"))) {
+      const fid = decodeURIComponent(full.split("#")[1].split(":~:")[0]);
+      await visit(full);
+      await page.waitForTimeout(400);
       const y1 = await y();
-      await page.waitForTimeout(300);
-      assert.equal(await y(), y1);
-      // 句子在目标 id 下面，浏览器把句子滚到屏幕中间后目标 id 在屏幕上半，不再被滚到 id 处
-      assert.ok((await top(id)) <= (await page.evaluate(() => innerHeight / 2)), `目标距屏幕顶 ${await top(id)}`);
+      assert.ok((await top(fid)) <= (await page.evaluate(() => innerHeight / 2)), `${full}：目标距屏幕顶 ${await top(fid)}`);
+      await page.evaluate(() => scrollTo(0, 0));
+      await until(page, (y1) => Math.abs(scrollY - y1) <= 2, y1).catch(() => {});
+      assert.equal(await y(), y1, `${full}：被设回 0 后应回到浏览器滚到的位置`);
     }
     await s.done();
   });

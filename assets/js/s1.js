@@ -233,21 +233,32 @@
     });
   }
 
-  // 带 #id 打开、目标只在原版里时：滚到目标，并在加载完成前后再查几次，被拉回目标上方就再滚一次；读者自己动过页面就不再管。
-  // iPhone 的 Safari 网慢时从短文点进来，脚本已切到原版，页面却停在章首（后退再前进、从缓存秒开时又正常）。
-  // 推测是它在脚本运行前就在默认显示的重排版里找到了 :~:text= 的句子，重排版随后被隐藏，位置落空成了顶部；
-  // CI 的 WebKit 复现不了，tests/s1-behavior.test.mjs 用加载完成前把页面拉回顶部来模拟
+  // 带 #id 打开、目标只在原版里时：滚到目标；加载完成前后一小段时间里，页面若被浏览器拉回目标上方（常是顶部），
+  // 就回到被拉走前的位置（:~:text= 时是 Safari 居中高亮那句话的位置，否则是目标处）。读者自己动过页面就不再管。
+  // iOS Safari 在标签页里第一次用手指点进来时，偶尔在脚本和它自己都滚到位之后又把页面设回 0，且不触发任何脚本调用
+  // （2026-10-29 用户录屏；在 iOS 模拟器里用真实点击复现并记录到 y 1524 → 0）。CI 的浏览器复现不了，
+  // tests/s1-behavior.test.mjs 用加载前后把页面滚回顶部来模拟
   const keepInView = (el) => {
     if (!el) return;
     el.scrollIntoView();
-    let moved = false;
+    let moved = false, done = false;
+    let good = scrollY; // 最近一次在目标处或目标之后的位置
     const stop = () => { moved = true; };
     for (const t of ["wheel", "touchstart", "pointerdown", "keydown"]) addEventListener(t, stop, { once: true, passive: true, capture: true });
+    // 目标在屏幕下半以下：被拉回到了目标上方。:~:text= 会把句子滚到屏幕中间，而句子在目标 id 下面，这时目标在屏幕上半
+    const away = () => el.getBoundingClientRect().top > innerHeight / 2;
     const check = () => {
-      // 只管被拉回到目标上方的情形：:~:text= 会把句子滚到屏幕中间，而句子在目标 id 下面，这时目标在屏幕上半，不要动
-      if (!moved && el.getBoundingClientRect().top > innerHeight / 2) el.scrollIntoView();
+      if (moved || done) return;
+      if (!away()) { good = scrollY; return; }
+      if (good > 0) scrollTo({ top: good, behavior: "instant" }); else el.scrollIntoView();
     };
-    const later = () => { check(); requestAnimationFrame(check); for (const ms of [300, 1000]) setTimeout(check, ms); };
+    addEventListener("scroll", check, { passive: true });
+    const later = () => {
+      check();
+      requestAnimationFrame(check);
+      for (const ms of [300, 1000]) setTimeout(check, ms);
+      setTimeout(() => { check(); done = true; removeEventListener("scroll", check); }, 1500);
+    };
     if (document.readyState === "complete") later(); else addEventListener("load", later, { once: true });
   };
 
