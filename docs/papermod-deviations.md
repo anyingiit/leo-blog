@@ -1,7 +1,7 @@
 # 与 PaperMod 不同的地方
 
 本站的样式和行为以 PaperMod 为准（项目规则，2026-10-28）：影响风格的样式和配置一般不改，除非必要；二次开发要与 PaperMod 的风格一致。
-下面列出与 PaperMod（`themes/PaperMod`，当前锁定 d376885）不同的每一处，以及为什么保留。新增偏离时先在这里写明理由，并取得用户确认。
+下面列出与 PaperMod（`themes/PaperMod`，当前锁定 1181196，2026-10-25 的上游最新版；需要 Hugo ≥ 0.158）不同的每一处，以及为什么保留。新增偏离时先在这里写明理由，并取得用户确认。
 
 ## 配置（`hugo.yaml`）
 
@@ -13,6 +13,8 @@
 | `outputFormats.s1full` | S-1 完整 HTML 下载（用户选定 D4，PR #24） |
 | `cascade.build.publishResources: false` | 原图不上线，只发 WebP（用户确认，PR #16） |
 | `ignoreFiles`、`markup.goldmark.passthrough` | 英文配图描述文件不进站；公式（站点上线时就有） |
+| `params.author: Leo`，长文/短文/S-1 的 `hideAuthor` | 作者写进 `<meta name=author>` 和结构化数据，日期那一行照旧不显示（SEO 问题 7，用户选定署名 Leo，`docs/seo.md`） |
+| `params.cfAnalyticsToken`、`security.funcs.getenv` 放行 `CF_PAGES_BRANCH` | Cloudflare Web Analytics，只在正式站加载（用户 2026-10-29 选定，PR #44，`docs/analytics.md`） |
 
 ## 模板
 
@@ -20,9 +22,10 @@
 |---|---|---|
 | `_partials/header.html` | PaperMod 原样拷贝，只改语言切换链接 | 用户要求切换到当前页的译文（PR #22，`docs/language-switch.md`） |
 | `_partials/extend_head.html` | 按需加载 KaTeX、Mermaid（PaperMod 提供的扩展点） | 公式和图表。Mermaid 锁定 11.17.2：浮动的 `@11` 会让截图基准随上游变化；用 `mermaid.run()` 而不是 `startOnLoad`：Safari 里有图片未加载完时图表不出现（PR #20） |
-| `_partials/extend_footer.html` | 图集灯箱、短文折叠（PaperMod 提供的扩展点） | 用户选定（PR #16） |
+| `_partials/extend_footer.html` | 图集灯箱、短文折叠、访问统计脚本（PaperMod 提供的扩展点） | 用户选定（PR #16）；访问统计不影响页面外观，只在正式站加载，下载文件不带（用户 2026-10-29 选定，PR #44） |
 | `_markup/render-*.html` | 提示框、Mermaid、公式、图片转 WebP | 站点上线时的功能；图片处理（PR #16） |
 | `notes/`、`s1/`、`bilingual/`、`_partials/s1/`、`_partials/bilingual/` | 本站栏目自己的模板 | 只作用于这些栏目的页面 |
+| `sitemap.xml` | Hugo 自带站点地图模板原样拷贝，末尾加上 S-1 最新版本的版本页和章节（不是 PaperMod 的模板） | 它们是 `build.list: local`，自带模板会漏掉（SEO 问题 1，`docs/seo.md`）；升级 Hugo 时对照上游 |
 
 ## 样式（`assets/css/extended/`）
 

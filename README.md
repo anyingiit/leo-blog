@@ -4,7 +4,7 @@ Hugo + [PaperMod](https://github.com/adityatelange/hugo-PaperMod) 静态博客�
 
 CF Pages 构建命令为 `bash build.sh`：`main` 按 `hugo.yaml` 的 `baseURL` 生成，其他分支的预览构建改用 `$CF_PAGES_URL`，保证预览站内链接不跳回主站。
 
-Hugo 版本只锁在 `build.sh` 的 `HUGO_VERSION`（当前 0.151.0）：CF Pages 和 CI 都跑 `build.sh`，版本不符时脚本会下载官方二进制并校验 sha256，CF 后台的 `HUGO_VERSION` 环境变量不起作用。升级时改该变量及同文件里的 sha256 即可。
+Hugo 版本只锁在 `build.sh` 的 `HUGO_VERSION`（当前 0.158.0，即 PaperMod 自己的 CI 所用版本）：CF Pages 和 CI 都跑 `build.sh`，版本不符时脚本会下载官方二进制并校验 sha256，CF 后台的 `HUGO_VERSION` 环境变量不起作用。升级时改该变量及同文件里的 sha256 即可。
 
 <a id="getting-started"></a>
 

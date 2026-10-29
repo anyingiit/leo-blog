@@ -3,6 +3,8 @@ title: "“这个世界不是真的”"
 slug: this-world-is-not-real
 date: 2026-10-26T20:18:28Z
 tags: [随笔, AI]
+summary: "看到 Anthropic 向模型的 J 空间注入想法的研究，想到两个问题：如果对象是人呢？如果模型能感知痛苦，这算不算虐待？还想到了《盗梦空间》里的那个念头。"
+images: [j-space-injection.png]
 ---
 
 ![模型报告 J 空间里的内容：替换“足球”为“橄榄球”会改变它的回答；向 J 空间注入“闪电”，它能说出被注入的想法是闪电](j-space-injection.png)

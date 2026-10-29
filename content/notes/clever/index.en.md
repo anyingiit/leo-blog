@@ -3,6 +3,8 @@ title: "Clever"
 slug: clever
 date: 2026-10-26T20:54:05Z
 tags: [Notes, AI]
+summary: "The blackmail test in Anthropic’s “A global workspace in language models”: “fake” and “fictional” show up early in the model’s J-space."
+images: [j-space-blackmail.en.png]
 ---
 
 Clever.

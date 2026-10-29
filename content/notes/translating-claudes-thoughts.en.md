@@ -3,6 +3,7 @@ title: "Thoughts on Watching Translating Claude’s thoughts into language"
 slug: translating-claudes-thoughts
 date: 2026-10-26T20:04:43Z
 tags: [Notes, AI]
+summary: "Thoughts on the video “Translating Claude’s thoughts into language”: train a model to turn activations into text, then turn the text back into activations to check it."
 ---
 
 Thoughts on watching [Translating Claude’s thoughts into language](https://www.youtube.com/watch?v=j2knrqAzYVY)

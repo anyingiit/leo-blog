@@ -4,6 +4,7 @@ slug: translating-claudes-thoughts
 date: 2026-10-26T20:04:43Z
 tags: [随笔, AI]
 aliases: [/posts/translating-claudes-thoughts/]
+summary: "看视频《Translating Claude’s thoughts into language》的感想：训练一个模型把激活参数转成文字，再把文字转回激活参数来验证。"
 ---
 
 观看[Translating Claude’s thoughts into language](https://www.youtube.com/watch?v=j2knrqAzYVY)有感

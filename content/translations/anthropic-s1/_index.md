@@ -5,6 +5,12 @@ type: s1
 latest: v1.1
 cascade:
   - type: s1
+  # 历史版本不进搜索引擎：和最新版几乎相同，避免重复收录（页面照常可看）；改 latest 时把旧的最新版加进这里
+  - target:
+      path: "{/translations/anthropic-s1/v1.0,/translations/anthropic-s1/v1.0/**}"
+    params:
+      robotsNoIndex: true
 ShowReadingTime: false
 ShowWordCount: false
+hideAuthor: true  # 站点作者（hugo.yaml params.author）不显示在译文栏目列表的日期那一行
 ---

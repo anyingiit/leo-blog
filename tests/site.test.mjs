@@ -55,12 +55,12 @@ function walk(dir) {
 }
 const contentFiles = walk(join(root, "content")).filter((f) => f.endsWith(".md")).map((f) => relative(join(root, "content"), f));
 const isDraft = (f) => field(frontMatter(join(root, "content", f)), "draft") === "true";
-// 短文：content/notes 下除 _index 以外的 .md（文件夹形式取 index.md）
+// 短文、长文：content/notes、content/posts 下除 _index 以外的 .md（文件夹形式取 index.md）
 const notes = contentFiles
   .filter((f) => f.startsWith("notes/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
   .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^notes\/|(\/index)?\.md$/g, "") }));
 const posts = contentFiles
-  .filter((f) => f.startsWith("posts/") && !f.endsWith(".en.md") && !isDraft(f))
+  .filter((f) => f.startsWith("posts/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
   .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^posts\/|(\/index)?\.md$/g, "") }));
 
 let site, drafts;
@@ -135,6 +135,25 @@ test("正文里的链接不指向页面自己（Markdown 站内链接会被换�
     for (const h of hrefs(body)) if (h === path || h === PROD + path.slice(1)) self.push(`${path} → ${h}`);
   }
   assert.deepEqual(self, []);
+});
+
+// 旧地址跳转（front matter 的 aliases）：从 Hugo 0.158 起，英文页的 alias 相对于语言根目录，
+// 写 /posts/x/ 生成 /en/posts/x/；写成 /en/posts/x/ 会生成 /en/en/posts/x/，旧链接就失效了
+test("aliases 里的旧地址都能跳到文章（英文页的 alias 不带 /en 前缀）", () => {
+  let checked = 0;
+  for (const f of contentFiles.filter((f) => !isDraft(f))) {
+    const list = (field(frontMatter(join(root, "content", f)), "aliases") || "").replace(/^\[|\]$/g, "").split(",").map((a) => a.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+    const en = f.endsWith(".en.md");
+    for (const a of list) {
+      assert.ok(!(en && a.startsWith("/en/")), `${f} 的 alias ${a} 不要带 /en 前缀（会生成 /en/en/…）`);
+      const path = `${en ? "en" : ""}${a}`.replace(/^\//, "");
+      assert.ok(site.exists(`${path}index.html`), `${f} 的旧地址 /${path} 没有生成跳转页`);
+      assert.match(site.read(path), /http-equiv="?refresh/, `/${path} 不是跳转页`);
+      checked++;
+    }
+  }
+  assert.ok(!site.exists("en/en"), "生成了 /en/en/ 目录（英文 alias 写成了带 /en 的形式）");
+  assert.ok(checked > 0, "content 里没有 aliases，这条测试没有覆盖到");
 });
 
 test("草稿不发布", () => {
@@ -274,6 +293,41 @@ test("预览构建（非 main 分支）里的链接指向预览地址，main 分
   }
 });
 
+// ── Cloudflare Web Analytics（docs/analytics.md）────────────────────────────
+
+// 站点生成的所有 .html（含下载文件），路径相对于输出目录
+const htmlFiles = (dir) => readdirSync(dir, { recursive: true }).filter((f) => f.endsWith(".html"));
+// 原样提供的下载文件（S-1 冻结 HTML、双语译文全文）和 S-1 的单文件完整 HTML
+const isDownload = (f) => /(^|\/)files\//.test(f) || f.endsWith("/full.html");
+const BEACON = "static.cloudflareinsights.com/beacon.min.js";
+
+test("访问统计只在正式站加载：main 分支每个站点页面都有，下载文件、预览站、本地构建都没有", () => {
+  const env = { HUGO_PARAMS_CFANALYTICSTOKEN: "test-token-123" };
+  const prod = build([], { ...env, CF_PAGES_BRANCH: "main" });
+  const preview = build([], { ...env, CF_PAGES_URL: "https://abc123.leo-blog.pages.dev", CF_PAGES_BRANCH: "feature-x" });
+  try {
+    const files = htmlFiles(prod.out);
+    const downloads = files.filter(isDownload);
+    assert.ok(downloads.some((f) => f.includes("anthropic-s1/")) && downloads.some((f) => f.includes("bitter-lesson/")), `没找到下载文件：${downloads}`);
+    for (const f of files) {
+      const html = prod.read(f);
+      if (isDownload(f)) assert.ok(!html.includes("cloudflareinsights"), `${f} 是原样提供的下载文件，不能注入统计脚本`);
+      // 跳转页（aliases）没有页脚，不需要统计
+      else if (!/<meta http-equiv="?refresh/.test(html)) {
+        assert.equal(html.split(BEACON).length - 1, 1, `${f} 应当正好加载一次统计脚本`);
+        assert.ok(html.includes(`data-cf-beacon='{"token":"test-token-123"}'`), `${f} 的令牌不对`);
+        assert.match(html, /<script type="?module"? src="?https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/, `${f}：脚本要和后台给的片段一样用 type=module，不能阻塞页面`);
+      }
+    }
+    for (const f of ["", "en/", "notes/", "translations/anthropic-s1/", "404.html"]) assert.ok(prod.read(f).includes(BEACON), `${f || "首页"} 没有统计脚本`);
+    for (const f of htmlFiles(preview.out)) assert.ok(!preview.read(f).includes("cloudflareinsights"), `预览站 ${f} 不该加载统计`);
+    for (const f of htmlFiles(site.out)) assert.ok(!site.read(f).includes("cloudflareinsights"), `本地构建 ${f} 不该加载统计`);
+  } finally {
+    prod.remove();
+    preview.remove();
+  }
+});
+
 // ── 主题测试里的 CDN 本地副本必须和线上加载的版本一致（tests/theme/package.json）──────────
 
 test("KaTeX、Mermaid 的线上地址锁定了精确版本，并与主题测试使用的版本一致", () => {
@@ -295,4 +349,29 @@ test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，
     const v = JSON.parse(readFileSync(join(root, file), "utf8")).devDependencies[name];
     for (const img of images) assert.equal(v, img, `${file} 的 ${name} 是 ${v}，CI 镜像是 v${img}`);
   }
+});
+
+// ── 网站图标（static/，tools/favicon/build.mjs 生成，docs/favicon.md）──────────────
+
+const iconHrefs = (html) => [...html.matchAll(/<link [^>]*rel="?(?:icon|apple-touch-icon|mask-icon)"?[^>]*>/g)].map((m) => m[0].match(/href="?([^"\s>]+)/)[1]);
+
+test("每个页面都有 PaperMod 的 5 个图标链接，指向的文件都存在（中英文页、404、S-1、双语译文）", () => {
+  const pages = walk(site.out).map((f) => relative(site.out, f)).filter((f) => f.endsWith(".html") && !/\/files\//.test(f));
+  for (const must of ["index.html", "en/index.html", "404.html", "en/404.html", "translations/anthropic-s1/index.html", "translations/bitter-lesson/index.html"]) assert.ok(pages.includes(must), must);
+  for (const p of pages) {
+    const html = readFileSync(join(site.out, p), "utf8");
+    if (/<meta http-equiv="?refresh/.test(html)) continue; // aliases 生成的跳转页只有跳转，没有完整的 <head>
+    const icons = iconHrefs(html);
+    assert.equal(icons.length, 5, `${p} 的图标链接数`);
+    for (const href of icons) {
+      assert.ok(href.startsWith(PROD), `${p}: ${href} 用正式域名的绝对地址`);
+      assert.ok(site.exists(href.slice(PROD.length)), `${p}: ${href} 指向的文件不存在`);
+    }
+  }
+});
+
+test("可下载的完整 HTML 保持原样，不带图标链接", () => {
+  const files = walk(site.out).map((f) => relative(site.out, f)).filter((f) => /\/files\/[^/]+\.html$/.test(f));
+  assert.ok(files.length >= 2, `找到 ${files.length} 个下载文件`);
+  for (const f of files) assert.deepEqual(iconHrefs(readFileSync(join(site.out, f), "utf8")), [], f);
 });
