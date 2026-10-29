@@ -5,7 +5,7 @@ date: 2026-10-29T15:01:32Z
 tags: [Notes]
 ---
 
-> #### AI is Transforming Intelligence
+> **AI is Transforming Intelligence**
 >
 > We believe that Powerful AI, a highly capable and impactful form of frontier AI characterized by the following key attributes, will become widely available within a few years:
 >
