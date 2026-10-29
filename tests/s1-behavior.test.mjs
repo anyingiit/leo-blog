@@ -477,6 +477,58 @@ for (const engine of ENGINES) {
     await s2.done();
   });
 
+  // iPhone 的 Safari 网慢时，从短文点「招股书原文」打开章节：脚本已切到原版、滚到了目标，页面却停在章首（2026-10-29 录屏）。
+  // CI 的浏览器复现不了，这里用一个拖住 load 的请求，在加载完成前把页面拉回顶部来模拟
+  test(`${engine}：短文里链到 S-1 原版某处的链接，加载完成前页面被拉回顶部也会回到目标；读者自己动过、或 :~:text= 已把句子滚到屏幕中间时不再拉`, async (t) => {
+    const notes = readdirSync(join(root, "content/notes")).filter((f) => f.endsWith(".md")).map((f) => readFileSync(join(root, "content/notes", f), "utf8"));
+    const links = [...new Set(notes.flatMap((s) => [...s.matchAll(/\]\((\/translations\/anthropic-s1\/v[\d.]+\/[\w-]+\/#[^)\s]+)\)/g)].map((m) => m[1])))];
+    assert.ok(links.length >= 3, "短文里应有链到 S-1 原版的链接");
+    const s = await open(t, engine, PHONE[engine]);
+    if (!s) return;
+    const { page, ctx } = s;
+    let release = null;
+    await ctx.route("**/__hold.png", async (r) => { await new Promise((ok) => { release = ok; }); await r.fulfill({ status: 404 }); });
+    await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => { const i = new Image(); i.src = "/__hold.png"; document.body.append(i); }));
+    const top = (id) => page.evaluate((id) => document.getElementById(id).getBoundingClientRect().top, id);
+    const y = () => page.evaluate(() => scrollY);
+    // 打开 href，加载完成前执行 before()，然后放行
+    const visit = async (href, before) => {
+      release = null;
+      await page.goto("about:blank"); // 同一章只差 #片段时 goto 不会重新加载
+      const nav = page.goto(server.url + href, { waitUntil: "load" });
+      for (let i = 0; !release; i++) { assert.ok(i < 500, "拖住 load 的请求没有发出"); await new Promise((r) => setTimeout(r, 20)); }
+      assert.equal(await shown(page), "original", href);
+      await before?.();
+      release();
+      await nav;
+    };
+    for (const href of links) {
+      const id = decodeURIComponent(href.split("#")[1].split(":~:")[0]);
+      // 1. 加载完成前被拉回顶部（只带 #id，免得浏览器自己的 :~:text= 在 load 时把页面滚回去，掩盖问题）
+      await visit(href.split(":~:")[0], () => page.evaluate(() => scrollTo(0, 0)));
+      // 停在目标处：目标在屏幕顶；目标离章末不到一屏时滚到底
+      const landed = (id) => { const r = document.getElementById(id).getBoundingClientRect().top, se = document.scrollingElement; return (r >= -8 && r <= 8) || (r > 0 && se.scrollTop + innerHeight >= se.scrollHeight - 2); };
+      await until(page, landed, id).catch(() => {});
+      assert.ok(await page.evaluate(landed, id), `${href}：加载完成后应停在目标处，目标距屏幕顶 ${await top(id)}，scrollY=${await y()}`);
+    }
+    // 2. 读者在加载完成前自己动了页面（按键）：之后不再被拉回目标
+    const href = links[0].split(":~:")[0], id = decodeURIComponent(href.split("#")[1]);
+    let y0;
+    await visit(href, async () => { await page.evaluate(() => scrollTo(0, 0)); await page.keyboard.press("PageDown"); await page.waitForTimeout(300); y0 = await y(); });
+    await page.waitForTimeout(1200); // 最后一次检查在 load 后 1 秒
+    assert.equal(await y(), y0, "读者动过页面后不应再被拉回目标");
+    // 3. 带 :~:text= 的完整链接：浏览器把句子滚到屏幕中间（目标 id 在屏幕上方）后，不被拉回 id
+    if (links[0].includes(":~:")) {
+      await visit(links[0]);
+      await page.waitForTimeout(1200);
+      const y1 = await y();
+      await page.waitForTimeout(300);
+      assert.equal(await y(), y1);
+      assert.ok((await top(id)) <= 8, "不应比目标 id 更靠上");
+    }
+    await s.done();
+  });
+
   test(`${engine}：手机上译文栏目、译本首页、版本页、章节页（两种版式）、英文说明页都没有横向滚动`, async (t) => {
     const s = await open(t, engine, PHONE[engine]);
     if (!s) return;

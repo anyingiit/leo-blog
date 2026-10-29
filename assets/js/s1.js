@@ -233,6 +233,24 @@
     });
   }
 
+  // 带 #id 打开、目标只在原版里时：滚到目标，并在加载完成前后再查几次，被拉回目标上方就再滚一次；读者自己动过页面就不再管。
+  // iPhone 的 Safari 网慢时从短文点进来，脚本已切到原版，页面却停在章首（后退再前进、从缓存秒开时又正常）。
+  // 推测是它在脚本运行前就在默认显示的重排版里找到了 :~:text= 的句子，重排版随后被隐藏，位置落空成了顶部；
+  // CI 的 WebKit 复现不了，tests/s1-behavior.test.mjs 用加载完成前把页面拉回顶部来模拟
+  const keepInView = (el) => {
+    if (!el) return;
+    el.scrollIntoView();
+    let moved = false;
+    const stop = () => { moved = true; };
+    for (const t of ["wheel", "touchstart", "pointerdown", "keydown"]) addEventListener(t, stop, { once: true, passive: true, capture: true });
+    const check = () => {
+      // 只管被拉回到目标上方的情形：:~:text= 会把句子滚到屏幕中间，而句子在目标 id 下面，这时目标在屏幕上半，不要动
+      if (!moved && el.getBoundingClientRect().top > innerHeight / 2) el.scrollIntoView();
+    };
+    const later = () => { check(); requestAnimationFrame(check); for (const ms of [300, 1000]) setTimeout(check, ms); };
+    if (document.readyState === "complete") later(); else addEventListener("load", later, { once: true });
+  };
+
   // ---------- 方案 C：重排/原版切换 ----------
   if (sw) {
     sw.addEventListener("click", (e) => {
@@ -253,7 +271,7 @@
     const initial = wantOriginal ? "original" : wantReflow ? "reflow" : saved || (narrow() ? "reflow" : "original");
     if (initial === "original") {
       show("original", false);
-      if (wantOriginal) document.getElementById(hash)?.scrollIntoView();
+      if (wantOriginal) keepInView(document.getElementById(hash));
     }
   }
   if (ibar && new URLSearchParams(location.search).has("read")) enter(false);
