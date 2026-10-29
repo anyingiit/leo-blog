@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium, webkit, devices } from "playwright";
-import { build, serve, root } from "./helpers.mjs";
+import { build, serve, root, sheetMargins } from "./helpers.mjs";
 
 const BASE = "https://douseful.eu.org";
 const R = "/translations/anthropic-s1/";
@@ -928,5 +928,28 @@ for (const engine of ENGINES) {
       assert.equal(lines(await edgeProfile(page, '.s1-sheet td[style*="border-bottom:3pt double"]', "bottom")), 2, `${p}：3pt 双线`);
     }
     await s.done();
+  });
+}
+
+// 原版页在灰框里居中、左右灰边一样宽（2026-10-29 双语译文的纸曾靠左，见 bilingual.test.mjs；S-1 的原版页自带 margin:auto，这里防回退）。
+// 竖版章节和含横版页（792pt，缩到竖版同宽）的章节，手机、电脑、宽屏，普通页面和全屏阅读；布局查每张纸，截图查第一张
+for (const engine of ENGINES) {
+  test(`${engine}：原版页在灰框里居中，左右灰边一样宽（竖版、横版页，各种屏宽，全屏阅读）`, async (t) => {
+    const cases = [["手机", PHONE[engine]], ["电脑", DESKTOP], ["宽屏", { viewport: { width: 1920, height: 1080 } }]];
+    for (const ch of ["business", "principal-stockholders"]) for (const [name, opts] of cases) for (const read of [false, true]) {
+      const s = await open(t, engine, opts);
+      if (!s) return;
+      await s.go(`${V}${ch}/${read ? "?read=1" : ""}`);
+      if (read) await until(s.page, () => document.body.classList.contains("s1-immersive"));
+      if (await shown(s.page) !== "original") await s.page.click(read ? ".s1-ibar [data-toggle-view]" : ".s1-switch [data-view=original]");
+      await until(s.page, () => !document.querySelector(".s1-original").hidden);
+      const where = `${ch} ${name}${read ? " 全屏阅读" : ""}`;
+      const m = await sheetMargins(s.page);
+      assert.ok(m.rect.length > 1, where);
+      for (const r of m.rect) assert.ok(Math.abs(r.L - r.R) <= 0.5, `${where}：灰边左 ${r.L.toFixed(1)}px、右 ${r.R.toFixed(1)}px`);
+      assert.ok(m.pixel.L > 0, `${where}：截图里两边要有灰边`);
+      assert.ok(Math.abs(m.pixel.L - m.pixel.R) <= 1 / m.pixel.dpr + 0.01, `${where}：截图灰边左 ${m.pixel.L}px、右 ${m.pixel.R}px`);
+      await s.done();
+    }
   });
 }

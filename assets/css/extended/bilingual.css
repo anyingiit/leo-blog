@@ -27,8 +27,9 @@
 .bl-article[data-mode="en"] .bl-en, .bl-untr .bl-en { font-size: 1em; color: var(--content); }
 .bl-article[data-mode="zh"] .bl-body .bl-zh + .bl-en { margin-top: 0; }
 
-/* 原版阅读（layouts/_partials/bilingual/reader.html）：原网页排在 816px 的纸上，和 S-1 的原版页面同宽，s1.js 负责缩放 */
-.bl-sheet { width: 816px; box-sizing: border-box; padding: 56px 64px 64px; background: #fff; color: #000; font-size: 16px; line-height: 1.5; font-family: "Times New Roman", "Songti SC", "Noto Serif CJK SC", serif; }
+/* 原版阅读（layouts/_partials/bilingual/reader.html）：原网页排在 816px 的纸上，和 S-1 的原版页面同宽，s1.js 负责缩放。
+   纸在 836px 的框里居中（左右各 10px，S-1 原版页自带 margin:auto）；不居中时右边灰边比左边宽 20px × 缩放倍数 */
+.bl-sheet { width: 816px; margin-inline: auto; box-sizing: border-box; padding: 56px 64px 64px; background: #fff; color: #000; font-size: 16px; line-height: 1.5; font-family: "Times New Roman", "Songti SC", "Noto Serif CJK SC", serif; }
 .bl-sheet .style1, .bl-sheet .style1 * { font-family: Palatino, "Palatino Linotype", "Book Antiqua", "URW Palladio L", "Songti SC", "Noto Serif CJK SC", serif; }
 .bl-sheet h1 { font-size: 2em; margin: 0.67em 0; font-weight: bold; }
 .bl-sheet h2 { font-size: 1.5em; margin: 0.83em 0; font-weight: bold; }

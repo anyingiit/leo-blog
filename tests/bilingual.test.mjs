@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { chromium, webkit, devices } from "playwright";
-import { build, serve, root } from "./helpers.mjs";
+import { build, serve, root, sheetMargins } from "./helpers.mjs";
 
 const BASE = "https://douseful.eu.org";
 const DESKTOP = { viewport: { width: 1280, height: 800 } };
@@ -309,6 +309,35 @@ for (const engine of ENGINES) {
     assert.ok(theirs.length <= 2, theirs.map((e) => e.stack).join("\n"));
     s.errors.splice(0, Infinity, ...s.errors.filter((e) => !theirs.includes(e)));
     await s.done();
+  });
+
+  // 2026-10-29 用户在电脑上看到原版版式的灰框左窄右宽（约 35px 对 63px）：纸 816px 靠左放在 836px 的框里，右边多出 20px × 缩放倍数。
+  // 手机、平板、电脑、宽屏，普通页面和全屏阅读（含缩小后），浅色和深色，每张纸左右灰边都要一样宽：布局差 ≤ 0.5px，截图差 ≤ 1 个设备像素
+  test(`${engine}：原版版式的纸在灰框里居中，左右灰边一样宽（各种屏宽、全屏阅读、深色模式）`, async (t) => {
+    const cases = [
+      ["手机", PHONE[engine]], ["平板", { viewport: { width: 820, height: 1180 } }], ["小电脑", { viewport: { width: 1024, height: 768 } }],
+      ["电脑", DESKTOP], ["宽屏", { viewport: { width: 1920, height: 1080 } }], ["电脑深色", { ...DESKTOP, colorScheme: "dark" }],
+    ];
+    for (const [name, opts] of cases) for (const read of [false, true]) {
+      const s = await open(t, engine, opts);
+      if (!s) return;
+      await s.go(P + (read ? "?read=1" : ""));
+      if (read) await until(s.page, () => document.body.classList.contains("s1-immersive"));
+      if (await shown(s.page) !== "original") await s.page.click(read ? ".s1-ibar [data-toggle-view]" : ".s1-switch [data-view=original]");
+      await until(s.page, () => !document.querySelector(".s1-original").hidden);
+      const steps = read && opts.viewport?.width >= 1024 ? ["适应", "缩小"] : ["适应"];
+      for (const step of steps) {
+        if (step === "缩小") await s.page.click(".s1-ibar [data-zoom=out]");
+        const where = `${name}${read ? " 全屏阅读" : ""} ${step}`;
+        const m = await sheetMargins(s.page);
+        assert.ok(m.rect.length > 0, where);
+        for (const r of m.rect) assert.ok(Math.abs(r.L - r.R) <= 0.5, `${where}：灰边左 ${r.L.toFixed(1)}px、右 ${r.R.toFixed(1)}px`);
+        assert.ok(m.pixel.L > 0, `${where}：截图里两边要有灰边`);
+        assert.ok(Math.abs(m.pixel.L - m.pixel.R) <= 1 / m.pixel.dpr + 0.01, `${where}：截图灰边左 ${m.pixel.L}px、右 ${m.pixel.R}px`);
+      }
+      assert.ok(await noHScroll(s.page));
+      await s.done();
+    }
   });
 }
 
