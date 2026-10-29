@@ -44,6 +44,8 @@ params:
   images: [share.png]
   # S-1 译本的下架联系方式（声明、版权行、下载文件里都会出现；tools/s1-import/release.py 要求设置）
   s1Contact: leoycwan@gmail.com
+  # Cloudflare Web Analytics 的站点令牌（公开值，会出现在页面里）；只有正式站加载，见 docs/analytics.md
+  cfAnalyticsToken: 79e1aa985c8e4c7684e88918cc6c4911
   # 首页、归档、上一篇/下一篇只收长文（content/posts）；短文（content/notes）在 /notes/ 单独成栏
   mainSections: [posts]
   defaultTheme: auto
@@ -110,3 +112,7 @@ markup:
           block: [['\[', '\]'], ['$$', '$$']]
           inline: [['\(', '\)'], ['$', '$']]
 
+# 允许模板读取 Cloudflare Pages 的构建分支（只有 main 才加载访问统计）；前两项是 Hugo 的默认值
+security:
+  funcs:
+    getenv: ['^HUGO_', '^CI$', '^CF_PAGES_BRANCH$']
