@@ -64,7 +64,10 @@ async function open(t, engine, opts = DESKTOP) {
 }
 
 const path = (page) => { const u = new URL(page.url()); return u.pathname + u.search + u.hash; };
-const waitPath = (page, p) => page.waitForURL((u) => u.pathname + u.search + u.hash === p, { timeout: 10000 });
+// 超时时带上当前地址和上下文里所有页面的地址，偶发失败时能看出是没跳、跳错还是开到了新标签页
+const waitPath = (page, p) => page.waitForURL((u) => u.pathname + u.search + u.hash === p, { timeout: 10000 }).catch((e) => {
+  throw new Error(`${e.message}\n期望 ${p}，当前 ${path(page)}，上下文里的页面：${page.context().pages().map((x) => x.url()).join(" | ")}`, { cause: e });
+});
 const until = (page, fn, arg) => page.waitForFunction(fn, arg, { timeout: 5000 });
 const immersive = (page) => page.evaluate(() => document.body.classList.contains("s1-immersive"));
 const shown = (page) => page.evaluate(() => (document.querySelector(".s1-original").hidden ? "reflow" : "original"));
@@ -679,7 +682,12 @@ for (const engine of ENGINES) {
     await waitPath(page, V + "cover/?read=1#" + hash);
     assert.equal(await immersive(page), true);
     assert.equal(await shown(page), "original");
-    // 按住 Ctrl 点（新标签页打开）不拦截：当前页不动，新标签页是普通网址
+    await page.locator(".s1-ibar-tag").click();
+    await waitPath(page, R);
+    // 按住 Ctrl 点（新标签页打开）不拦截：当前页不动，新标签页是普通网址。
+    // 放在最后：WebKit 里跨标签页的 Ctrl 点击之后，同一页面的下一次点击偶尔不跳转（CI 约 1/48，本机没复现），
+    // 不让它可能留下的状态影响别的步骤
+    await s.go(V + "cover/?read=1");
     await page.locator(".s1-ibar-toc summary").click();
     const [tab] = await Promise.all([s.ctx.waitForEvent("page"), page.locator(".s1-ibar-panel a", { hasText: chapters[3].title }).click({ modifiers: ["Control"] })]);
     await tab.waitForURL((u) => u.pathname === V + chapters[3].slug + "/", { waitUntil: "commit" });
@@ -691,8 +699,6 @@ for (const engine of ENGINES) {
     assert.equal(new URL(page.url()).pathname, V + "cover/");
     await page.keyboard.press("Escape"); // 关面板
     await until(page, () => !document.querySelector(".s1-ibar-toc[open]"));
-    await page.locator(".s1-ibar-tag").click();
-    await waitPath(page, R);
     await s.done();
   });
 
