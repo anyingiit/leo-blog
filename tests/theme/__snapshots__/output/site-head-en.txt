@@ -5,7 +5,7 @@
 <meta name=robots content="index, follow">
 <title>Leoblog</title>
 <meta name=description content="Notes on learning, practice and thinking. Write it down first, polish it later.">
-<meta name=author content>
+<meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/en/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
 <link rel=icon href=http://blog.test/favicon.ico>

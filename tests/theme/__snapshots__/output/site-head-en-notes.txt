@@ -4,8 +4,8 @@
 <meta name=robots content="index, follow">
 <title>Notes | Leoblog</title>
 <meta name=keywords content>
-<meta name=description content="Short thoughts and impressions, unpolished and unstructured. Longer, edited posts are on the [home page](/en/).">
-<meta name=author content>
+<meta name=description content="Short thoughts and impressions, unpolished and unstructured.">
+<meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/en/notes/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
 <link rel=icon href=http://blog.test/favicon.ico>
@@ -34,10 +34,10 @@
 <meta property="og:url" content="http://blog.test/en/notes/">
 <meta property="og:site_name" content="Leoblog">
 <meta property="og:title" content="Notes">
-<meta property="og:description" content="Short thoughts and impressions, unpolished and unstructured. Longer, edited posts are on the [home page](/en/).">
+<meta property="og:description" content="Short thoughts and impressions, unpolished and unstructured.">
 <meta property="og:locale" content="en_US">
 <meta property="og:type" content="website">
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Notes">
-<meta name=twitter:description content="Short thoughts and impressions, unpolished and unstructured. Longer, edited posts are on the [home page](/en/).">
+<meta name=twitter:description content="Short thoughts and impressions, unpolished and unstructured.">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Notes","item":"http://blog.test/en/notes/"}]}</script>

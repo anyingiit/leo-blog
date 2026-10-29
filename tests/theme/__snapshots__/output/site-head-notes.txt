@@ -4,8 +4,8 @@
 <meta name=robots content="index, follow">
 <title>短文 | Leoblog</title>
 <meta name=keywords content>
-<meta name=description content="随笔、感想和零碎的想法，篇幅短，不成体系。整理过的长文见[首页](/)。">
-<meta name=author content>
+<meta name=description content="随笔、感想和零碎的想法，篇幅短，不成体系。">
+<meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/notes/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
 <link rel=icon href=http://blog.test/favicon.ico>
@@ -34,10 +34,10 @@
 <meta property="og:url" content="http://blog.test/notes/">
 <meta property="og:site_name" content="Leoblog">
 <meta property="og:title" content="短文">
-<meta property="og:description" content="随笔、感想和零碎的想法，篇幅短，不成体系。整理过的长文见[首页](/)。">
+<meta property="og:description" content="随笔、感想和零碎的想法，篇幅短，不成体系。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:type" content="website">
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="短文">
-<meta name=twitter:description content="随笔、感想和零碎的想法，篇幅短，不成体系。整理过的长文见[首页](/)。">
+<meta name=twitter:description content="随笔、感想和零碎的想法，篇幅短，不成体系。">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"短文","item":"http://blog.test/notes/"}]}</script>
