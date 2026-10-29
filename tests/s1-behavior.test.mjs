@@ -481,7 +481,7 @@ for (const engine of ENGINES) {
   // CI 的浏览器复现不了，这里用一个拖住 load 的请求，在加载完成前把页面拉回顶部来模拟
   test(`${engine}：短文里链到 S-1 原版某处的链接，加载完成前页面被拉回顶部也会回到目标；读者自己动过、或 :~:text= 已把句子滚到屏幕中间时不再拉`, async (t) => {
     const notes = readdirSync(join(root, "content/notes")).filter((f) => f.endsWith(".md")).map((f) => readFileSync(join(root, "content/notes", f), "utf8"));
-    const links = [...new Set(notes.flatMap((s) => [...s.matchAll(/\]\((\/translations\/anthropic-s1\/v[\d.]+\/[\w-]+\/#[^)\s]+)\)/g)].map((m) => m[1])))];
+    const links = [...new Set(notes.flatMap((s) => [...s.matchAll(/\]\((\/translations\/anthropic-s1\/v[\d.]+\/[\w-]+\/#[^)\s]+)\)/g)].map((m) => m[1])))].sort();
     assert.ok(links.length >= 3, "短文里应有链到 S-1 原版的链接");
     const s = await open(t, engine, PHONE[engine]);
     if (!s) return;
@@ -491,6 +491,8 @@ for (const engine of ENGINES) {
     await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => { const i = new Image(); i.src = "/__hold.png"; document.body.append(i); }));
     const top = (id) => page.evaluate((id) => document.getElementById(id).getBoundingClientRect().top, id);
     const y = () => page.evaluate(() => scrollY);
+    // 停在目标处：目标在屏幕顶；目标离章末不到一屏时滚到底
+    const landed = (id) => { const r = document.getElementById(id).getBoundingClientRect().top, se = document.scrollingElement; return (r >= -8 && r <= 8) || (r > 0 && se.scrollTop + innerHeight >= se.scrollHeight - 2); };
     // 打开 href，加载完成前执行 before()，然后放行
     const visit = async (href, before) => {
       release = null;
@@ -506,8 +508,6 @@ for (const engine of ENGINES) {
       const id = decodeURIComponent(href.split("#")[1].split(":~:")[0]);
       // 1. 加载完成前被拉回顶部（只带 #id，免得浏览器自己的 :~:text= 在 load 时把页面滚回去，掩盖问题）
       await visit(href.split(":~:")[0], () => page.evaluate(() => scrollTo(0, 0)));
-      // 停在目标处：目标在屏幕顶；目标离章末不到一屏时滚到底
-      const landed = (id) => { const r = document.getElementById(id).getBoundingClientRect().top, se = document.scrollingElement; return (r >= -8 && r <= 8) || (r > 0 && se.scrollTop + innerHeight >= se.scrollHeight - 2); };
       await until(page, landed, id).catch(() => {});
       assert.ok(await page.evaluate(landed, id), `${href}：加载完成后应停在目标处，目标距屏幕顶 ${await top(id)}，scrollY=${await y()}`);
     }
@@ -524,7 +524,8 @@ for (const engine of ENGINES) {
       const y1 = await y();
       await page.waitForTimeout(300);
       assert.equal(await y(), y1);
-      assert.ok((await top(id)) <= 8, "不应比目标 id 更靠上");
+      // 句子在目标 id 下面，浏览器把句子滚到屏幕中间后目标 id 在屏幕上半，不再被滚到 id 处
+      assert.ok((await top(id)) <= (await page.evaluate(() => innerHeight / 2)), `目标距屏幕顶 ${await top(id)}`);
     }
     await s.done();
   });
