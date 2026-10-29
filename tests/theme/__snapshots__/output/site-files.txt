@@ -1,5 +1,6 @@
 404.html
 _headers
+apple-touch-icon.png
 archives/index.html
 assets/css/stylesheet.<hash>.css
 assets/js/search.<hash>.js
@@ -56,6 +57,9 @@ en/translations/index.html
 en/translations/index.xml
 en/translations/page/1/index.html
 en/translations/sample-essay/index.html
+favicon-16x16.png
+favicon-32x32.png
+favicon.ico
 index.html
 index.json
 index.xml
@@ -173,6 +177,7 @@ posts/sample-post/diagram_hu_f04d364bb1c0e4e3.webp
 posts/sample-post/index.html
 posts/second-post/index.html
 robots.txt
+safari-pinned-tab.svg
 search/index.html
 sitemap.xml
 tags/index.html
