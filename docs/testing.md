@@ -26,6 +26,8 @@
 | `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
 | `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染、能横滑的表格和代码块有边缘阴影（放得下时除圆角外逐像素不变） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
+| `tests/seo.test.mjs` | 搜索引擎相关输出（正式构建，见 [seo.md](seo.md)）：站点地图和页面的 robots/canonical 一致（要求收录的都在站点地图里，站点地图里的都要求收录）；S-1 最新版本进站点地图、历史版本 noindex；每个要求收录的页面都有像样的摘要（不是兜底文字、不含 Markdown、不从图注开始）；文章作者进 meta 和结构化数据但不显示在日期那一行，译文原作者照常显示；带配图的文章用自己的配图作分享图，英文页用英文图；其他页面用 1200×630 的站点默认分享图 | Browser tests (chromium) 里的 Run regression tests 步骤 |
+| `tests/taxonomy-case.test.mjs` | 构建可复现：同一个标签在不同文章里大小写不同（如 `html` 和 `HTML`）时必须用 `_index.md` 固定标题，否则 Hugo 每次构建随机取一种（见「构建必须可复现」）；查正式站点（含预览用测试短文）、主题测试站、PaperMod 示例站，并确认去掉固定标题后能查出示例站的问题 | Browser tests (chromium) 里的 Run regression tests 步骤 |
 | `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium) |
 | `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint and build |
 
@@ -78,7 +80,11 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 
 不用 Playwright 自带的 `fullPage: true`：它在截图过程中另画视口以外的部分，`repaint` 管不到，放慢后同样会截出不同结果。
 
-**验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
+**构建必须可复现**：截图比的是浏览器画出来的页面，页面本身（Hugo 生成的 HTML）也必须每次构建都一样。Hugo 0.153 起（本仓库 2026-10-28 从 0.151 升到 0.158），同一个标签在不同文章里写法大小写不同时，标签名每次构建随机取其中一种：PaperMod 示例站的 Markdown 语法页写 `html`、音视频页写 `HTML`，本机连续构建 40 次，`Html` 17 次、`HTML` 23 次（0.151、0.152 各 20 次全是 `Html`）。标签页和这两篇文章因此有两种样子，CI 上 example-markdown（浅色、深色）、example-tags 三种设备共 9 张截图随机失败，约 1% 像素不同，和当次改动无关。浏览器端的稳定措施（`repaint`、`freezeViewportUnits`）管不到这一层。
+
+办法是给这种标签建 `<标签类>/<标签>/_index.md`，在 `title` 里固定标题。示例站内容保持原样，固定标题放在 `tests/theme/example-site-terms/`，由 `example-site.overrides.yaml` 挂进示例站的 content（取 `Html`，与 0.152 及以前的结果相同，生成的文件与随机到 `Html` 时逐字节相同）；主题测试站的 `test`/`Test` 同样固定（`site-fixture/content/tags/test/_index.en.md`，输出不变）。`tests/taxonomy-case.test.mjs` 检查所有站点，以后正式文章出现 `AI`/`ai` 这类写法时也会报出来，否则线上标签名会随每次部署来回变。
+
+**验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。注意它只重复截图，不重新构建（两个站点在 `global-setup.mjs` 里每个任务只构建一次），所以查不出构建结果随机的问题；这类问题由上面的「构建必须可复现」检查负责，怀疑时也可以本机连续构建几十次比较输出。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
 
 **CI 用量**：私有仓库的 GitHub 托管运行机按分钟计费，每个任务单独向上取整到整分钟，免费额度用完后任务分不到运行机、两秒就失败（2026-10-27 遇到过）。所以 CI 按两条原则安排：
 

@@ -55,12 +55,12 @@ function walk(dir) {
 }
 const contentFiles = walk(join(root, "content")).filter((f) => f.endsWith(".md")).map((f) => relative(join(root, "content"), f));
 const isDraft = (f) => field(frontMatter(join(root, "content", f)), "draft") === "true";
-// 短文：content/notes 下除 _index 以外的 .md（文件夹形式取 index.md）
+// 短文、长文：content/notes、content/posts 下除 _index 以外的 .md（文件夹形式取 index.md）
 const notes = contentFiles
   .filter((f) => f.startsWith("notes/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
   .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^notes\/|(\/index)?\.md$/g, "") }));
 const posts = contentFiles
-  .filter((f) => f.startsWith("posts/") && !f.endsWith(".en.md") && !isDraft(f))
+  .filter((f) => f.startsWith("posts/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
   .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^posts\/|(\/index)?\.md$/g, "") }));
 
 let site, drafts;

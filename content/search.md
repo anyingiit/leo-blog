@@ -2,6 +2,6 @@
 title: 搜索
 layout: search
 url: /search/
-summary: search
+summary: 搜索 Leoblog 的文章。
 placeholder: 搜索文章
 ---

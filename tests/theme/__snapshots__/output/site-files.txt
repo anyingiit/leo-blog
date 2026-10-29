@@ -179,6 +179,7 @@ posts/second-post/index.html
 robots.txt
 safari-pinned-tab.svg
 search/index.html
+share.png
 sitemap.xml
 tags/index.html
 tags/index.xml

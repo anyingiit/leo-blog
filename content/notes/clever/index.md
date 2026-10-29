@@ -3,6 +3,8 @@ title: "聪明"
 slug: clever
 date: 2026-10-26T20:54:05Z
 tags: [随笔, AI]
+summary: "Anthropic 研究《A global workspace in language models》里的敲诈测试：模型的 J 空间里早早出现了“虚假”和“虚构”。"
+images: [j-space-blackmail.png]
 ---
 
 聪明。

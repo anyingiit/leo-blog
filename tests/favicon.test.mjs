@@ -1,4 +1,4 @@
-// 网站图标（static/ 下 PaperMod 默认读取的 5 个文件，tools/favicon/build.mjs 生成，说明见 docs/favicon.md）：
+// 网站图标（static/ 下 PaperMod 默认读取的 5 个文件，tools/favicon/build.mjs 生成，说明见 docs/favicon.md）和默认分享图 share.png：
 // 文件格式、16px 下的逐像素设计（整像素对齐的 L、内圈灰边、透明圆角）、主屏图标不透明，
 // 以及提交的文件就是生成脚本的输出（防止有人只换了图片、或改了脚本没重新生成）。
 // 页面里的图标链接都能取到文件，在 site.test.mjs 里用整站构建检查。
@@ -85,17 +85,25 @@ test("apple-touch-icon：180×180、不透明（iOS 透明处会补黑）、满�
   assert.deepEqual(p.px(80, 90), [...rgb(FG), 255], "L 竖笔");
 });
 
+test("默认分享图 share.png：1200×630、不透明、满版底色、白色 L 在正中", () => {
+  const p = decodePng(staticFile("share.png"));
+  assert.deepEqual([p.width, p.height, p.colorType], [1200, 630, 2], "1200×630 RGB");
+  for (const [x, y] of [[0, 0], [1199, 0], [0, 629], [1199, 629], [600, 100], [600, 300]]) assert.deepEqual(p.px(x, y), [...rgb(BG), 255], `底色 (${x},${y})`);
+  for (const [x, y] of [[488, 155], [583, 378], [711, 474], [536, 300]]) assert.deepEqual(p.px(x, y), [...rgb(FG), 255], `L (${x},${y})`);
+  for (const [x, y] of [[487, 300], [584, 300], [712, 420], [600, 475]]) assert.deepEqual(p.px(x, y), [...rgb(BG), 255], `L 外 (${x},${y})`);
+});
+
 test("safari-pinned-tab.svg 是单色剪影（不带描边和颜色）", () => {
   const svg = staticFile("safari-pinned-tab.svg").toString();
   assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
   assert.doesNotMatch(svg, /stroke|fill="#|<metadata|<image/);
 });
 
-test("提交的图标文件就是 tools/favicon/build.mjs 的输出", async () => {
+test("提交的图标文件和分享图就是 tools/favicon/build.mjs 的输出", async () => {
   const out = mkdtempSync(join(tmpdir(), "leo-blog-favicon-"));
   try {
     await render(out);
-    for (const f of ["favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png"]) {
+    for (const f of ["favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png", "share.png"]) {
       const a = decodePng(staticFile(f)), b = decodePng(readFileSync(join(out, f)));
       assert.deepEqual([a.width, a.height, a.colorType], [b.width, b.height, b.colorType], f);
       for (let y = 0; y < a.height; y++) for (let x = 0; x < a.width; x++) assert.deepEqual(a.px(x, y), b.px(x, y), `${f} (${x},${y})`);
