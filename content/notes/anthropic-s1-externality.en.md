@@ -9,8 +9,9 @@ tags: [Notes]
 
 From [Wikipedia: Externality](https://zh.wikipedia.org/wiki/%E5%A4%96%E9%83%A8%E6%80%A7) (Chinese edition, translated; see also the [English article](https://en.wikipedia.org/wiki/Externality))
 
-In the prospectus ([original filing on SEC EDGAR](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm)):
+In the prospectus: [The founders' letter, on what economists call "externalities" (page image)](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm#ica694c859b8e458dbf6a73f56dde9d42_3989) ([original filing on SEC EDGAR](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm))
 
-- [The founders' letter, on what economists call "externalities" (page image)](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm#ica694c859b8e458dbf6a73f56dde9d42_3989)
+Other places in the prospectus that mention externalities:
+
 - [The founders' letter, on the LTBT members' expertise (page image)](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm#ica694c859b8e458dbf6a73f56dde9d42_3984)
 - [Our governance structure and its objectives: "relevant long- and short-term externalities of decisions"](https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm#ica694c859b8e458dbf6a73f56dde9d42_9895604651122:~:text=short%2Dterm%20externalities%20of%20decisions)
