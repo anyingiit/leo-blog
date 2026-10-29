@@ -32,3 +32,46 @@ export function serve(dir) {
   });
   return new Promise((ok) => server.listen(0, "127.0.0.1", () => ok({ url: `http://127.0.0.1:${server.address().port}`, close: () => server.close() })));
 }
+
+// 原版版式：灰框里每张纸左右两边露出的灰边宽度（像素级）。
+// 先按布局量（每张纸的左右留白，CSS 像素），再截一行真实像素核对：从框的两端往里数和灰框同色的像素，左右应一样多。
+// 返回 { rect: [{ L, R }...], pixel: { L, R } }，单位都是 CSS 像素；pixel 的精度是 1 个设备像素
+export async function sheetMargins(page) {
+  const rect = await page.evaluate(() => {
+    const box = document.querySelector(".s1-original:not([hidden]) .s1-sheets");
+    const a = box.getBoundingClientRect();
+    return [...box.querySelectorAll(".s1-sheet")].map((s) => s.getBoundingClientRect()).filter((c) => c.width > 0)
+      .map((c) => ({ L: c.left - a.left, R: a.right - c.right }));
+  });
+  // 截图那一行：第一张纸滚进视口后，取纸上部 40% 高处（避开阴影和页脚），横跨整个灰框（框比视口宽时取视口内的部分）
+  const clip = await page.evaluate(() => {
+    const box = document.querySelector(".s1-original:not([hidden]) .s1-sheets");
+    const s = box.querySelector(".s1-sheet");
+    s.scrollIntoView({ block: "start" });
+    const a = box.getBoundingClientRect(), c = s.getBoundingClientRect();
+    const y = Math.round(Math.max(c.top, 0) + Math.min(c.height, innerHeight - Math.max(c.top, 0)) * 0.4);
+    const x0 = Math.max(Math.ceil(a.left), 0), x1 = Math.min(Math.floor(a.right), document.documentElement.clientWidth);
+    return { x: x0, y, width: x1 - x0, height: 1, bg: getComputedStyle(box).backgroundColor.match(/\d+/g).slice(0, 3).map(Number) };
+  });
+  const bg = clip.bg;
+  delete clip.bg;
+  const png = (await page.screenshot({ clip, animations: "disabled" })).toString("base64");
+  const pixel = await page.evaluate(async ([b64, frame]) => {
+    const img = new Image();
+    img.src = "data:image/png;base64," + b64;
+    await img.decode();
+    const cv = document.createElement("canvas");
+    cv.width = img.width; cv.height = img.height;
+    const g = cv.getContext("2d");
+    g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, img.width, 1).data;
+    const px = (i) => [d[i * 4], d[i * 4 + 1], d[i * 4 + 2]];
+    // 纸的范围 = 第一列到最后一列明显不同于灰框底色（.s1-sheets 的背景色）的像素
+    const off = (i) => px(i).some((v, k) => Math.abs(v - frame[k]) > 6);
+    let a = 0, b = img.width - 1;
+    while (a < img.width && !off(a)) a++;
+    while (b > a && !off(b)) b--;
+    return { L: a / devicePixelRatio, R: (img.width - 1 - b) / devicePixelRatio, dpr: devicePixelRatio };
+  }, [png, bg]);
+  return { rect, pixel };
+}
