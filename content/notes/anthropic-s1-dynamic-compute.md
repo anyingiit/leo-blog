@@ -1,5 +1,5 @@
 ---
-title: "动态算力平台"
+title: "Anthropic动态算力平台"
 slug: anthropic-s1-dynamic-compute
 date: 2026-10-29T14:31:44Z
 tags: [随笔]

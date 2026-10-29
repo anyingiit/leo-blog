@@ -1,5 +1,5 @@
 ---
-title: "A Dynamic Compute Platform"
+title: "Anthropic’s Dynamic Compute Platform"
 slug: anthropic-s1-dynamic-compute
 date: 2026-10-29T14:31:44Z
 tags: [Notes]
