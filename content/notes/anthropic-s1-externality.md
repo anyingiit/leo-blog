@@ -10,8 +10,3 @@ tags: [随笔]
 摘自[维基百科：外部性](https://zh.wikipedia.org/wiki/%E5%A4%96%E9%83%A8%E6%80%A7)
 
 招股书原文：[创始人的信：“经济学家用‘外部性’一词指代……”](/translations/anthropic-s1/v1.1/cover/#ica694c859b8e458dbf6a73f56dde9d42_3989:~:text=%E7%BB%8F%E6%B5%8E%E5%AD%A6%E5%AE%B6%E7%94%A8%E2%80%9C%E5%A4%96%E9%83%A8%E6%80%A7%E2%80%9D%E4%B8%80%E8%AF%8D)（[非官方中文译本](/translations/anthropic-s1/v1.1/)）
-
-招股书里其他提到外部性的地方：
-
-- [创始人的信：“其成员在AI的正面和负面外部性最可能出现的领域拥有专业知识”](/translations/anthropic-s1/v1.1/cover/#ica694c859b8e458dbf6a73f56dde9d42_3984:~:text=%E5%85%B6%E6%88%90%E5%91%98%E5%9C%A8AI%E7%9A%84%E6%AD%A3%E9%9D%A2%E5%92%8C%E8%B4%9F%E9%9D%A2%E5%A4%96%E9%83%A8%E6%80%A7)
-- [我们的治理结构及其目标：“包括决策的相关长期和短期外部性”](/translations/anthropic-s1/v1.1/governance/#ica694c859b8e458dbf6a73f56dde9d42_9895604651122:~:text=%E5%8C%85%E6%8B%AC%E5%86%B3%E7%AD%96%E7%9A%84%E7%9B%B8%E5%85%B3%E9%95%BF%E6%9C%9F%E5%92%8C%E7%9F%AD%E6%9C%9F%E5%A4%96%E9%83%A8%E6%80%A7)
