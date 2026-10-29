@@ -2,6 +2,6 @@
 title: Search
 layout: search
 url: /en/search/
-summary: search
+summary: Search Leoblog posts.
 placeholder: Search posts
 ---

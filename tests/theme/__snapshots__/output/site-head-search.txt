@@ -4,8 +4,8 @@
 <meta name=robots content="index, follow">
 <title>搜索 | Leoblog</title>
 <meta name=keywords content>
-<meta name=description content="search">
-<meta name=author content>
+<meta name=description content="搜索 Leoblog 的文章。">
+<meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/search/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
 <link crossorigin=anonymous rel=preload as=fetch href=../index.json>
@@ -28,11 +28,13 @@
 <meta property="og:url" content="http://blog.test/search/">
 <meta property="og:site_name" content="Leoblog">
 <meta property="og:title" content="搜索">
-<meta property="og:description" content="search">
+<meta property="og:description" content="搜索 Leoblog 的文章。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:type" content="article">
-<meta name=twitter:card content="summary">
+<meta property="og:image" content="http://blog.test/share.png">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="http://blog.test/share.png">
 <meta name=twitter:title content="搜索">
-<meta name=twitter:description content="search">
+<meta name=twitter:description content="搜索 Leoblog 的文章。">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"搜索","item":"http://blog.test/search/"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"搜索","name":"搜索","description":"search","keywords":[],"articleBody":"","wordCount":"0","inLanguage":"zh","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/search/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"搜索","name":"搜索","description":"搜索 Leoblog 的文章。","keywords":[],"articleBody":"","wordCount":"0","inLanguage":"zh","image":"http://blog.test/share.png","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","author":{"@type":"Person","name":"Leo"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/search/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico"}}}</script>

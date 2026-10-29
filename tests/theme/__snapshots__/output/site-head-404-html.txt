@@ -5,7 +5,7 @@
 <title>404 Page not found | Leoblog</title>
 <meta name=keywords content>
 <meta name=description content="记录学习、实践与思考。先写下来，再慢慢完善。">
-<meta name=author content>
+<meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/404.html>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
 <link rel=icon href=http://blog.test/favicon.ico>
@@ -28,6 +28,8 @@
 <meta property="og:description" content="记录学习、实践与思考。先写下来，再慢慢完善。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:type" content="website">
-<meta name=twitter:card content="summary">
+<meta property="og:image" content="http://blog.test/share.png">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="http://blog.test/share.png">
 <meta name=twitter:title content="404 Page not found">
 <meta name=twitter:description content="记录学习、实践与思考。先写下来，再慢慢完善。">

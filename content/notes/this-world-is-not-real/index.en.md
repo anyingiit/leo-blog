@@ -3,6 +3,8 @@ title: "“This World Isn't Real”"
 slug: this-world-is-not-real
 date: 2026-10-26T20:18:28Z
 tags: [Notes, AI]
+summary: "Anthropic’s research on injecting thoughts into a model’s J-space raised two questions for me: what if the subject were a person, and if the model can feel pain, is this abuse? It also brought to mind the idea planted in Inception."
+images: [j-space-injection.en.png]
 ---
 
 ![The model reports what's in its J-space: swapping "Soccer" for "Rugby" changes its answer; injecting "lightning" into its J-space lets it name the injected thought as lightning](j-space-injection.en.png)
