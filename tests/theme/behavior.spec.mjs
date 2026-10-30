@@ -1,6 +1,9 @@
 // 主题交互和兼容性：在每个项目（Chromium/WebKit × 电脑/平板/手机）里实际操作页面
 import { test, expect } from "@playwright/test";
-import { connect, settle, fullPage, repaint } from "./helpers.mjs";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { connect, settle, fullPage, repaint, cdn } from "./helpers.mjs";
 
 const SITE = "http://blog.test", EXAMPLE = "http://example.test";
 
@@ -370,4 +373,21 @@ test("能横滑的表格、代码块、公式有边缘阴影，放得下的没�
   expect(fit, "没有找到放得下的元素，没覆盖「不画阴影」").toBeGreaterThan(0);
   expect(wide, "没有找到能横滑的元素，没覆盖「画阴影」").toBeGreaterThan(0);
   await context.close();
+});
+
+// 外站样式表带 SRI（tests/security.test.mjs、docs/security.md）：哈希和本地副本（与线上同版本）一致，浏览器校验通过后才会应用。
+// 哈希写错或 CDN 上的文件被改过，浏览器会整张丢弃样式表，公式就退回成普通字体
+test("KaTeX 样式表的 SRI 校验通过，公式用 KaTeX 字体排版", async ({ browser }, info) => {
+  const { page, errors } = await open(browser, info, `${SITE}/notes/math-note/`);
+  const link = page.locator('link[href*="/katex@"][href$="/katex.min.css"]');
+  await expect(link).toHaveCount(1);
+  const integrity = await link.getAttribute("integrity");
+  const local = readFileSync(join(cdn[Object.keys(cdn).find((k) => k.includes("/katex@"))], "katex.min.css"));
+  expect(integrity).toBe("sha384-" + createHash("sha384").update(local).digest("base64"));
+  // 页面 load 之后样式表要么已应用，要么已被丢弃
+  const applied = await page.evaluate(() => [...document.styleSheets].some((s) => s.href?.endsWith("/katex.min.css")));
+  expect(applied, "样式表被浏览器丢弃了").toBe(true);
+  await settle(page);
+  expect(await page.locator(".katex").first().evaluate((e) => getComputedStyle(e).fontFamily)).toContain("KaTeX_Main");
+  expect(errors).toEqual([]);
 });
