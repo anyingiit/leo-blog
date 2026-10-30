@@ -5,14 +5,15 @@
   {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
 </header>
 {{- partial "syscards/notice.html" (dict "page" . "card" false) }}
+<div class="sc-grid">
 {{- range .Pages.ByWeight }}
-{{- $d := partial "syscards/files.html" . }}
-<article class="post-entry sc-entry" id="{{ path.Base .RelPermalink }}">
-  <header class="entry-header"><h2>{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</h2></header>
-  <div class="entry-content"><p>{{ partial "syscards/scope.html" . }}</p></div>
-  <footer class="entry-footer">{{ if $en }}Published {{ .Params.released }} · {{ .Params.pages }} pages · HTML {{ $d.html.size }} · PDF {{ $d.pdf.size }}{{ else }}原版 {{ .Params.released }} 发布 · {{ .Params.pages }} 页 · HTML {{ $d.html.size }} · PDF {{ $d.pdf.size }}{{ end }}</footer>
-  <a class="entry-link" aria-label="{{ .Title }}" href="{{ .RelPermalink }}"></a>
-</article>
+  {{- $d := partial "syscards/files.html" . }}
+  <section class="s1-dl-card sc-cell" id="{{ path.Base .RelPermalink }}">
+    <h2 class="sc-title"><a href="{{ .RelPermalink }}">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</a></h2>
+    <p>{{ .Params.released }} · {{ .Params.pages }} {{ if $en }}pages{{ else }}页{{ end }}</p>
+    <p class="s1-dl-acts"><a href="{{ $d.html.url }}" target="_blank" rel="noopener">{{ if $en }}Read ↗{{ else }}在线阅读 ↗{{ end }}</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}">PDF ↓</a><a href="{{ .RelPermalink }}">{{ if $en }}Notes →{{ else }}说明 →{{ end }}</a></p>
+  </section>
 {{- end }}
+</div>
 {{- partial "syscards/rights.html" . }}
 {{- end }}

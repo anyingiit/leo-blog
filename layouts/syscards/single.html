@@ -12,7 +12,7 @@
   <h1>{{ .Title }}</h1>
   {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
 </header>
-{{- partial "syscards/notice-short.html" . }}
+{{- partial "syscards/notice.html" (dict "page" . "card" true) }}
 <div class="s1-cta">
   <a class="s1-btn" href="{{ $dl.html.url }}" target="_blank" rel="noopener">{{ if $en }}Read the Chinese translation{{ else }}在线阅读{{ end }}</a>
   <a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original (Anthropic){{ else }}英文原版（Anthropic）{{ end }}</a>

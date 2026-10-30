@@ -1,1 +1,3 @@
-.sc-entry .entry-content p { -webkit-line-clamp: unset; }
+.sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 24px 0; }
+.sc-cell .sc-title { font-size: 17px; margin: 0; line-height: 1.4; }
+.sc-cell .sc-title a { box-shadow: none; }
