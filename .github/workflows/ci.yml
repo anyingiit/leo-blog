@@ -182,9 +182,9 @@ jobs:
         run: |
           python3 - <<'PY'
           import hashlib, io, site, urllib.request, zipfile
-          url = "https://files.pythonhosted.org/packages/c1/08/1e9731038124a9127e1d27848952b86fb32b2f45f8f1b94adc7f0817a6ac/pypdf-6.17.0-py3-none-any.whl"
+          url = "https://files.pythonhosted.org/packages/3f/4b/77e8ad4ac42c9d93600f40541a50e9feb3a61d2bbee2d76f659346072051/pypdf-6.21.4-py3-none-any.whl"
           data = urllib.request.urlopen(url, timeout=60).read()
-          assert hashlib.sha256(data).hexdigest() == "5bd827266a21553b74d910e350131a6227b72f2ab4209bf372814b8195fa11c5"
+          assert hashlib.sha256(data).hexdigest() == "33e4fb41ca352810eb4e9838aa0d82d6888a5f8bf682f43e99cce5faa666255c"
           zipfile.ZipFile(io.BytesIO(data)).extractall(site.getsitepackages()[0])
           PY
           python3 -I -c "import pypdf; print('pypdf', pypdf.__version__)"
