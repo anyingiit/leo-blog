@@ -2,8 +2,8 @@
   原版版式：输出一章的 original.html（导入工具从译文 HTML 里切出的整页），
   图片占位 s1img:<文件名> 换成 assets/translations/anthropic-s1/img/ 里同名图片转出的 WebP（最宽 1224px，即 612pt 的 1.5 倍），懒加载。
   参数 dict "page" 章节页 "book" 是否整本一页（整本时跨章链接 ../章/#id 改成页内 #id），
-  "inline" 图片内嵌成 data URI、不加缩放脚本（下载用的单文件完整 HTML，见 layouts/s1/list.s1full.html）。
-  紧跟着的内联脚本在首次绘制前按屏宽设好缩放，避免页面跳动。
+  "inline" 图片内嵌成 data URI（下载用的单文件完整 HTML，见 layouts/s1/list.s1full.html）。
+  缩放由 s1.js 在插入原版时设好（插入和缩放在同一次执行里，首次绘制前完成）。
 */ -}}
 {{- $page := .page -}}
 {{- $html := "" -}}
@@ -27,6 +27,3 @@
 <div class="s1-sheets" data-first-page="{{ index $page.Params.pages 0 | default 1 }}">
   <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>
 </div>
-{{- if not .inline }}
-<script>(b=>{const s=Math.min(b.closest("[data-wide]")?1.4:1,b.clientWidth/836);if(s!==1)b.firstElementChild.style.zoom=s.toFixed(4);if(s<1)b.firstElementChild.style.setProperty("--s1-z",s.toFixed(4))})(document.currentScript.previousElementSibling)</script>
-{{- end }}
