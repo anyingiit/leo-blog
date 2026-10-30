@@ -182,3 +182,15 @@ test("仓库里跟踪的文件不含密钥（git ls-files，跳过图片、PDF�
   }
   assert.deepEqual(hits, []);
 });
+
+// ── 4. Claude Code 插件来源锁定版本 ─────────────────────────────
+
+// .claude/settings.json 里的第三方插件市场会在每个 Claude Code 会话里自动加载；不锁定的话，对方仓库一更新就生效
+test(".claude/settings.json 的插件市场都锁定到版本号（ref 是 vX.Y.Z 这样的标签，不跟随分支）", () => {
+  const settings = JSON.parse(readFileSync(join(root, ".claude/settings.json"), "utf8"));
+  const markets = Object.entries(settings.extraKnownMarketplaces || {});
+  for (const [name, { source }] of markets) {
+    if (!["github", "git"].includes(source.source)) continue; // 本地目录等不经网络
+    assert.match(source.ref || "", /^v?\d+\.\d+\.\d+$/, `插件市场 ${name} 没有锁定版本：${JSON.stringify(source)}`);
+  }
+});

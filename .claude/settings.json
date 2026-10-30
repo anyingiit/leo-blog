@@ -3,7 +3,8 @@
     "chefs-pick": {
       "source": {
         "source": "github",
-        "repo": "chefs-pick-oss-starter/chefs-pick-oss-starter-skill"
+        "repo": "chefs-pick-oss-starter/chefs-pick-oss-starter-skill",
+        "ref": "v1.0.3"
       }
     }
   },
