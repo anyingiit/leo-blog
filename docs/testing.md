@@ -30,6 +30,7 @@
 | `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
 | `tests/theme/behavior.spec.mjs` | 主题交互：深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染、能横滑的表格和代码块有边缘阴影（放得下时除圆角外逐像素不变） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
 | `tests/seo.test.mjs` | 搜索引擎相关输出（正式构建，见 [seo.md](seo.md)）：站点地图和页面的 robots/canonical 一致（要求收录的都在站点地图里，站点地图里的都要求收录）；S-1 最新版本进站点地图、历史版本 noindex；每个要求收录的页面都有像样的摘要（不是兜底文字、不含 Markdown、不从图注开始）；文章作者进 meta 和结构化数据但不显示在日期那一行，译文原作者照常显示；带配图的文章用自己的配图作分享图，英文页用英文图；其他页面用 1200×630 的站点默认分享图 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/deploy.test.mjs` | 部署工作流 `.github/workflows/deploy.yml` 的约定（[deploy.md](deploy.md)）：正式站用 `CF_PAGES_BRANCH=main` 构建并部署到 `main`；预览的站点地址和上传分支名是同一个 `pr-<编号>`；外部 PR 不部署、令牌只给上传步骤；Hugo 缓存键和 CI 相同；wrangler 锁定版本并按锁文件安装 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/taxonomy-case.test.mjs` | 构建可复现：同一个标签在不同文章里大小写不同（如 `html` 和 `HTML`）时必须用 `_index.md` 固定标题，否则 Hugo 每次构建随机取一种（见「构建必须可复现」）；查正式站点（含预览用测试短文）、主题测试站、PaperMod 示例站，并确认去掉固定标题后能查出示例站的问题 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium-desktop) |
 | `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint and build |
