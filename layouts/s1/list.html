@@ -38,9 +38,9 @@
     <tbody>
     {{- range .Sections.ByWeight }}
       <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $m.latest }} <span class="s1-vtag s1-latest">最新</span>{{ end }}</td>
-        <td>{{ .Params.form }}（{{ .Params.filed }} 提交）</td>
+        <td><span class="s1-nobr">{{ .Params.form }}（{{ .Params.filed }}</span> 提交）</td>
         <td>{{ (time.AsTime .Params.captured).UTC.Format "2006-01-02 15:04" }} UTC</td>
-        <td>{{ .Params.notes }}</td><td class="s1-dl-col">{{ partial "s1/downloads.html" (dict "v" . "style" "line") }}</td></tr>
+        <td>{{ replaceRE `第 (\d+(?:–\d+)?) 页` "第\u00a0$1\u00a0页" .Params.notes }}</td><td class="s1-dl-col">{{ partial "s1/downloads.html" (dict "v" . "style" "line") }}</td></tr>
     {{- end }}
     </tbody>
   </table>

@@ -934,6 +934,29 @@ for (const engine of ENGINES) {
     await s.done();
   });
 
+  test(`${engine}：下载链接（「HTML ↗ 18.3 MB」「PDF ↓ 14.6 MB」）不从中间断行，版本表的说明再长也一样`, async (t) => {
+    // v1.1.1 的说明较长，版本表的下载栏被挤窄，链接曾拆成「HTML / ↗」「18.3 / MB」两行
+    const broken = (page) => page.locator(".s1-dl-line a").evaluateAll((as) => as.filter((a) => a.checkVisibility()).filter((a) => {
+      const r = document.createRange(); r.selectNodeContents(a);
+      // 字号不同的片段（文件大小是 <small>）同一行的顶边也不同，按上下是否交叠判断是否换了行
+      const qs = [...r.getClientRects()].filter((q) => q.width > 0).sort((a, b) => a.top - b.top);
+      return qs.some((q) => q.top >= qs[0].bottom - 1);
+    }).map((a) => a.textContent.trim()));
+    for (const width of [1024, 1280, 1440, 1920]) {
+      const s = await open(t, engine, { viewport: { width, height: 900 } });
+      if (!s) return;
+      const { page } = s;
+      for (const p of [R, V, V + chapters[0].slug + "/"]) {
+        await s.go(p);
+        assert.deepEqual(await broken(page), [], `${p} @${width}`);
+      }
+      await s.go(R);
+      await page.locator(".s1-versions tbody td:nth-child(4)").evaluateAll((tds) => tds.forEach((td) => { td.textContent = td.textContent.repeat(4) || "很长的说明".repeat(20); }));
+      assert.deepEqual(await broken(page), [], `版本表说明加长后 @${width}`);
+      await s.done();
+    }
+  });
+
   test(`${engine}：手机上「全部版本」表的每一项都在屏幕里，不用横向滚动`, async (t) => {
     const s = await open(t, engine, PHONE[engine]);
     if (!s) return;
