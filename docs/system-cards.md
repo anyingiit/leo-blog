@@ -4,10 +4,10 @@
 
 ## 页面
 
-和 S-1 译本同一套样式（`s1.css` 的声明框、版本表、在线阅读按钮、下载卡片、权利行），`assets/css/extended/syscards.css` 只放不同的地方：
+2026-10-30 用户觉得第一版改成「表格＋卡片页」后反而不如第一版，于是做了 6 个方案（第一版、表格版、卡片列表＋详情页、单页折叠、PaperMod 条目＋精简卡片页、两列网格），5 位独立评审后综合成现在的方案，又经 2 位新评审确认（报告见项目文件 system-cards-publish/design-review/）。样式沿用 PaperMod 文章条目（post-entry）和 S-1 译本（`s1.css` 的简短声明、按钮、下载卡片、权利行），`assets/css/extended/syscards.css` 只放不同的地方：
 
-- **栏目页**（`layouts/syscards/list.html`）：总的译者声明，再是一张表（同 S-1 版本表）：系统卡、原版发布日期、页数、全文下载（HTML ↗ / PDF ↓）。**顺序和 Anthropic 官网系统卡列表（https://www.anthropic.com/system-cards）相同**（用户 2026-10-30），导入时取官网顺序写进 weight。手机上每份卡一段，页数列加「页」，下载列不隐藏（S-1 隐藏是因为版本页另有下载卡片；这里栏目页就是直接拿文件的地方）。
-- **每份卡一个页面**（`layouts/syscards/single.html`，`/translations/system-cards/<目录名>/`）：面包屑回栏目、标题、这份卡的译者声明、「在线阅读」按钮和英文原版链接、HTML/PDF 下载卡片和 SHA-256、权利行。
+- **栏目页**（`layouts/syscards/list.html`）：简短声明（`notice-short.html`，一行要点，展开是完整声明，同 S-1 版本页），再是每份卡一条 PaperMod 文章条目：卡名链到卡片页；一句这份卡由译者另行翻译的范围（`scope.html`，含未核实项，整句显示、取消 PaperMod 摘要的两行截断）；最后一行原版日期、页数和直链「在线阅读 ↗」「PDF ↓ 大小」（链接带卡名的 aria-label）。**顺序和 Anthropic 官网系统卡列表（https://www.anthropic.com/system-cards）相同**（用户 2026-10-30），导入时取官网顺序写进 weight。
+- **每份卡一个页面**（`layouts/syscards/single.html`，`/translations/system-cards/<目录名>/`）：灰底（同 S-1 版本页，PaperMod 列表页的底色）、面包屑回栏目、标题、简短声明（要点里就有这份卡的范围；要点里不放链接，避免和展开冲突）、「在线阅读」按钮和英文原版链接、HTML/PDF 下载卡片和 SHA-256、权利行。
 - **译者声明**（`layouts/_partials/syscards/notice.html`）：所有卡同一套条目和措辞（同 S-1 的声明）——是什么（原名、日期、页数，非官方）、翻译方式（Claude Opus 5.5 多代理、两轮交叉审校、按章终审；人工没有检查一致性）、译者另行翻译的部分（2.2 节页码、零散段落及页码、另用的模型、合入的单元和图片数、Claude 未读未审、脚本只查格式和数字、未核实的数字）、版式（逐页对应、修复的问题数、段落空白、内部链接不可点、emoji/高亮差异）、原文链接和定稿日期、以英文原版为准、权利和下架邮箱。数字来自 front matter 的 `facts`，由导入脚本从译文仓库每份卡的翻译说明（README）里取；某项没有就整句不出现。只陈述事实，不教读者怎么读。
 - **在线阅读就是译文仓库的单文件 HTML，逐字节原样发布**（项目规则：提供的 HTML 原样提供），不套本站版面、不加统计脚本和图标。它自带浅色/深色样式、目录和 `text-size-adjust`。
 - 英文页结构相同，链接到同一份中文文件；文件只发布一份（在中文卡片页下的 `files/`）。
@@ -33,5 +33,5 @@ SYSCARDS_SRC=../anthropic-system-cards-zh python3 -m unittest discover -s tools/
 
 ## 测试
 
-- `tests/syscards.test.mjs`：构建结果（文件原样发布、大小/sha256、≤ 25 MiB、只发一份；栏目页按官网顺序、链接齐全；卡片页面包屑、在线阅读、下载、英文原版；每份卡的声明条目统一、数字与 facts 一致；没有 GitHub 链接；中英互链、栏目收录）和浏览器行为（Chromium/WebKit：电脑、手机、320 宽无横向滚动，手机上表格的页数和下载列，深色模式，在线阅读新标签打开，Cloudflare 邮件混淆下无脚本错误）。
+- `tests/syscards.test.mjs`：构建结果（文件原样发布、大小/sha256、≤ 25 MiB、只发一份；栏目页按官网顺序、链接齐全；卡片页面包屑、在线阅读、下载、英文原版；每份卡的声明条目统一、数字与 facts 一致；没有 GitHub 链接；中英互链、栏目收录）和浏览器行为（Chromium/WebKit：电脑、手机、320 宽无横向滚动，范围说明不被截断、手机直链够点、卡片页灰底同 S-1 版本页，深色模式，在线阅读新标签打开，Cloudflare 邮件混淆下无脚本错误）。
 - `tools/syscard-import/test_import.py`：瘦身只合并图片、渲染和文字层不变、结果可复现（合成 PDF）；README 解析（含 Opus 5.5 的不同写法）、官网顺序解析；仓库里每份卡的 weight、中英 front matter 一致、没有 GitHub 链接、文件大小/sha256/页数/书签、瘦身过的没有重复图片；设 `SYSCARDS_SRC` 时 HTML 逐字节、PDF 与原文件逐页对比。

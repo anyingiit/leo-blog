@@ -1,19 +1,24 @@
+{{- /*
+  Anthropic 系统卡中文译本的栏目页（content/translations/system-cards/_index.md，tools/syscard-import/import.py 生成）。
+  简短声明（展开是完整声明），再是每份卡一条，用 PaperMod 文章条目的样式（post-entry）：卡名进这份卡的页面，
+  一句这份卡由译者另行翻译的范围，最后一行原版日期、页数和直链（在线阅读、PDF 下载）。
+  顺序和 Anthropic 官网系统卡列表相同（导入时写进 weight）。每份卡自己的页面见 single.html。
+*/ -}}
 {{- define "main" }}
 {{- $en := ne .Lang "zh" }}
 <header class="page-header s1-header">
   <h1>{{ .Title }}</h1>
   {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
 </header>
-{{- partial "syscards/notice.html" (dict "page" . "card" false) }}
-<div class="sc-grid">
+{{- partial "syscards/notice-short.html" (dict "page" . "card" false) }}
 {{- range .Pages.ByWeight }}
-  {{- $d := partial "syscards/files.html" . }}
-  <section class="s1-dl-card sc-cell" id="{{ path.Base .RelPermalink }}">
-    <h2 class="sc-title"><a href="{{ .RelPermalink }}">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</a></h2>
-    <p>{{ .Params.released }} · {{ .Params.pages }} {{ if $en }}pages{{ else }}页{{ end }}</p>
-    <p class="s1-dl-acts"><a href="{{ $d.html.url }}" target="_blank" rel="noopener">{{ if $en }}Read ↗{{ else }}在线阅读 ↗{{ end }}</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}">PDF ↓</a><a href="{{ .RelPermalink }}">{{ if $en }}Notes →{{ else }}说明 →{{ end }}</a></p>
-  </section>
+{{- $d := partial "syscards/files.html" . }}
+<article class="post-entry sc-entry" id="{{ path.Base .RelPermalink }}">
+  <header class="entry-header"><h2><a href="{{ .RelPermalink }}">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</a></h2></header>
+  <div class="entry-content"><p>{{ partial "syscards/scope.html" . }}</p></div>
+  <footer class="entry-footer">{{ if $en }}Published {{ .Params.released }} · {{ .Params.pages }} pages{{ else }}原版 {{ .Params.released }} 发布 · {{ .Params.pages }} 页{{ end }}
+    <span class="sc-links">{{ $name := cond $en .Params.titleEn (strings.TrimSuffix "中文译本" .Title) }}<a href="{{ $d.html.url }}" target="_blank" rel="noopener" aria-label="{{ if $en }}Read the translation: {{ else }}在线阅读：{{ end }}{{ $name }}">{{ if $en }}Read the translation ↗{{ else }}在线阅读 ↗{{ end }}</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" aria-label="{{ if $en }}Download PDF: {{ else }}下载 PDF：{{ end }}{{ $name }}">PDF ↓ {{ $d.pdf.size }}</a></span></footer>
+</article>
 {{- end }}
-</div>
 {{- partial "syscards/rights.html" . }}
 {{- end }}

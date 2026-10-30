@@ -3,11 +3,13 @@
 //   - 构建结果：每份卡的 HTML、PDF 发布在该卡页面的 files/ 下，大小和 sha256 与 front matter 一致、
 //     HTML 与内容目录里的 .html.raw 逐字节相同（原样提供：不加统计脚本、图标、声明）、每个文件不超过 Cloudflare Pages 的 25 MiB、
 //     文件只发布一份（英文页不另发 /en/ 副本）、.raw 本身不发布；
-//     栏目页（中英文）：表格按 weight（导入时取自 Anthropic 官网系统卡列表的顺序）列出每份卡，链到卡片页，下载链接齐全；
-//     卡片页（中英文）：面包屑回栏目、在线阅读新标签打开、下载用原文件名、英文原版地址；
+//     栏目页（中英文）：简短声明（展开是完整声明）；每份卡一条 PaperMod 文章条目，按 weight（导入时取自 Anthropic 官网系统卡列表的顺序），
+//     卡名链到卡片页，写这份卡另行翻译的范围，在线阅读和 PDF 直链（读屏能听出是哪份卡）；
+//     卡片页（中英文）：面包屑回栏目、简短声明写这份卡的范围、在线阅读新标签打开、下载用原文件名、英文原版地址；
 //     译者声明：统一的条目，这份卡的范围和数字（2.2 节页码、零散段落、另用的模型、未核实的数字）来自 facts；
 //     译文仓库不公开：页面上没有 GitHub 链接；中英文页互链；译文栏目列表收录本栏目
-//   - 浏览器（Chromium 和 WebKit）：电脑和手机都没有横向滚动、表格行和链接都在屏幕里，手机上页数列写成「· N 页」；
+//   - 浏览器（Chromium 和 WebKit）：电脑和手机都没有横向滚动、条目和链接都在屏幕里，范围说明整句显示（不被截成两行），手机上直链至少 44px 高；
+//     卡片页和 S-1 版本页一样用灰底；
 //     深色模式下载卡片跟着变色；点「在线阅读」在新标签打开的就是那份 HTML；Cloudflare 邮件地址混淆下没有脚本错误、下架邮箱照常解开
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -102,16 +104,19 @@ test("译文仓库不公开：栏目页和卡片页都没有 GitHub 链接或仓
 for (const lang of ["zh", "en"]) {
   const list = lang === "en" ? "/en" + P : P;
 
-  test(`${lang} 栏目页：表格按官网顺序（weight）列出每份卡，链到卡片页，HTML 和 PDF 直链`, () => {
+  test(`${lang} 栏目页：每份卡一条，按官网顺序（weight），链到卡片页，写范围，在线阅读和 PDF 直链`, () => {
     const html = read(list);
-    const rows = [...html.matchAll(/<tr id=([^\s>]+)>([\s\S]*?)<\/tr>/g)];
+    const rows = [...html.matchAll(/<article class="post-entry sc-entry" id=([^\s>]+)>([\s\S]*?)<\/article>/g)];
     assert.deepEqual(rows.map((m) => m[1]), cards.map((c) => c.slug), "顺序");
     for (const [i, c] of cards.entries()) {
       const row = rows[i][2];
       const name = lang === "zh" ? c.zh.title.replace(/中文译本$/, "") : c.zh.titleEn;
       assert.ok(attr(row, "href", page(c, lang)) && row.includes(`>${name}</a>`), `${c.slug} 链到卡片页`);
-      assert.ok(row.includes(`<td>${c.zh.released}</td><td>${c.zh.pages}</td>`), `${c.slug} 日期和页数`);
+      assert.ok(row.includes(lang === "zh" ? `原版 ${c.zh.released} 发布 · ${c.zh.pages} 页` : `Published ${c.zh.released} · ${c.zh.pages} pages`), `${c.slug} 日期和页数`);
+      assert.ok(row.includes(lang === "zh" ? `原文第 ${c.zh.facts.s22[0]}–${c.zh.facts.s22[1]} 页` : `pp. ${c.zh.facts.s22[0]}–${c.zh.facts.s22[1]}`), `${c.slug} 范围`);
+      if (c.zh.facts.unverifiedNumbers) assert.ok(row.includes(lang === "zh" ? `${c.zh.facts.unverifiedNumbers} 处原文数字` : `${c.zh.facts.unverifiedNumbers} numbers`), `${c.slug} 未核实项`);
       assert.ok(attr(row, "href", url(c, "html")) && attr(row, "download", c.zh.downloads.pdf.name), `${c.slug} 下载`);
+      assert.ok(row.includes(lang === "zh" ? `aria-label="在线阅读：${name}"` : `aria-label="Read the translation: ${name}"`), `${c.slug} 读屏链接名`);
     }
     for (const s of lang === "zh" ? ["非官方中文译本", "2.2 节", "人工没有检查译文与原文的一致性", "以 Anthropic 官网的英文原版为准", `${zh.sourceDate} 定稿`]
       : ["unofficial Chinese translations", "Section 2.2", "No person has checked", "English originals on Anthropic", `finalized ${zh.sourceDate}`]) assert.ok(notice(html).includes(s), s);
@@ -153,6 +158,11 @@ for (const lang of ["zh", "en"]) {
       if (!f.scattered) assert.ok(!/零散段落|scattered/.test(n), `${c.slug} 没有零散段落就不提`);
       assert.equal(/内部链接|Cross-references/.test(n), f.linksLost, `${c.slug} 内部链接`);
       assert.ok(attr(n, "href", c.zh.official), `${c.slug} 声明里的原文链接`);
+      // 折叠时那一行要点里就有这份卡的范围（和未核实项），不用展开
+      const sum = read(page(c, lang)).match(/<summary>([\s\S]*?)<\/summary>/)[1];
+      assert.ok(sum.includes(lang === "zh" ? `原文第 ${f.s22[0]}–${f.s22[1]} 页` : `pp. ${f.s22[0]}–${f.s22[1]}`), `${c.slug} 要点里的范围`);
+      if (f.unverifiedNumbers) assert.ok(sum.includes(lang === "zh" ? "未经核实" : "not been verified"), `${c.slug} 要点里的未核实项`);
+      assert.ok(!/<a\s/.test(sum), `${c.slug} 要点里不放链接`);
     }
   });
 }
@@ -187,27 +197,33 @@ for (const engine of ENGINES) {
         await s.go(p);
         const r = await s.page.evaluate(() => ({
           scroll: document.documentElement.scrollWidth <= innerWidth,
-          out: [...document.querySelectorAll(".sc-table tbody tr, .sc-table a, .s1-btn, .s1-cta a, .s1-dl-card, .s1-dl-card a, .s1-notice")]
+          out: [...document.querySelectorAll(".sc-entry, .sc-entry a, .s1-btn, .s1-cta a, .s1-dl-card, .s1-dl-card a, .s1-notice")]
             .filter((e) => { const b = e.getBoundingClientRect(); return b.left < 0 || b.right > innerWidth + 0.5 || b.width === 0; }).length,
         }));
         assert.ok(r.scroll, `${p} 有横向滚动`);
         assert.equal(r.out, 0, `${p} 有元素超出屏幕或被压扁`);
       }
-      if (name !== "电脑") {
-        // 手机上表格每份卡一段：名称一行，日期 · 页数一行，下载一行（S-1 版本表的手机样式，页数列加单位）
-        for (const [p, unit] of [[P, " 页"], ["/en" + P, " pages"]]) {
-          await s.go(p);
-          const r = await s.page.evaluate(() => {
-            const td = document.querySelector(".sc-table tbody td:nth-child(3)");
-            return { after: getComputedStyle(td, "::after").content, dl: getComputedStyle(document.querySelector(".sc-table tbody .s1-dl-col")).display };
-          });
-          assert.equal(r.after, `"${unit}"`, p);
-          assert.equal(r.dl, "block", `${p} 下载列在手机上也显示`);
-        }
+      // 范围说明整句显示（PaperMod 的条目摘要默认两行截断，会截掉「未经核实」）；手机上直链够点
+      for (const p of [P, "/en" + P]) {
+        await s.go(p);
+        const r = await s.page.evaluate(() => ({
+          clipped: [...document.querySelectorAll(".sc-entry .entry-content")].filter((e) => e.scrollHeight > e.clientHeight + 1).length,
+          minLink: Math.min(...[...document.querySelectorAll(".sc-links a")].map((a) => a.getBoundingClientRect().height)),
+        }));
+        assert.equal(r.clipped, 0, `${p} 有范围说明被截断`);
+        assert.ok(r.minLink >= (name === "电脑" ? 32 : 44), `${p} 直链高 ${r.minLink}px`);
       }
       await s.done();
     });
   }
+
+  test(`${engine}：卡片页和 S-1 版本页一样用列表页的灰底`, async (t) => {
+    const s = await open(t, engine, { viewport: { width: 1280, height: 800 } });
+    if (!s) return;
+    const bg = async (p) => { await s.go(p); return s.page.evaluate(() => getComputedStyle(document.body).backgroundColor); };
+    assert.equal(await bg(page(cards[0], "zh")), await bg("/translations/anthropic-s1/v1.1/"));
+    await s.done();
+  });
 
   test(`${engine}：深色模式下载卡片用主题的深色背景`, async (t) => {
     const s = await open(t, engine, { viewport: { width: 1280, height: 800 }, colorScheme: "dark" });

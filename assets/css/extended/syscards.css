@@ -1,3 +1,11 @@
-.sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 24px 0; }
-.sc-cell .sc-title { font-size: 17px; margin: 0; line-height: 1.4; }
-.sc-cell .sc-title a { box-shadow: none; }
+/* Anthropic 系统卡中文译本（layouts/syscards/）：声明框、按钮、下载卡片、权利行沿用 S-1 译本（s1.css），条目用 PaperMod 的 post-entry */
+.sc-entry .entry-header h2 a { box-shadow: none; }
+/* 范围说明要整句显示：PaperMod 的条目摘要默认截成两行 */
+.sc-entry .entry-content { -webkit-line-clamp: unset; display: block; }
+.sc-entry .entry-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.sc-links { display: inline-flex; flex-wrap: wrap; gap: 0 16px; }
+.sc-links a { display: inline-flex; align-items: center; min-height: 32px; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 600px) { .sc-links a { min-height: 44px; } }
+/* 卡片页和 S-1 版本页一样用列表页的灰底（PaperMod 的 .list） */
+body:has(.sc-cardpage) { background: var(--code-bg); }
+[data-theme="dark"] body:has(.sc-cardpage) { background: var(--theme); }
