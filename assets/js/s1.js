@@ -236,6 +236,35 @@
     });
   }
 
+  // 带 #id 打开、目标只在原版里时：滚到目标；加载完成前后一小段时间里，页面若被浏览器拉回目标上方（常是顶部），
+  // 就回到被拉走前的位置（:~:text= 时是 Safari 居中高亮那句话的位置，否则是目标处）。读者自己动过页面就不再管。
+  // iOS Safari 在标签页里第一次用手指点进来时，偶尔在脚本和它自己都滚到位之后又把页面设回 0，且不触发任何脚本调用
+  // （2026-10-29 用户录屏；在 iOS 模拟器里用真实点击复现并记录到 y 1524 → 0）。CI 的浏览器复现不了，
+  // tests/s1-behavior.test.mjs 用加载前后把页面滚回顶部来模拟
+  const keepInView = (el) => {
+    if (!el) return;
+    el.scrollIntoView();
+    let moved = false, done = false;
+    let good = scrollY; // 最近一次在目标处或目标之后的位置
+    const stop = () => { moved = true; };
+    for (const t of ["wheel", "touchstart", "pointerdown", "keydown"]) addEventListener(t, stop, { once: true, passive: true, capture: true });
+    // 目标在屏幕下半以下：被拉回到了目标上方。:~:text= 会把句子滚到屏幕中间，而句子在目标 id 下面，这时目标在屏幕上半
+    const away = () => el.getBoundingClientRect().top > innerHeight / 2;
+    const check = () => {
+      if (moved || done) return;
+      if (!away()) { good = scrollY; return; }
+      if (good > 0) scrollTo({ top: good, behavior: "instant" }); else el.scrollIntoView();
+    };
+    addEventListener("scroll", check, { passive: true });
+    const later = () => {
+      check();
+      requestAnimationFrame(check);
+      for (const ms of [300, 1000]) setTimeout(check, ms);
+      setTimeout(() => { check(); done = true; removeEventListener("scroll", check); }, 1500);
+    };
+    if (document.readyState === "complete") later(); else addEventListener("load", later, { once: true });
+  };
+
   // ---------- 方案 C：重排/原版切换 ----------
   if (sw) {
     sw.addEventListener("click", (e) => {
@@ -256,7 +285,7 @@
     const initial = wantOriginal ? "original" : wantReflow ? "reflow" : saved || (narrow() ? "reflow" : "original");
     if (initial === "original") {
       show("original", false);
-      if (wantOriginal) document.getElementById(hash)?.scrollIntoView();
+      if (wantOriginal) keepInView(document.getElementById(hash));
     }
   }
   if (ibar && new URLSearchParams(location.search).has("read")) enter(false);
