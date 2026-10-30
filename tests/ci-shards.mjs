@@ -17,6 +17,7 @@ export const SECONDS = {
   "s1-behavior.test.mjs": 165, "short-labels.test.mjs": 74, "site.test.mjs": 55, "s1-links.test.mjs": 51,
   "bilingual.test.mjs": 37, "mobile.test.mjs": 15, "browser.test.mjs": 14, "lang-switch.test.mjs": 13,
   "s1.test.mjs": 10, "build.test.mjs": 6, "s1-overlap.test.mjs": 6, "seo.test.mjs": 4,
+  "perf.test.mjs": 45, // PR #67 新增，本地实测约 40 秒
 };
 export const DEFAULT_SECONDS = 10;
 
