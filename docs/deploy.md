@@ -13,7 +13,7 @@
 
 2026-10-30 查了 12 次 Cloudflare 构建：推送后 4–6 分钟才有预览，其中排队 0–3.5 分钟（免费版同一时间只能构建一个，几个分支同时推送就排队，`ci-baselines/*` 这类分支也占位），构建 1.5–3.5 分钟（每次从零把配图转成 WebP）。CI 并行后只要 3 分钟左右，Cloudflare 成了最慢的一环。
 
-在 Actions 里：各 PR 同时构建；复用 CI 的 Hugo 图片缓存（`resources/_gen`，键和 CI 完全相同），有缓存时整站构建几秒；wrangler 只上传内容变了的文件。用 wrangler 上传不受 Cloudflare 构建并发的限制。
+在 Actions 里：各 PR 同时构建；复用 CI 的 Hugo 图片缓存（`resources/_gen`，键和 CI 完全相同，并且跑在同一个 Playwright 容器里：缓存按压缩方式区分，容器里用 gzip、ubuntu-latest 用 zstd，不在同一环境就读不到），有缓存时整站构建几秒；wrangler 只上传内容变了的文件。用 wrangler 上传不受 Cloudflare 构建并发的限制。
 
 ## 预览地址
 
@@ -25,7 +25,7 @@ PR 的预览构建的是 GitHub 的合并预览提交（PR 分支合入当前 ma
 
 ## 令牌
 
-仓库 secret `CLOUDFLARE_API_TOKEN`：在 Cloudflare 后台 My Profile → API Tokens → Create Token → Custom token，权限只选 Account → Cloudflare Pages → Edit，账户资源选本账户。然后在本机：
+仓库 secret `CLOUDFLARE_API_TOKEN`：在 Cloudflare 后台 My Profile → API Tokens → Create Token → Custom token，权限只选 Account → Cloudflare Pages → Edit，资源选本账户（不能选域名 douseful.eu.org：Pages 项目属于账户，限定在域名上的令牌上传时报 Authentication error [code: 10000]）。然后在本机：
 
 ```bash
 gh secret set CLOUDFLARE_API_TOKEN --repo anyingiit/leo-blog   # 按提示粘贴令牌
@@ -39,4 +39,4 @@ gh secret set CLOUDFLARE_API_TOKEN --repo anyingiit/leo-blog   # 按提示粘贴
 
 ## 测试
 
-`tests/deploy.test.mjs` 检查工作流的约定：正式站用 `CF_PAGES_BRANCH=main` 构建并部署到 `main`；预览的站点地址和上传分支名是同一个 `pr-<编号>`；外部 PR 不部署、令牌只给上传步骤；Hugo 缓存键和 CI 相同；wrangler 锁定版本并按锁文件安装。`build.sh` 本身在预览、正式两种模式下的输出由 `tests/site.test.mjs` 检查。
+`tests/deploy.test.mjs` 检查工作流的约定：正式站用 `CF_PAGES_BRANCH=main` 构建并部署到 `main`；预览的站点地址和上传分支名是同一个 `pr-<编号>`；外部 PR 不部署、令牌只给上传步骤；Hugo 缓存键和容器都和 CI 相同；wrangler 锁定版本并按锁文件安装。`build.sh` 本身在预览、正式两种模式下的输出由 `tests/site.test.mjs` 检查。

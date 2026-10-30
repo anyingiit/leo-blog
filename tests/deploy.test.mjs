@@ -30,9 +30,13 @@ test("外部仓库的 PR 不部署；令牌只给上传这一步", () => {
   assert.match(step("Upload to Cloudflare Pages"), /CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
 });
 
-test("和 CI 用同一份 Hugo 图片缓存（键完全相同，部署时能命中）", () => {
+test("和 CI 用同一份 Hugo 图片缓存（键完全相同、同一个容器，部署时能命中）", () => {
   const key = (y) => y.match(/key: (hugo-resources-[^\n]+)\n\s+restore-keys: ([^\n]+)/).slice(1);
   assert.deepEqual(key(wf), key(ci));
+  // 缓存按压缩方式区分版本：容器里没有 zstd 用 gzip，ubuntu-latest 用 zstd，不在同一个容器就读不到 CI 存的缓存
+  const images = (y) => [...y.matchAll(/container:\n\s+image: (\S+)/g)].map((m) => m[1]);
+  assert.equal(images(wf).length, 1);
+  assert.ok(images(ci).includes(images(wf)[0]), "部署任务的容器要和 CI 存缓存的任务一致");
 });
 
 test("wrangler 锁定精确版本，装的就是锁文件里的那一版（npm ci，不跑安装脚本）", () => {
