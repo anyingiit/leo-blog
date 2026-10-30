@@ -1,8 +1,3 @@
-{{- /*
-  Anthropic 系统卡中文译本的栏目页（content/translations/system-cards/_index.md，tools/syscard-import/import.py 生成）。
-  和 S-1 译本首页同一套样式（s1.css）：译者声明、全部系统卡的表格（顺序和 Anthropic 官网系统卡列表相同，导入时写进 weight）、权利行。
-  每份卡自己的页面见 single.html。
-*/ -}}
 {{- define "main" }}
 {{- $en := ne .Lang "zh" }}
 <header class="page-header s1-header">
@@ -10,16 +5,16 @@
   {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
 </header>
 {{- partial "syscards/notice.html" (dict "page" . "card" false) }}
-<h2 id="cards">{{ if $en }}System cards{{ else }}系统卡{{ end }}</h2>
-<table class="s1-versions sc-table">
-  <thead><tr>{{ if $en }}<th>System card</th><th>Published</th><th>Pages</th><th class="s1-dl-col">Full text</th>{{ else }}<th>系统卡</th><th>原版发布</th><th>页数</th><th class="s1-dl-col">全文下载</th>{{ end }}</tr></thead>
-  <tbody>
-  {{- range .Pages.ByWeight }}
-    <tr id="{{ path.Base .RelPermalink }}"><td><a href="{{ .RelPermalink }}">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</a></td>
-      <td>{{ .Params.released }}</td><td>{{ .Params.pages }}</td>
-      <td class="s1-dl-col">{{ partial "syscards/downloads.html" (dict "page" . "style" "line") }}</td></tr>
-  {{- end }}
-  </tbody>
-</table>
+<div class="sc-list">
+{{- range .Pages.ByWeight }}
+  {{- $d := partial "syscards/files.html" . }}
+  <section class="sc-card" id="{{ path.Base .RelPermalink }}">
+    <h2 class="sc-title"><a href="{{ .RelPermalink }}">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</a></h2>
+    <p class="sc-meta">{{ if $en }}Published {{ (time.AsTime .Params.released).Format "January 2, 2006" }} · {{ .Params.pages }} pages{{ else }}<span lang="en">{{ .Params.titleEn }}</span> · 原版 {{ (time.AsTime .Params.released).Format "2006 年 1 月 2 日" }}发布 · {{ .Params.pages }} 页{{ end }}</p>
+    <p class="sc-note">{{ partial "syscards/scope.html" . }}</p>
+    <p class="sc-acts"><a href="{{ $d.html.url }}" target="_blank" rel="noopener">{{ if $en }}Read ↗{{ else }}在线阅读 ↗{{ end }}</a><a href="{{ $d.html.url }}" download="{{ $d.html.name }}">HTML ↓ <small>{{ $d.html.size }}</small></a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}">PDF ↓ <small>{{ $d.pdf.size }}</small></a><a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original ↗{{ else }}英文原版 ↗{{ end }}</a><a href="{{ .RelPermalink }}">{{ if $en }}Translator's notes →{{ else }}译者说明 →{{ end }}</a></p>
+  </section>
+{{- end }}
+</div>
 {{- partial "syscards/rights.html" . }}
 {{- end }}

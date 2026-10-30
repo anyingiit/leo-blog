@@ -1,0 +1,7 @@
+{{- /* 一句话：这份卡由译者另行翻译的范围。传卡片页 */ -}}
+{{- $p := .Params }}{{ $f := $p.facts }}
+{{- if eq .Lang "zh" -}}
+2.2 节（原文第 {{ index $f.s22 0 }}–{{ index $f.s22 1 }} 页）{{ if $f.scattered }}和 {{ $f.scattered }} 个零散段落{{ end }}由译者{{ with $f.s22Model }}使用 {{ . }} {{ end }}另行翻译，未经 Claude 审校。
+{{- else -}}
+Section 2.2 (pp. {{ index $f.s22 0 }}–{{ index $f.s22 1 }}){{ if $f.scattered }} and {{ $f.scattered }} scattered paragraphs{{ end }} translated separately by the translator{{ with $f.s22Model }} using {{ . }}{{ end }}, not reviewed by Claude.
+{{- end -}}

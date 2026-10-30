@@ -1,0 +1,12 @@
+{{- /* 卡片页的简短声明（同 S-1 版本页的 s1-notice-short）：一行要点，展开是完整声明 */ -}}
+{{- $p := .Params }}
+<aside class="s1-notice s1-notice-short" role="note">
+  <details>
+  {{- if eq .Lang "zh" }}
+    <summary><strong>非官方 AI 译本</strong>，与 Anthropic 无关，译文一致性未经人工核对。{{ partial "syscards/scope.html" . }}以 <a href="{{ $p.official }}" rel="noopener">英文原版</a>为准，仅供参考，版权归 Anthropic。<span class="s1-more">完整声明</span></summary>
+  {{- else }}
+    <summary><strong>Unofficial AI translation</strong>, not affiliated with Anthropic; no person has checked it against the original. {{ partial "syscards/scope.html" . }} The <a href="{{ $p.official }}" rel="noopener">English original</a> is authoritative. Rights belong to Anthropic. <span class="s1-more">Full notice</span></summary>
+  {{- end }}
+    {{- partial "syscards/notice.html" (dict "page" . "card" true) }}
+  </details>
+</aside>
