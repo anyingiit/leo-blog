@@ -1,12 +1,1 @@
-.sc-list { display: grid; gap: 14px; margin: 24px 0; }
-.sc-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; background: var(--entry); font-size: 15px; }
-.sc-title { font-size: 20px; margin: 0 0 4px; line-height: 1.4; }
-.sc-title a { box-shadow: none; }
-.sc-meta, .sc-note { margin: 4px 0; color: var(--secondary); line-height: 1.6; }
-.sc-note { font-size: 14px; }
-.sc-acts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; }
-.sc-acts a { text-decoration: underline; text-underline-offset: 3px; }
-.sc-acts small { color: var(--secondary); }
-.sc-more { margin-top: 8px; font-size: 14px; }
-.sc-more summary { cursor: pointer; color: var(--secondary); }
-.sc-more .s1-notice { margin: 8px 0 0; font-size: 14px; background: var(--theme); }
+.sc-entry .entry-content p { -webkit-line-clamp: unset; }

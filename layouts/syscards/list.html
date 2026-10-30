@@ -5,17 +5,14 @@
   {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
 </header>
 {{- partial "syscards/notice.html" (dict "page" . "card" false) }}
-<div class="sc-list">
 {{- range .Pages.ByWeight }}
-  {{- $d := partial "syscards/files.html" . }}
-  <section class="sc-card" id="{{ path.Base .RelPermalink }}">
-    <h2 class="sc-title">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</h2>
-    <p class="sc-meta">{{ if $en }}Published {{ (time.AsTime .Params.released).Format "January 2, 2006" }} · {{ .Params.pages }} pages{{ else }}<span lang="en">{{ .Params.titleEn }}</span> · 原版 {{ (time.AsTime .Params.released).Format "2006 年 1 月 2 日" }}发布 · {{ .Params.pages }} 页{{ end }}</p>
-    <p class="sc-note">{{ partial "syscards/scope.html" . }}</p>
-    <p class="sc-acts"><a href="{{ $d.html.url }}" target="_blank" rel="noopener">{{ if $en }}Read ↗{{ else }}在线阅读 ↗{{ end }}</a><a href="{{ $d.html.url }}" download="{{ $d.html.name }}">HTML ↓ <small>{{ $d.html.size }}</small></a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}">PDF ↓ <small>{{ $d.pdf.size }}</small></a><a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original ↗{{ else }}英文原版 ↗{{ end }}</a></p>
-    <details class="sc-more"><summary>{{ if $en }}Full notice for this card{{ else }}这份卡的完整说明{{ end }}</summary>{{ partial "syscards/notice.html" (dict "page" . "card" true) }}</details>
-  </section>
+{{- $d := partial "syscards/files.html" . }}
+<article class="post-entry sc-entry" id="{{ path.Base .RelPermalink }}">
+  <header class="entry-header"><h2>{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</h2></header>
+  <div class="entry-content"><p>{{ partial "syscards/scope.html" . }}</p></div>
+  <footer class="entry-footer">{{ if $en }}Published {{ .Params.released }} · {{ .Params.pages }} pages · HTML {{ $d.html.size }} · PDF {{ $d.pdf.size }}{{ else }}原版 {{ .Params.released }} 发布 · {{ .Params.pages }} 页 · HTML {{ $d.html.size }} · PDF {{ $d.pdf.size }}{{ end }}</footer>
+  <a class="entry-link" aria-label="{{ .Title }}" href="{{ .RelPermalink }}"></a>
+</article>
 {{- end }}
-</div>
 {{- partial "syscards/rights.html" . }}
 {{- end }}
