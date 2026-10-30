@@ -24,6 +24,12 @@ def front_matter(name):
     return {l.split(": ", 1)[0]: json.loads(l.split(": ", 1)[1]) for l in text.split("\n")[1:]}
 
 
+def cards():
+    """每份卡一个目录（叶子包），按 weight（官网列表的顺序）"""
+    out = [dict(front_matter(f"{d}/index.md"), slug=d) for d in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, d, "index.md"))]
+    return sorted(out, key=lambda c: c["weight"])
+
+
 def render(path):
     doc = pypdfium2.PdfDocument(path)
     out = [(doc[i].render(scale=1).to_pil().tobytes(), doc[i].get_textpage().get_text_range()) for i in range(len(doc))]
@@ -96,42 +102,80 @@ class SlimPdf(unittest.TestCase):
 
 
 class ReadmeParsing(unittest.TestCase):
+    README = ("# 翻译说明\n\n本目录收录 Anthropic《Claude Opus 4.8 System Card》（2026 年 5 月 28 日，246 页）的简体中文译本。\n\n"
+              "- 除下文说明的保留英文部分外，全部正文（1599 个文本单元）和 112 张图片由 Claude Opus 5.5 翻译。\n"
+              "1. **为什么 Claude 不翻译**：2.2 节（化学与生物风险评估，原文第 16–30 页）以及摘要等处的 12 个零散段落（原文第 2、3 页）……\n"
+              "2. **译文来源**：……再由脚本合入：正文 115 个单元，图片 5 张（按标签表重绘）。\n"
+              "- 全卡逐页对照原版做了视觉检查，共发现 71 处问题并逐一修复后复查。\n"
+              "- 文中指向本文档其他章节的内部链接（如「第 4.1 节」）在擦除英文时丢失。\n- 原文中个别 emoji……\n")
+
+    def card(self, readme, d="opus-4.8"):
+        with tempfile.TemporaryDirectory() as t:
+            os.makedirs(os.path.join(t, d))
+            open(os.path.join(t, d, "README.md"), "w", encoding="utf-8").write(readme)
+            open(os.path.join(t, d, "x.html"), "w", encoding="utf-8").write("<title>Claude Opus 4.8 系统卡</title>")
+            open(os.path.join(t, d, "x.pdf"), "wb").write(b"%PDF")
+            return imp.card_info(t, d)
+
     def test_card_info(self):
-        with tempfile.TemporaryDirectory() as d:
-            os.makedirs(os.path.join(d, "opus-4.8"))
-            open(os.path.join(d, "opus-4.8", "README.md"), "w", encoding="utf-8").write(
-                "# 翻译说明\n\n本目录收录 Anthropic《Claude Opus 4.8 System Card》（2026 年 5 月 28 日，246 页）的简体中文译本。\n\n"
-                "1. **为什么 Claude 不翻译**：2.2 节（化学与生物风险评估，原文第 16–30 页）以及摘要等处的 12 个零散段落（原文第 2、3 页）……\n")
-            open(os.path.join(d, "opus-4.8", "x.html"), "w", encoding="utf-8").write("<title>Claude Opus 4.8 系统卡</title>")
-            open(os.path.join(d, "opus-4.8", "x.pdf"), "wb").write(b"%PDF")
-            c = imp.card_info(d, "opus-4.8")
-            self.assertEqual((c["titleEn"], c["released"], c["pages"], c["title"]), ("Claude Opus 4.8 System Card", "2026-05-28", 246, "Claude Opus 4.8 系统卡"))
-            self.assertEqual(c["official"], "https://www.anthropic.com/claude-opus-4-8-system-card")
-            self.assertEqual(c["note"], "2.2 节（原文第 16–30 页）和 12 个零散段落由译者另行翻译，未经 Claude 审校。")
-            self.assertEqual(c["noteEn"], "Section 2.2 (pp. 16–30) and 12 scattered paragraphs were translated separately by the translator and not reviewed by Claude.")
+        c = self.card(self.README)
+        self.assertEqual((c["titleEn"], c["released"], c["pages"], c["title"]), ("Claude Opus 4.8 System Card", "2026-05-28", 246, "Claude Opus 4.8 系统卡"))
+        self.assertEqual(c["official"], "https://www.anthropic.com/claude-opus-4-8-system-card")
+        self.assertEqual(c["facts"], dict(units=1599, images=112, s22=[16, 30], scattered=12, scatteredPages="2、3", s22Units=115, s22Images=5,
+                                          s22Model="", layoutFixes=71, unverifiedNumbers=None, linksLost=True, emoji=True))
+
+    def test_card_info_opus_5_5_wording(self):
+        """Opus 5.5 那份的翻译说明写法不同：2.2 节由发起人用另一个模型翻译、有未核实的数字、没有文本单元数"""
+        c = self.card("本仓库收录 Anthropic《Claude Opus 5.5 System Card》（2026 年 9 月 22 日，230 页）的简体中文译本。\n"
+                      "- **2.2 节**（CB evaluations，原文第 16–33 页，正文 103 个条目和 5 张图）由项目发起人使用 **GPT-6 Astra** 翻译。\n"
+                      "自动校验提示有 3 处原文数字（u00310）未在译文中找到。\n| `pipeline/images/` | 104 张图的重绘规格（spec）与专用重绘工具 |\n", "opus-5.5")
+        f = c["facts"]
+        self.assertEqual((f["units"], f["images"], f["s22"], f["s22Units"], f["s22Images"], f["s22Model"], f["unverifiedNumbers"], f["scattered"]),
+                         (None, 104, [16, 33], 103, 5, "GPT-6 Astra", 3, 0))
+
+    def test_official_order(self):
+        html = ('<a href="https://www.anthropic.com/claude-opus-5-5-system-card">x</a><a href="https://anthropic.com/claude-haiku-5-5-system-card">'
+                '<a href="https://www.anthropic.com/claude-opus-5-5-system-card">dup</a><a href="https://www.anthropic.com/news">')
+        self.assertEqual(imp.official_order(html), ["opus-5-5", "haiku-5-5"])
 
 
 class PublishedFiles(unittest.TestCase):
     """仓库里导入的每份系统卡"""
     zh = front_matter("_index.md")
+    cards = cards()
+
+    def test_pages(self):
+        self.assertGreaterEqual(len(self.cards), 10)
+        self.assertEqual([c["weight"] for c in self.cards], list(range(1, len(self.cards) + 1)))
+        for c in self.cards:
+            en = front_matter(f"{c['slug']}/index.en.md")
+            for k in ("facts", "downloads", "official", "released", "pages", "weight", "sourceCommit"):
+                self.assertEqual(en[k], c[k], f"{c['slug']} {k}")
+            self.assertEqual(c["sourceCommit"], self.zh["sourceCommit"])
+            for path in (f"{c['slug']}/index.md", f"{c['slug']}/index.en.md", "_index.md", "_index.en.md"):
+                text = open(os.path.join(DIR, path), encoding="utf-8").read()
+                self.assertNotIn("github.com", text, f"{path}：译文仓库不公开")
 
     def test_files(self):
-        self.assertEqual(front_matter("_index.en.md")["cards"], self.zh["cards"])
-        for c in self.zh["cards"]:
+        for c in self.cards:
             for kind in ("html", "pdf"):
-                path = os.path.join(DIR, c[kind]["file"])
+                path = os.path.join(DIR, c["slug"], c["downloads"][kind]["file"])
                 data = open(path, "rb").read()
-                self.assertEqual(len(data), c[kind]["bytes"], path)
-                self.assertEqual(hashlib.sha256(data).hexdigest(), c[kind]["sha256"], path)
+                self.assertEqual(len(data), c["downloads"][kind]["bytes"], path)
+                self.assertEqual(hashlib.sha256(data).hexdigest(), c["downloads"][kind]["sha256"], path)
                 self.assertLessEqual(len(data), LIMIT, f"{path} 超过 Cloudflare Pages 单文件上限")
-            self.assertEqual(c["pdf"].get("slimmed", False), c["pdf"].get("sourceBytes", 0) > LIMIT, c["slug"])
+            pdf = c["downloads"]["pdf"]
+            self.assertEqual(pdf.get("slimmed", False), pdf.get("sourceBytes", 0) > LIMIT, c["slug"])
+            self.assertEqual(sorted(os.listdir(os.path.join(DIR, c["slug"], "files"))),
+                             sorted(os.path.basename(c["downloads"][k]["file"]) for k in ("html", "pdf")), "files/ 下只有这两个文件")
 
     def test_pdfs_readable_and_slimmed_ones_have_no_duplicate_images(self):
-        for c in self.zh["cards"]:
-            path = os.path.join(DIR, c["pdf"]["file"])
+        for c in self.cards:
+            path = os.path.join(DIR, c["slug"], c["downloads"]["pdf"]["file"])
             r = pypdf.PdfReader(path)
             self.assertEqual(len(r.pages), c["pages"], f"{c['slug']} 页数与原版不同")
-            if c["pdf"].get("slimmed"):
+            self.assertEqual(len(r.outline) > 0, c["downloads"]["pdf"]["bookmarks"], f"{c['slug']} 书签")
+            if c["downloads"]["pdf"].get("slimmed"):
                 keys = [imp._stream_key(o) for o in images(path)]
                 self.assertEqual(len(keys), len(set(keys)), f"{c['slug']} 还有重复的图片")
 
@@ -140,12 +184,17 @@ class PublishedFiles(unittest.TestCase):
         src = os.environ["SYSCARDS_SRC"]
         commit = subprocess.run(["git", "-C", src, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
         self.assertEqual(commit, self.zh["sourceCommit"], "译文仓库要切到导入时的提交")
-        for c in self.zh["cards"]:
-            orig = os.path.join(src, c["slug"], c["pdf"]["name"])
-            if not c["pdf"].get("slimmed"):
+        for c in self.cards:
+            h = c["downloads"]["html"]
+            self.assertEqual(open(os.path.join(src, c["slug"], h["name"]), "rb").read(), open(os.path.join(DIR, c["slug"], h["file"]), "rb").read(),
+                             f"{c['slug']} HTML 逐字节原样")
+            pdf = c["downloads"]["pdf"]
+            orig = os.path.join(src, c["slug"], pdf["name"])
+            if not pdf.get("slimmed"):
+                self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), pdf["sha256"], f"{c['slug']} 原样复制")
                 continue
-            self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), c["pdf"]["sourceSha256"])
-            mine = os.path.join(DIR, c["pdf"]["file"])
+            self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), pdf["sourceSha256"])
+            mine = os.path.join(DIR, c["slug"], pdf["file"])
             a, b = pypdfium2.PdfDocument(orig), pypdfium2.PdfDocument(mine)
             for i in range(len(a)):
                 self.assertEqual(a[i].render(scale=100 / 72).to_pil().tobytes(), b[i].render(scale=100 / 72).to_pil().tobytes(), f"{c['slug']} 第 {i + 1} 页像素")

@@ -1,24 +1,62 @@
-{{- /* 译者声明（中英文） */ -}}
-{{- $p := .Params }}
-{{- $repo := printf "%s/tree/%s" $p.sourceRepo $p.sourceCommit }}
+{{- /*
+  译者声明，结构和措辞同 S-1 译本（layouts/_partials/s1/notice.html），所有系统卡用同一套措辞。dict "page" 页面 "card"：
+  false  栏目页：全部系统卡共同的情况；true  卡片页：这份卡自己的范围和数字（front matter 的 facts，导入工具从译文仓库的翻译说明里取）。
+  译文仓库不公开，声明里不放仓库链接。
+*/ -}}
+{{- $p := .page.Params }}
+{{- $f := $p.facts }}
+{{- $zh := eq .page.Lang "zh" }}
+{{- $mail := site.Params.s1Contact }}
 <aside class="s1-notice" role="note">
-  {{- if eq .Lang "zh" }}
+{{- if .card }}
+  {{- $rel := time.AsTime $p.released }}
+  {{- if $zh }}
   <p class="s1-notice-title">译者声明（请先阅读）</p>
   <ul>
-    <li>以下是 Anthropic 公开发布的模型系统卡（System Card）的<strong>非官方中文译本</strong>。译者与 Anthropic 没有任何关联，译本未经 Anthropic 审阅或授权。</li>
-    <li><strong>翻译方式：</strong>以原版 PDF 为源，由 Claude Opus 5.5 以多代理方式翻译，经过两轮独立交叉审校和按章终审，图片里的文字也译成中文后重绘。每份卡的 2.2 节（化学与生物风险评估）和部分零散段落会触发 Anthropic 的安全分类器，Claude 无法翻译，由译者另行翻译，未经 Claude 审校。<strong>译文一致性未经人工核对</strong>，可能存在错译、漏译、数字或术语错误。</li>
+    <li>本文是 Anthropic, PBC 于 {{ $rel.Format "2006 年 1 月 2 日" }}发布的《{{ $p.titleEn }}》（{{ $p.pages }} 页）的<strong>非官方中文译本</strong>。译者与 Anthropic 没有任何关联，本译本未经 Anthropic 审阅或授权。</li>
+    <li><strong>翻译方式：</strong>以原版 PDF 为源，除下一条所说的部分外，全部正文{{ with $f.units }}（{{ . }} 个文本单元）{{ end }}和 {{ $f.images }} 张图片由 Claude Opus 5.5 以多代理方式翻译，经过两轮独立交叉审校和按章终审，图片里的文字译成中文后重绘。<strong>人工没有检查译文与原文的一致性</strong>，译文可能存在错译、漏译、数字或术语错误。</li>
+    <li><strong>译者另行翻译的部分：</strong>2.2 节（化学与生物风险评估，原文第 {{ index $f.s22 0 }}–{{ index $f.s22 1 }} 页）{{ if $f.scattered }}和 {{ $f.scattered }} 个零散段落（原文第 {{ $f.scatteredPages }} 页）{{ end }}会触发 Anthropic 的安全分类器，Claude 无法翻译，由译者{{ with $f.s22Model }}使用 {{ . }} {{ end }}另行翻译后用脚本合入（正文 {{ $f.s22Units }} 个单元、图片 {{ $f.s22Images }} 张）。Claude 没有阅读或审校这部分；脚本只检查格式和数字，不检查语义，排版也没有逐页对照原版检查。这部分的术语和文风可能与其他章节不一致。{{ with $f.unverifiedNumbers }}自动校验提示有 {{ . }} 处原文数字在译文中找不到，未经核实。{{ end }}</li>
+    <li><strong>版式：</strong>在原版 PDF 每一页上擦除英文、在原位置排入中文，页码和图表位置与原版一一对应{{ with $f.layoutFixes }}；逐页对照原版检查，发现 {{ . }} 处问题并已修复{{ end }}。中文比英文短，不少页面的段落之间留有空白。{{ if $f.linksLost }}文中指向其他章节的内部链接只保留文字，不可点击。{{ end }}{{ if $f.emoji }}个别 emoji 和对话记录里高亮标记的底色可能缺失或与原版不同。{{ end }}</li>
+    <li><strong>原文：</strong><a href="{{ $p.official }}" rel="noopener">Anthropic 官网</a>。<strong>译本：</strong>{{ $p.sourceDate }} 定稿。</li>
     <li>译文仅供参考，一切以 Anthropic 官网的英文原版为准。译者不对译文的准确性、完整性及任何使用后果承担责任。</li>
-    <li>原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 所有。如权利人认为本文不宜公开，请{{ with site.Params.s1Contact }}发邮件到 <a href="mailto:{{ . }}">{{ . }}</a>{{ end }}，我会立即删除。</li>
-    <li><strong>译本来源：</strong>GitHub 仓库 <a href="{{ $repo }}" rel="noopener">anthropic-system-cards-zh</a>（{{ $p.sourceDate }} 的版本 <code>{{ substr $p.sourceCommit 0 7 }}</code>），另有 Markdown 版本和全部翻译工程文件。</li>
+    <li>原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 所有。如权利人认为本文不宜公开，请{{ with $mail }}发邮件到 <a href="mailto:{{ . }}">{{ . }}</a>{{ end }}，我会立即删除。</li>
   </ul>
   {{- else }}
   <p class="s1-notice-title">Translator's notice</p>
   <ul>
-    <li>These are <strong>unofficial Chinese translations</strong> of model system cards published by Anthropic. The translator has no affiliation with Anthropic, and the translations have not been reviewed or authorized by Anthropic.</li>
-    <li><strong>Method:</strong> translated from the original PDFs by Claude Opus 5.5 working as multiple agents, with two rounds of independent cross-review and a chapter-by-chapter final pass; text inside figures was translated and redrawn. Section 2.2 of each card (chemical and biological risk evaluations) and some scattered paragraphs trigger Anthropic's safety classifiers, so Claude could not translate them; the translator translated them separately and Claude did not review them. <strong>No person has checked whether the translations are consistent with the originals</strong>, so they may contain mistranslations, omissions, or errors in numbers and terms.</li>
-    <li>The translations are for reference only. The English originals on Anthropic's website are authoritative. The translator accepts no liability for their accuracy, completeness, or use.</li>
-    <li>All rights in the originals, including text, figures and trademarks, belong to Anthropic, PBC. Takedown requests: {{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}.</li>
-    <li><strong>Source:</strong> GitHub repository <a href="{{ $repo }}" rel="noopener">anthropic-system-cards-zh</a> (commit <code>{{ substr $p.sourceCommit 0 7 }}</code>, {{ $p.sourceDate }}), which also has Markdown versions and all translation project files.</li>
+    <li>This is an <strong>unofficial Chinese translation</strong> of the {{ $p.titleEn }} ({{ $p.pages }} pages), published by Anthropic, PBC on {{ $rel.Format "January 2, 2006" }}. The translator has no affiliation with Anthropic, and the translation has not been reviewed or authorized by Anthropic.</li>
+    <li><strong>Method:</strong> translated from the original PDF. Except for the parts described in the next item, all body text{{ with $f.units }} ({{ . }} text units){{ end }} and {{ $f.images }} figures were translated by Claude Opus 5.5 working as multiple agents, with two rounds of independent cross-review and a chapter-by-chapter final pass; text inside figures was translated and redrawn. <strong>No person has checked whether the translation is consistent with the original</strong>, so it may contain mistranslations, omissions, or errors in numbers and terms.</li>
+    <li><strong>Parts translated separately by the translator:</strong> Section 2.2 (chemical and biological risk evaluations, pp. {{ index $f.s22 0 }}–{{ index $f.s22 1 }}){{ if $f.scattered }} and {{ $f.scattered }} scattered paragraphs (pp. {{ replace $f.scatteredPages "、" ", " }}){{ end }} trigger Anthropic's safety classifiers, so Claude could not translate them. The translator translated them separately{{ with $f.s22Model }} using {{ . }}{{ end }}, and a script merged them in ({{ $f.s22Units }} text units, {{ $f.s22Images }} figures). Claude did not read or review these parts; the script checked only format and numbers, not meaning, and their layout was not compared page by page with the original. Their terminology and style may differ from the other chapters.{{ with $f.unverifiedNumbers }} Automatic checks flagged {{ . }} numbers in the original that could not be found in the translation; they have not been verified.{{ end }}</li>
+    <li><strong>Layout:</strong> the English text on each page of the original PDF was erased and the Chinese set in its place, so pages and figure positions match the original{{ with $f.layoutFixes }}; a page-by-page comparison with the original found {{ . }} problems, all fixed{{ end }}. Chinese is shorter than English, so many pages have blank space between paragraphs.{{ if $f.linksLost }} Cross-references to other sections keep their text but are not clickable.{{ end }}{{ if $f.emoji }} A few emoji and the highlight colors in transcripts may be missing or differ from the original.{{ end }}</li>
+    <li><strong>Original:</strong> <a href="{{ $p.official }}" rel="noopener">Anthropic's website</a>. <strong>Translation:</strong> finalized {{ $p.sourceDate }}.</li>
+    <li>The translation is for reference only. The English original on Anthropic's website is authoritative. The translator accepts no liability for its accuracy, completeness, or use.</li>
+    <li>All rights in the original, including text, figures and trademarks, belong to Anthropic, PBC. Takedown requests: {{ with $mail }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}.</li>
   </ul>
   {{- end }}
+{{- else }}
+  {{- $n := len .page.Pages }}
+  {{- if $zh }}
+  <p class="s1-notice-title">译者声明（请先阅读）</p>
+  <ul>
+    <li>以下是 Anthropic, PBC 发布的 {{ $n }} 份 Claude 模型系统卡（System Card）的<strong>非官方中文译本</strong>。译者与 Anthropic 没有任何关联，译本未经 Anthropic 审阅或授权。</li>
+    <li><strong>翻译方式：</strong>以原版 PDF 为源，由 Claude Opus 5.5 以多代理方式翻译，经过两轮独立交叉审校和按章终审，图片里的文字译成中文后重绘。<strong>人工没有检查译文与原文的一致性</strong>，译文可能存在错译、漏译、数字或术语错误。</li>
+    <li><strong>译者另行翻译的部分：</strong>每份卡的 2.2 节（化学与生物风险评估），以及部分卡里的少量零散段落，会触发 Anthropic 的安全分类器，Claude 无法翻译，由译者另行翻译，未经 Claude 审校。各卡的具体范围写在该卡的页面上。</li>
+    <li><strong>版式：</strong>PDF 在原版每一页上排入中文，与原版逐页对应；HTML 是同一份译文按屏幕宽度重排的版本。</li>
+    <li><strong>译本：</strong>{{ $p.sourceDate }} 定稿。</li>
+    <li>译文仅供参考，一切以 Anthropic 官网的英文原版为准。译者不对译文的准确性、完整性及任何使用后果承担责任。</li>
+    <li>原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 所有。如权利人认为本文不宜公开，请{{ with $mail }}发邮件到 <a href="mailto:{{ . }}">{{ . }}</a>{{ end }}，我会立即删除。</li>
+  </ul>
+  {{- else }}
+  <p class="s1-notice-title">Translator's notice</p>
+  <ul>
+    <li>These are <strong>unofficial Chinese translations</strong> of {{ $n }} Claude model system cards published by Anthropic, PBC. The translator has no affiliation with Anthropic, and the translations have not been reviewed or authorized by Anthropic.</li>
+    <li><strong>Method:</strong> translated from the original PDFs by Claude Opus 5.5 working as multiple agents, with two rounds of independent cross-review and a chapter-by-chapter final pass; text inside figures was translated and redrawn. <strong>No person has checked whether the translations are consistent with the originals</strong>, so they may contain mistranslations, omissions, or errors in numbers and terms.</li>
+    <li><strong>Parts translated separately by the translator:</strong> Section 2.2 of each card (chemical and biological risk evaluations), and a few scattered paragraphs in some cards, trigger Anthropic's safety classifiers, so Claude could not translate them. The translator translated them separately, and Claude did not review them. Each card's page lists exactly which parts.</li>
+    <li><strong>Layout:</strong> the PDFs set the Chinese on each page of the original, page for page; the HTML files are the same translations reflowed to the screen width.</li>
+    <li><strong>Translations:</strong> finalized {{ $p.sourceDate }}.</li>
+    <li>The translations are for reference only. The English originals on Anthropic's website are authoritative. The translator accepts no liability for their accuracy, completeness, or use.</li>
+    <li>All rights in the originals, including text, figures and trademarks, belong to Anthropic, PBC. Takedown requests: {{ with $mail }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}.</li>
+  </ul>
+  {{- end }}
+{{- end }}
 </aside>

@@ -1,0 +1,22 @@
+{{- /*
+  一份系统卡的页面（content/translations/system-cards/<目录名>/index.md，导入工具生成），和 S-1 译本首页同一套样式：
+  返回栏目的面包屑、标题、这份卡的译者声明（措辞统一在 notice.html，具体数字来自 front matter 的 facts）、
+  「在线阅读」按钮和英文原版链接、HTML/PDF 下载卡片、权利行。
+  在线阅读打开的就是译文仓库的单文件 HTML，逐字节原样，不套本站版面。
+*/ -}}
+{{- define "main" }}
+{{- $en := ne .Lang "zh" }}
+{{- $dl := partial "syscards/files.html" . }}
+<header class="page-header s1-header">
+  {{- with .Parent }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
+  <h1>{{ .Title }}</h1>
+  {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+</header>
+{{- partial "syscards/notice.html" (dict "page" . "card" true) }}
+<div class="s1-cta">
+  <a class="s1-btn" href="{{ $dl.html.url }}" target="_blank" rel="noopener">{{ if $en }}Read the Chinese translation{{ else }}在线阅读{{ end }}</a>
+  <a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original (Anthropic){{ else }}英文原版（Anthropic）{{ end }}</a>
+</div>
+{{- partial "syscards/downloads.html" (dict "page" . "style" "cards") }}
+{{- partial "syscards/rights.html" . }}
+{{- end }}

@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""导入 Anthropic 系统卡中文译本（GitHub 仓库 anyingiit/anthropic-system-cards-zh）。
+"""导入 Anthropic 系统卡中文译本（译文仓库 anyingiit/anthropic-system-cards-zh，不公开）。
 
-用法：python3 tools/syscard-import/import.py <译文仓库的本地克隆> [--date 2026-10-30]
+用法：python3 tools/syscard-import/import.py <译文仓库的本地克隆> --date 2026-10-30 [--check-links]
 
-译文仓库每份系统卡一个目录，里面有单文件 HTML、PDF、Markdown 和 README（翻译说明）。本站只做发布，不改译文：
-  content/translations/system-cards/files/<目录名>.html.raw   HTML 逐字节原样（网站上发布为 .html，在线阅读就是它）
-  content/translations/system-cards/files/<目录名>.pdf        PDF：不超过 Cloudflare Pages 单文件上限的原样复制；
-                                                                超过的做无损瘦身（见 slim_pdf），页面渲染逐像素不变
-  content/translations/system-cards/_index.md / _index.en.md  front matter 的 cards 列表（模板 layouts/syscards/list.html 读取）
-每份卡的标题、原版日期、页数、2.2 节说明取自该卡 README 和 HTML 的 <title>；英文原版地址按 Anthropic 官网的命名规则
-（https://www.anthropic.com/claude-<目录名，点换成横线>-system-card）拼出，导入时加 --check-links 联网逐个确认能打开。
-重新导入（译文仓库更新后）会整体覆盖上面这些文件，_index 的正文不保留：要改说明文字就改这个脚本。
+译文仓库每份系统卡一个目录，里面有单文件 HTML、PDF、Markdown 和 README（翻译说明）。本站只做发布，不改译文。
+每份卡生成一个页面（叶子包），顺序和 Anthropic 官网系统卡列表（INDEX_URL）相同，写进 weight：
+  content/translations/system-cards/<目录名>/index.md / index.en.md        front matter：原名、发布日期、页数、英文原版地址、
+                                                                           facts（译者声明用到的数字）、downloads（文件、大小、SHA-256）
+  content/translations/system-cards/<目录名>/files/claude-<名>-system-card-zh.html.raw   HTML 逐字节原样（网站上发布为 .html）
+  content/translations/system-cards/<目录名>/files/claude-<名>-system-card-zh.pdf        PDF：不超过 Cloudflare Pages 单文件上限的
+                                                                           原样复制；超过的做无损瘦身（见 slim_pdf），渲染逐像素不变
+  content/translations/system-cards/_index.md / _index.en.md               栏目页（layouts/syscards/list.html）
+facts 取自该卡 README，标题取自 HTML 的 <title>；声明的措辞统一在 layouts/_partials/syscards/notice.html。
+译文仓库不公开，页面上不放仓库链接。英文原版地址按官网命名规则（https://www.anthropic.com/claude-<目录名，点换成横线>-system-card）拼出，
+--check-links 联网逐个确认能打开。重新导入会整体覆盖上面这些文件：要改说明文字就改模板或这个脚本。
 """
 import argparse, hashlib, json, os, re, shutil, subprocess, sys, urllib.parse, urllib.request
 
@@ -19,7 +22,6 @@ import pikepdf
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 OUT = os.path.join(REPO, "content/translations/system-cards")
-GITHUB = "https://github.com/anyingiit/anthropic-system-cards-zh"
 LIMIT = 25 * 1024 * 1024  # Cloudflare Pages 单个文件上限 25 MiB
 
 
@@ -138,6 +140,7 @@ RE_MODEL = re.compile(r"由项目发起人使用 \*\*(.+?)\*\* 翻译")
 
 
 def card_info(src, d):
+    """从该卡 README（翻译说明）和 HTML 的 <title> 取页面要用的事实；措辞统一由模板（layouts/_partials/syscards/notice.html）决定"""
     readme = open(os.path.join(src, d, "README.md"), encoding="utf-8").read()
     m = RE_HEAD.search(readme)
     if not m:
@@ -152,27 +155,39 @@ def card_info(src, d):
     s22 = RE_22.search(readme)
     if not s22:
         sys.exit(f"{d}/README.md 里找不到 2.2 节的原文页码")
-    sc = RE_SCATTER.search(readme)
+    num = lambda pat: (lambda m: int(m.group(1)) if m else None)(re.search(pat, readme))
+    sc = re.search(r"(\d+) 个零散段落（原文第 ([^）]+) 页）", readme)
     model = RE_MODEL.search(readme)
-    p1, p2 = s22.groups()
-    zh = f"2.2 节（原文第 {p1}–{p2} 页）"
-    en = f"Section 2.2 (pp. {p1}–{p2})"
-    if sc:
-        zh += f"和 {sc.group(1)} 个零散段落"
-        en += f" and {sc.group(1)} scattered paragraphs"
-    zh += f"由译者{'使用 ' + model.group(1) + ' ' if model else '另行'}翻译，未经 Claude 审校。"
-    en += f" {'were' if sc else 'was'} translated separately by the translator{' with ' + model.group(1) if model else ''} and not reviewed by Claude."
+    m22 = re.search(r"正文 (\d+) 个(?:单元|条目)[，和]\s*(?:图片 )?(\d+) 张", readme)
+    facts = dict(
+        units=num(r"全部正文（(\d+) 个文本单元）"), images=num(r"个文本单元）和 (\d+) 张图片") or num(r"(\d+) 张图的重绘规格"),
+        s22=[int(s22.group(1)), int(s22.group(2))],
+        scattered=int(sc.group(1)) if sc else 0, scatteredPages=sc.group(2) if sc else "",
+        s22Units=int(m22.group(1)) if m22 else None, s22Images=int(m22.group(2)) if m22 else None,
+        s22Model=model.group(1) if model else "",
+        layoutFixes=num(r"共发现 (\d+) 处问题"), unverifiedNumbers=num(r"有 (\d+) 处原文数字"),
+        linksLost="内部链接" in readme, emoji="emoji" in readme)
     official = f"https://www.anthropic.com/claude-{d.replace('.', '-')}-system-card"  # 官网按目录名同样的规则命名
     return dict(slug=d, title=title, titleEn=title_en, released=f"{y}-{int(mo):02d}-{int(da):02d}", pages=int(pages),
-                note=zh, noteEn=en, official=official, html=htmls[0], pdf=pdfs[0])
+                official=official, html=htmls[0], pdf=pdfs[0], facts=facts)
 
 
-def write_index(path, fm, body=""):
-    lines = ["---"]
-    for k, v in fm.items():
-        lines.append(f"{k}: {json.dumps(v, ensure_ascii=False)}")
-    lines.append("---")
+def write_page(path, fm, body=""):
+    """front matter 每项一行 JSON（YAML 的子集，测试按行解析）"""
+    lines = ["---"] + [f"{k}: {json.dumps(v, ensure_ascii=False)}" for k, v in fm.items()] + ["---"]
     open(path, "w", encoding="utf-8").write("\n".join(lines) + "\n" + body)
+
+
+INDEX_URL = "https://www.anthropic.com/system-cards"
+
+
+def official_order(html):
+    """Anthropic 官网系统卡列表（INDEX_URL）里各卡出现的顺序：地址里的 claude-<名>-system-card"""
+    order = []
+    for m in re.finditer(r'href="https?://(?:www\.)?anthropic\.com/claude-([a-z0-9-]+)-system-card"', html):
+        if m.group(1) not in order:
+            order.append(m.group(1))
+    return order
 
 
 def main():
@@ -183,23 +198,34 @@ def main():
     a = ap.parse_args()
     git = lambda *args: subprocess.run(["git", "-C", a.src, *args], capture_output=True, text=True, check=True).stdout.strip()
     if git("status", "--porcelain"):
-        sys.exit("译文仓库有未提交的改动：只从已提交的版本导入，网站上的文件才能和 GitHub 上的对应")
+        sys.exit("译文仓库有未提交的改动：只从已提交的版本导入，网站上的文件才能和译文仓库的版本对应")
     commit = git("rev-parse", "HEAD")
     commit_date = git("show", "-s", "--format=%cs", "HEAD")
     dirs = sorted(d for d in os.listdir(a.src) if os.path.isfile(os.path.join(a.src, d, "README.md")) and d != "shared-pipeline")
     cards = [card_info(a.src, d) for d in dirs]
-    cards.sort(key=lambda c: c["released"], reverse=True)
 
-    files = os.path.join(OUT, "files")
-    shutil.rmtree(files, ignore_errors=True)
-    os.makedirs(files)
-    out = []
-    for c in cards:
+    # 顺序和 Anthropic 官网的系统卡列表相同（用户 2026-10-30）
+    req = urllib.request.Request(INDEX_URL, headers={"User-Agent": "Mozilla/5.0"})
+    order = official_order(urllib.request.urlopen(req).read().decode("utf-8"))
+    names = {c["slug"]: c["slug"].replace(".", "-") for c in cards}
+    missing = [d for d, n in names.items() if n not in order]
+    if missing:
+        sys.exit(f"官网系统卡列表里找不到：{missing}")
+    cards.sort(key=lambda c: order.index(names[c["slug"]]))
+
+    for d in os.listdir(OUT) if os.path.isdir(OUT) else []:
+        if os.path.isdir(os.path.join(OUT, d)):
+            shutil.rmtree(os.path.join(OUT, d))
+    os.makedirs(OUT, exist_ok=True)
+    for weight, c in enumerate(cards, 1):
         d = c["slug"]
+        base = f"claude-{names[d]}-system-card-zh"  # 网址里的文件名；下载时用译文仓库的原文件名
+        page = os.path.join(OUT, d)
+        os.makedirs(os.path.join(page, "files"))
         h_src, p_src = os.path.join(a.src, d, c["html"]), os.path.join(a.src, d, c["pdf"])
-        h_dst, p_dst = os.path.join(files, d + ".html.raw"), os.path.join(files, d + ".pdf")
+        h_dst, p_dst = os.path.join(page, "files", base + ".html.raw"), os.path.join(page, "files", base + ".pdf")
         shutil.copyfile(h_src, h_dst)
-        pdf = dict(file=f"files/{d}.pdf", name=c["pdf"])
+        pdf = dict(file=f"files/{base}.pdf", name=c["pdf"])
         if os.path.getsize(p_src) > LIMIT:
             n = slim_pdf(p_src, p_dst)
             pdf.update(slimmed=True, sourceBytes=os.path.getsize(p_src), sourceSha256=sha256(p_src))
@@ -208,27 +234,34 @@ def main():
                 sys.exit(f"{d}: 无损瘦身后仍超过 25 MiB，需要另想办法")
         else:
             shutil.copyfile(p_src, p_dst)
-        pdf.update(bytes=os.path.getsize(p_dst), sha256=sha256(p_dst))
-        html = dict(file=f"files/{d}.html.raw", name=c["html"], bytes=os.path.getsize(h_dst), sha256=sha256(h_dst))
+        pdf.update(bytes=os.path.getsize(p_dst), sha256=sha256(p_dst), bookmarks=len(pikepdf.open(p_dst).open_outline().root) > 0)
+        html = dict(file=f"files/{base}.html.raw", name=c["html"], bytes=os.path.getsize(h_dst), sha256=sha256(h_dst))
         if a.check_links:
-            req = urllib.request.Request(c["official"], headers={"User-Agent": "Mozilla/5.0"})
-            if urllib.request.urlopen(req).status != 200:
+            r = urllib.request.Request(c["official"], headers={"User-Agent": "Mozilla/5.0"})
+            if urllib.request.urlopen(r).status != 200:
                 sys.exit(f"英文原版打不开：{c['official']}")
-        out.append(dict(slug=d, title=c["title"], titleEn=c["titleEn"], released=c["released"], pages=c["pages"],
-                        note=c["note"], noteEn=c["noteEn"], official=c["official"],
-                        readme=f"{GITHUB}/tree/{commit}/{urllib.parse.quote(d)}", html=html, pdf=pdf))
+        fm = dict(titleEn=c["titleEn"], released=c["released"], pages=c["pages"], official=c["official"], date=a.date, weight=weight, sourceCommit=commit, sourceDate=commit_date,
+                  facts=c["facts"], downloads=dict(html=html, pdf=pdf))
+        write_page(os.path.join(page, "index.md"), dict(
+            title=c["title"] + "中文译本",
+            description=f"Anthropic《{c['titleEn']}》（{c['released']}，{c['pages']} 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
+            **fm))
+        write_page(os.path.join(page, "index.en.md"), dict(
+            title=f"{c['titleEn']} — Unofficial Chinese Translation",
+            description=f"An unofficial, AI-produced Chinese translation of Anthropic's {c['titleEn']} ({c['released']}, {c['pages']} pages).",
+            **fm))
 
-    common = dict(type="syscards", date=a.date, sourceRepo=GITHUB, sourceCommit=commit, sourceDate=commit_date,
-                  ShowReadingTime=False, ShowWordCount=False, hideAuthor=True)
-    write_index(os.path.join(OUT, "_index.md"), dict(
+    common = dict(type="syscards", date=a.date, sourceCommit=commit, sourceDate=commit_date,
+                  cascade=dict(type="syscards"), ShowReadingTime=False, ShowWordCount=False, hideAuthor=True)
+    write_page(os.path.join(OUT, "_index.md"), dict(
         title="Anthropic 系统卡中文译本",
-        description=f"Anthropic 发布的 {len(out)} 份 Claude 模型系统卡（System Card）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
-        **common, cards=out))
-    write_index(os.path.join(OUT, "_index.en.md"), dict(
+        description=f"Anthropic 发布的 {len(cards)} 份 Claude 模型系统卡（System Card）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
+        **common))
+    write_page(os.path.join(OUT, "_index.en.md"), dict(
         title="Anthropic System Cards — Unofficial Chinese Translations",
-        description=f"Unofficial, AI-produced Chinese translations of {len(out)} Claude model system cards published by Anthropic.",
-        **common, cards=out))
-    print(f"导入 {len(out)} 份系统卡，译文仓库提交 {commit[:7]}（{commit_date}）")
+        description=f"Unofficial, AI-produced Chinese translations of {len(cards)} Claude model system cards published by Anthropic.",
+        **common))
+    print(f"导入 {len(cards)} 份系统卡，译文仓库提交 {commit[:7]}（{commit_date}）")
 
 
 if __name__ == "__main__":
