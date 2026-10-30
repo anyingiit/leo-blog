@@ -1,8 +1,8 @@
 # Leoblog
 
-Hugo + [PaperMod](https://github.com/adityatelange/hugo-PaperMod) 静态博客，部署在 Cloudflare Pages（push 到 `main` 即发布）。
+Hugo + [PaperMod](https://github.com/adityatelange/hugo-PaperMod) 静态博客，部署在 Cloudflare Pages（push 到 `main` 即发布；在 GitHub Actions 里构建后上传，见 [docs/deploy.md](docs/deploy.md)）。
 
-CF Pages 构建命令为 `bash build.sh`：`main` 按 `hugo.yaml` 的 `baseURL` 生成，其他分支的预览构建改用 `$CF_PAGES_URL`，保证预览站内链接不跳回主站。
+构建命令为 `bash build.sh`：`main` 按 `hugo.yaml` 的 `baseURL` 生成，其他分支的预览构建改用 `$CF_PAGES_URL`，保证预览站内链接不跳回主站。
 
 Hugo 版本只锁在 `build.sh` 的 `HUGO_VERSION`（当前 0.158.0，即 PaperMod 自己的 CI 所用版本）：CF Pages 和 CI 都跑 `build.sh`，版本不符时脚本会下载官方二进制并校验 sha256，CF 后台的 `HUGO_VERSION` 环境变量不起作用。升级时改该变量及同文件里的 sha256 即可。
 
@@ -25,7 +25,7 @@ hugo new notes/<slug>.md   # 短文（随笔、感想）
 
 Markdown 扩展：`$...$` / `$$...$$` 数学公式（构建期 KaTeX）、` ```mermaid ` 图、`> [!NOTE]` 提示框。语法样例见 `content/posts/markdown-test/`（草稿，不发布）。
 
-PR 预览：Cloudflare Pages 会为每个 PR 分支部署预览，`.github/workflows/pages-preview-comment.yml` 从 CF 的 check run 中取出预览链接，写进 PR 的一条固定评论（每次 push 原地更新）。
+PR 预览：`.github/workflows/deploy.yml` 为每个 PR 构建并部署预览（`pr-<编号>.leo-blog-bgy.pages.dev`），链接写进 PR 的一条固定评论（每次 push 原地更新），见 [docs/deploy.md](docs/deploy.md)。
 
 正文里的美元金额要写成 `\$30`：同一段里出现两个 `$` 时，中间的文字会被当成公式渲染。
 
