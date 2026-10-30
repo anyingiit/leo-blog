@@ -4,8 +4,9 @@
 // “Scott Booth”“Anthropic, PBC”合成一段、段宽等于原文字宽）：Mac 上的 Georgia 比测量时宽一丝，
 // 就多折一行，压在下一行“548 Market Street”上（v1.1，译文仓库 v1.1.1 修正）。
 //
-// CI 里没有 Georgia：用字宽与它相同的 Gelasio（OFL，tests/fixtures/fonts/gelasio）顶替，
-// 再给译文文字块加 0.02em 字距，模拟比测量时略宽的字体。最新版本的冻结 HTML 在原字距和加宽后都必须 0 处重叠；
+// 结果取决于字宽，所以不用机器上装的字体：页面用到的每个字体名都换成 tests/fixtures/fonts 里的文件
+// （Georgia → 字宽相同的 Gelasio，Times New Roman/Helvetica → Liberation，中文 → Noto CJK 子集，见那里的 README），
+// 本地和 CI 结果一致。再给译文文字块加 0.02em 字距，模拟比测量时略宽的字体。最新版本的冻结 HTML 在原字距和加宽后都必须 0 处重叠；
 // 反向验证：同样的检查在 v1.1 上要找出已知的 3 处（第 1 页两处、第 2 页标题一处），证明它查得出问题。
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
@@ -17,7 +18,18 @@ import { root } from "./helpers.mjs";
 const S1 = join(root, "content/translations/anthropic-s1");
 const LATEST = readFileSync(join(S1, "_index.md"), "utf8").match(/^latest: (\S+)$/m)[1];
 const frozen = (v) => join(S1, v, "files", `anthropic-s1-zh-unofficial-${v}.html.raw`);
-const FONTS = join(root, "tests/fixtures/fonts/gelasio");
+const FONTS = join(root, "tests/fixtures/fonts");
+const W = [[400, "normal"], [700, "normal"], [400, "italic"], [700, "italic"]];
+const face = (family, file, w, s) => `@font-face{font-family:'${family}';font-weight:${w};font-style:${s};src:url(/fonts/${file})}`;
+const FACES = [
+  ...W.map(([w, s]) => face("Georgia", `gelasio/gelasio-latin-${w}-${s}.woff2`, w, s)),
+  ...W.map(([w, s]) => face("Times New Roman", `liberation/LiberationSerif-${{ "400normal": "Regular", "700normal": "Bold", "400italic": "Italic", "700italic": "BoldItalic" }[w + s]}.woff2`, w, s)),
+  ...[400, 700].map((w) => face("Helvetica", `liberation/LiberationSans-${w === 700 ? "Bold" : "Regular"}.woff2`, w, "normal")),
+  ...["Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun"].flatMap((f) =>
+    [400, 700].map((w) => face(f, `noto-cjk/NotoSerifCJK-${w === 700 ? "Bold" : "Regular"}-s1.woff2`, w, "normal"))),
+  ...["PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Noto Sans CJK SC", "Microsoft YaHei"].flatMap((f) =>
+    [400, 700].map((w) => face(f, `noto-cjk/NotoSansCJK-${w === 700 ? "Bold" : "Regular"}-s1.woff2`, w, "normal"))),
+].join("");
 
 let browser;
 before(async () => { browser = await chromium.launch(); });
@@ -29,18 +41,22 @@ async function overlaps(file, spacings, maxPages = Infinity) {
   await page.route("**/*", (r) => {
     const u = new URL(r.request().url());
     if (u.pathname === "/s1.html") return r.fulfill({ contentType: "text/html; charset=utf-8", body: readFileSync(file) });
-    if (u.pathname.startsWith("/fonts/")) return r.fulfill({ contentType: "font/woff2", body: readFileSync(join(FONTS, u.pathname.slice(7))) });
+    if (u.pathname.startsWith("/fonts/")) return r.fulfill({ contentType: "font/woff2", body: readFileSync(join(FONTS, decodeURIComponent(u.pathname.slice(7)))) });
     return r.abort();
   });
   await page.goto("http://s1.test/s1.html", { waitUntil: "load", timeout: 300000 });
   await page.evaluate((max) => {
     [...document.querySelectorAll('div[style*="margin:10px auto"]')].slice(max).forEach((p) => p.remove());
   }, Number.isFinite(maxPages) ? maxPages : 1e9);
-  const faces = [[400, "normal"], [700, "normal"], [400, "italic"], [700, "italic"]]
-    .map(([w, s]) => `@font-face{font-family:'Georgia';font-weight:${w};font-style:${s};src:url(/fonts/gelasio-latin-${w}-${s}.woff2)}`).join("");
-  await page.addStyleTag({ content: faces + "div.zh{letter-spacing:var(--s1-test-spacing,0)}" +
+  await page.addStyleTag({ content: FACES + "div.zh{letter-spacing:var(--s1-test-spacing,0)}" +
     // 冻结文件给每页设了 content-visibility:auto，屏幕外的页不排版、量不到，测试时全部排出来
     "[style*='content-visibility']{content-visibility:visible!important}" });
+  // 先把所有替换字体都加载完，避免量到系统字体的字宽
+  const failed = await page.evaluate(async () => {
+    await Promise.allSettled([...document.fonts].map((f) => f.load()));
+    return [...document.fonts].filter((f) => f.status !== "loaded").map((f) => f.family);
+  });
+  assert.deepEqual(failed, [], "测试字体没有加载成功");
   const out = {};
   for (const sp of spacings) {
     out[sp] = await page.evaluate(async (sp) => {
@@ -81,6 +97,14 @@ async function overlaps(file, spacings, maxPages = Infinity) {
   await page.close();
   return out;
 }
+
+test("测试用的中文字体子集包含最新版本用到的全部字符", () => {
+  const have = new Set(readFileSync(join(FONTS, "noto-cjk/chars.txt"), "utf8"));
+  const text = readFileSync(frozen(LATEST), "utf8").replace(/data:[^"') ]+/g, "").replace(/<[^>]+>/g, "")
+    .replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, "");
+  const missing = [...new Set(text)].filter((c) => /[\u2e80-\u9fff\uff00-\uffef\u3000-\u303f]/.test(c) && !have.has(c));
+  assert.deepEqual(missing, [], "按 tests/fixtures/fonts/README.md 重新生成字体子集");
+});
 
 test(`最新版本 ${LATEST} 的原版版式：文字不互相压住，字体略宽（+0.02em）时也不会`, async () => {
   const r = await overlaps(frozen(LATEST), ["0", "0.02em"]);
