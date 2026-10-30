@@ -37,6 +37,8 @@ test("和 CI 用同一份 Hugo 图片缓存（键完全相同、同一个容器�
   const images = (y) => [...y.matchAll(/container:\n\s+image: (\S+)/g)].map((m) => m[1]);
   assert.equal(images(wf).length, 1);
   assert.ok(images(ci).includes(images(wf)[0]), "部署任务的容器要和 CI 存缓存的任务一致");
+  // 容器里 run 默认用 sh，上传步骤的 pipefail、$'\n' 只有 bash 认
+  assert.match(wf, /defaults:\n\s+run:\n\s+shell: bash/);
 });
 
 test("wrangler 锁定精确版本，装的就是锁文件里的那一版（npm ci，不跑安装脚本）", () => {
