@@ -35,6 +35,7 @@
 .s1-versions th, .s1-versions td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: start; }
 /* 版本号和「最新」标签、日期都是不可拆的短标签：说明一长，前几栏变窄时曾拆成「v1.1 / 最新」「2026- / 10-26」 */
 .s1-versions td:first-child, .s1-nobr { white-space: nowrap; }
+.s1-versions td:nth-child(3) { min-width: calc(11ch + 16px); } /* 栏宽至少放得下「2026-10-26」（10 个字符，留一个字符余量给略宽的字体；16px 是左右内边距），只在日期和时间之间换行 */
 .s1-chtoc { margin: 8px 0 16px; font-size: 15px; }
 .s1-chtoc summary { cursor: pointer; color: var(--secondary); }
 .s1-switchbar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px; margin: 4px auto 16px; }
