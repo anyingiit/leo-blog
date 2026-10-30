@@ -1,0 +1,8 @@
+{{- /* 方案 C 的目录：跳到整卡一页里的各章 */ -}}
+<ol class="s1-toc sc-toc">
+  {{- range .Params.chapters }}
+  <li data-from="{{ index .pages 0 }}" data-to="{{ index .pages 1 }}"><a href="#ch-{{ .slug }}">{{ .title }}</a>
+    {{- if .separate }} <span class="sc-sep" title="这一章里有译者另行翻译、未经 Claude 审校的部分（见译者声明）">含另行翻译</span>{{ end }}
+    <small>第&nbsp;{{ index .pages 0 }}{{ if ne (index .pages 0) (index .pages 1) }}–{{ index .pages 1 }}{{ end }}&nbsp;页</small></li>
+  {{- end }}
+</ol>

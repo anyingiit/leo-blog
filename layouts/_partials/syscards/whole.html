@@ -1,0 +1,53 @@
+{{- /* 方案 C：一个版本整卡一页（重排版和原版版式各是全书），目录跳到页内各章。参数是版本页 */ -}}
+{{- $v := . }}
+{{- $m := partial "syscards/meta.html" . }}
+{{- $chs := .Pages.ByWeight }}
+<article class="post-single s1-chapter sc-chapter s1-mode-both" data-vroot="{{ $v.RelPermalink }}" data-first-page="1" data-last-page="{{ .Params.pages }}" data-wide data-immersive>
+  <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
+  {{- $toc := partial "syscards/whole-toc.html" $v }}
+  <div class="s1-ibar" role="toolbar" aria-label="全屏阅读" tabindex="-1" hidden>
+    <a class="s1-ibar-tag" href="#top" title="完整声明在页首">非官方<span class="s1-ibar-long">&nbsp;AI 译本</span></a>
+    <details class="s1-ibar-toc">
+      <summary title="章节目录"><span class="s1-ibar-title">{{ strings.TrimSuffix "中文译本" $m.root.Title }}</span> ▾</summary>
+      <div class="s1-ibar-panel">{{ $toc }}<p class="s1-ibar-dl">{{ partial "syscards/downloads.html" (dict "v" $v "style" "line" "label" (printf "%s 全文：" $v.Params.version)) }}</p></div>
+    </details>
+    <button type="button" class="s1-ibar-page" data-total="{{ .Params.pages }}" title="原文页码，点击跳页（g）"></button>
+    <button type="button" data-toggle-view title="在原版版式和重排版之间切换"></button>
+    <span class="s1-ibar-zoom" role="group" aria-label="缩放">
+      <button type="button" data-zoom="out" aria-label="缩小" title="缩小">−</button>
+      <button type="button" data-zoom="fit" title="适应宽度">适应</button>
+      <button type="button" data-zoom="in" aria-label="放大" title="放大">+</button>
+    </span>
+    <button type="button" class="s1-ibar-exit" data-exit title="退出全屏阅读（Esc）" aria-label="退出全屏阅读">✕<span class="s1-ibar-lbl">&nbsp;退出</span></button>
+  </div>
+  <header class="post-header s1-header">
+    <div class="s1-crumb"><a href="{{ $m.column.RelPermalink }}">{{ $m.column.Title }}</a> › <a href="{{ $m.root.RelPermalink }}">{{ strings.TrimSuffix "中文译本" $m.root.Title }}</a></div>
+    <h1 class="post-title">{{ strings.TrimSuffix "中文译本" $m.root.Title }} {{ $v.Params.version }}</h1>
+    <div class="post-meta">全文 {{ .Params.pages }}&nbsp;页 · {{ len $chs }}&nbsp;章</div>
+  </header>
+  {{- partial "syscards/versionbar.html" (dict "page" .) }}
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" true) }}
+  <details class="s1-chtoc" open><summary>章节目录</summary>{{ $toc }}</details>
+  <div class="s1-switchbar">
+    <div class="s1-switch" role="group" aria-label="版式">
+      <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
+      <button type="button" data-view="original" aria-pressed="false">原版版式</button>
+    </div>
+    <a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>
+  </div>
+  <div class="post-content md-content s1-reflow" data-view="reflow">
+    {{- $prev := 0 }}
+    {{- range $chs }}
+      {{- if and $prev (gt (index .Params.pages 0) $prev) }}<div class="s1-pg" data-page="{{ $prev }}"><span>原文第 {{ $prev }} 页</span></div>{{ end }}
+      <h2 id="ch-{{ path.Base (strings.TrimSuffix "/" .RelPermalink) }}">{{ .Title }}</h2>
+      {{ .Content }}
+      {{- $prev = index .Params.pages 1 }}
+    {{- end }}
+  </div>
+  <div class="s1-original" data-view="original" hidden></div>
+  <template class="s1-original-tpl">
+    {{- $last := 0 }}
+    {{- range $chs }}{{ partial "syscards/original.html" (dict "page" . "skipFirst" (eq (index .Params.pages 0) $last)) }}{{ $last = index .Params.pages 1 }}{{ end }}
+  </template>
+  {{- partial "syscards/rights.html" . }}
+</article>
