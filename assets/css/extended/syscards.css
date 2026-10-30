@@ -1,0 +1,9 @@
+/* Anthropic 系统卡中文译本（layouts/syscards/list.html）：沿用 S-1 译本的声明框、下载卡片和权利行（s1.css），这里只有卡片列表 */
+.sc-list { display: grid; gap: 14px; margin: 24px 0; }
+.sc-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; background: var(--entry); font-size: 15px; }
+.sc-title { font-size: 20px; margin: 0 0 4px; line-height: 1.4; }
+.sc-meta, .sc-note { margin: 4px 0; color: var(--secondary); line-height: 1.6; }
+.sc-note { font-size: 14px; }
+.sc-acts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; }
+.sc-acts a { text-decoration: underline; text-underline-offset: 3px; }
+.sc-acts small { color: var(--secondary); }

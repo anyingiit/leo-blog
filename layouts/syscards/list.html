@@ -1,0 +1,40 @@
+{{- /*
+  Anthropic 系统卡中文译本（content/translations/system-cards/，由 tools/syscard-import/import.py 生成）。
+  一个页面列出全部系统卡：译者声明、每份卡的在线阅读（译文仓库的单文件 HTML，逐字节原样发布，不套本站版面）、
+  HTML/PDF 下载（直链、无门槛）、英文原版和翻译说明链接。中英文页同一模板，文件只发布一份（/translations/system-cards/files/）。
+*/ -}}
+{{- define "main" }}
+{{- $zh := . }}{{ range .AllTranslations }}{{ if eq .Lang "zh" }}{{ $zh = . }}{{ end }}{{ end }}
+{{- $en := ne .Lang "zh" }}
+{{- $p := .Params }}
+<header class="page-header s1-header">
+  <h1>{{ .Title }}</h1>
+  {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+</header>
+{{- partial "syscards/notice.html" . }}
+<div class="sc-list">
+{{- range $p.cards }}
+  {{- $c := . }}
+  {{- $html := partial "syscards/file.html" (dict "page" $zh "f" .html) }}
+  {{- $pdf := partial "syscards/file.html" (dict "page" $zh "f" .pdf) }}
+  <section class="sc-card" id="{{ .slug }}">
+    {{- if $en }}
+    <h2 class="sc-title">{{ .titleEn }}</h2>
+    <p class="sc-meta"><span lang="zh-CN">{{ .title }}</span> · Original published {{ time.Format "January 2, 2006" .released }} · {{ .pages }} pages</p>
+    <p class="sc-note">{{ .noteEn }}</p>
+    <p class="sc-acts"><a href="{{ $html.url }}" target="_blank" rel="noopener">Read the Chinese translation ↗</a><a href="{{ $html.url }}" download="{{ .html.name }}">HTML ↓ <small>{{ $html.size }}</small></a><a href="{{ $pdf.url }}" download="{{ .pdf.name }}">PDF ↓ <small>{{ $pdf.size }}</small></a><a href="{{ .official }}" rel="noopener">English original ↗</a></p>
+    {{- else }}
+    <h2 class="sc-title">{{ .title }}</h2>
+    <p class="sc-meta"><span lang="en">{{ .titleEn }}</span> · 原版 {{ time.Format "2006 年 1 月 2 日" .released }}发布 · {{ .pages }} 页</p>
+    <p class="sc-note">{{ .note }}</p>
+    <p class="sc-acts"><a href="{{ $html.url }}" target="_blank" rel="noopener">在线阅读 ↗</a><a href="{{ $html.url }}" download="{{ .html.name }}">HTML ↓ <small>{{ $html.size }}</small></a><a href="{{ $pdf.url }}" download="{{ .pdf.name }}">PDF ↓ <small>{{ $pdf.size }}</small></a><a href="{{ .official }}" rel="noopener">英文原版 ↗</a><a href="{{ .readme }}" rel="noopener">翻译说明 ↗</a></p>
+    {{- end }}
+  </section>
+{{- end }}
+</div>
+{{- if $en }}
+<p class="s1-rights">All rights in the original system cards, including text, figures and trademarks, belong to Anthropic, PBC. This site only hosts unofficial AI translations for reference. Takedown requests: {{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}.</p>
+{{- else }}
+<p class="s1-rights">原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 所有，本站仅提供非官方 AI 译本，仅供参考。下架请求：{{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}。</p>
+{{- end }}
+{{- end }}

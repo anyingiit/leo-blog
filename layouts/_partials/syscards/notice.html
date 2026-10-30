@@ -1,0 +1,24 @@
+{{- /* 译者声明（中英文） */ -}}
+{{- $p := .Params }}
+{{- $repo := printf "%s/tree/%s" $p.sourceRepo $p.sourceCommit }}
+<aside class="s1-notice" role="note">
+  {{- if eq .Lang "zh" }}
+  <p class="s1-notice-title">译者声明（请先阅读）</p>
+  <ul>
+    <li>以下是 Anthropic 公开发布的模型系统卡（System Card）的<strong>非官方中文译本</strong>。译者与 Anthropic 没有任何关联，译本未经 Anthropic 审阅或授权。</li>
+    <li><strong>翻译方式：</strong>以原版 PDF 为源，由 Claude Opus 5.5 以多代理方式翻译，经过两轮独立交叉审校和按章终审，图片里的文字也译成中文后重绘。每份卡的 2.2 节（化学与生物风险评估）和部分零散段落会触发 Anthropic 的安全分类器，Claude 无法翻译，由译者另行翻译，未经 Claude 审校。<strong>译文一致性未经人工核对</strong>，可能存在错译、漏译、数字或术语错误。</li>
+    <li>译文仅供参考，一切以 Anthropic 官网的英文原版为准。译者不对译文的准确性、完整性及任何使用后果承担责任。</li>
+    <li>原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 所有。如权利人认为本文不宜公开，请{{ with site.Params.s1Contact }}发邮件到 <a href="mailto:{{ . }}">{{ . }}</a>{{ end }}，我会立即删除。</li>
+    <li><strong>译本来源：</strong>GitHub 仓库 <a href="{{ $repo }}" rel="noopener">anthropic-system-cards-zh</a>（{{ $p.sourceDate }} 的版本 <code>{{ substr $p.sourceCommit 0 7 }}</code>），另有 Markdown 版本和全部翻译工程文件。</li>
+  </ul>
+  {{- else }}
+  <p class="s1-notice-title">Translator's notice</p>
+  <ul>
+    <li>These are <strong>unofficial Chinese translations</strong> of model system cards published by Anthropic. The translator has no affiliation with Anthropic, and the translations have not been reviewed or authorized by Anthropic.</li>
+    <li><strong>Method:</strong> translated from the original PDFs by Claude Opus 5.5 working as multiple agents, with two rounds of independent cross-review and a chapter-by-chapter final pass; text inside figures was translated and redrawn. Section 2.2 of each card (chemical and biological risk evaluations) and some scattered paragraphs trigger Anthropic's safety classifiers, so Claude could not translate them; the translator translated them separately and Claude did not review them. <strong>No person has checked whether the translations are consistent with the originals</strong>, so they may contain mistranslations, omissions, or errors in numbers and terms.</li>
+    <li>The translations are for reference only. The English originals on Anthropic's website are authoritative. The translator accepts no liability for their accuracy, completeness, or use.</li>
+    <li>All rights in the originals, including text, figures and trademarks, belong to Anthropic, PBC. Takedown requests: {{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}.</li>
+    <li><strong>Source:</strong> GitHub repository <a href="{{ $repo }}" rel="noopener">anthropic-system-cards-zh</a> (commit <code>{{ substr $p.sourceCommit 0 7 }}</code>, {{ $p.sourceDate }}), which also has Markdown versions and all translation project files.</li>
+  </ul>
+  {{- end }}
+</aside>

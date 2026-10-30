@@ -120,6 +120,13 @@ jobs:
           /tmp/venv/bin/pip install --quiet -r tools/bilingual-import/requirements.txt
           /tmp/venv/bin/python -m unittest discover -s tools/bilingual-import -v
 
+      # Anthropic 系统卡中文译本的导入工具（PDF 无损瘦身），并核对导入的每份下载文件（docs/system-cards.md）
+      - name: Test syscard-import
+        if: ${{ !cancelled() }}
+        run: |
+          /tmp/venv/bin/pip install --quiet -r tools/syscard-import/requirements.txt
+          /tmp/venv/bin/python -m unittest discover -s tools/syscard-import -v
+
   # 浏览器测试在 Playwright 官方镜像里运行（按 digest 锁定）：浏览器和系统依赖已装好，不用每次下载安装，
   # 截图基准也在同一镜像里生成，换机器不会因字体渲染不同而误报。
   # 每个浏览器一个任务，三种设备在任务内依次跑：拉镜像（约 50 秒）和取整只算两次，而不是六次（docs/testing.md「CI 用量」）。
