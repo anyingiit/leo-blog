@@ -1,0 +1,120 @@
+# 在 GitHub Actions 里构建站点并上传到 Cloudflare Pages（docs/deploy.md）。
+# 原来由 Cloudflare 的 Git 集成构建：免费版同一时间只能构建一个，几个分支同时推送就排队，
+# 每次还要从零转换配图，推送后 4–6 分钟才有预览。这里各 PR 同时构建，复用 CI 的配图缓存，上传只传变了的文件。
+#   - PR（同仓库分支）：预览部署到 pr-<编号>.leo-blog-bgy.pages.dev，链接写进 PR 的一条固定评论
+#   - push 到 main：正式部署（Cloudflare 项目的生产分支是 main）
+# 需要仓库 secret CLOUDFLARE_API_TOKEN（只给 Cloudflare Pages 编辑权限）；没有时任务直接跳过并提示。
+name: Deploy
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# 同一个 PR 连续推送时取消还在跑的旧部署；正式部署依次进行、不取消（排队中的只保留最新一个）
+concurrency:
+  group: deploy-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Pages
+    # 外部仓库的 PR 拿不到 secret，不部署
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write # 写预览链接评论
+    env:
+      CLOUDFLARE_ACCOUNT_ID: c5260698746cd322513744d6e420fb1c
+      PROJECT: leo-blog
+      # 预览地址由我们自己定的分支名决定：pr-<编号>.leo-blog-bgy.pages.dev（Cloudflare 的分支别名，构建前就知道，站内链接指向它）
+      BRANCH: ${{ github.event_name == 'push' && 'main' || format('pr-{0}', github.event.pull_request.number) }}
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - name: Check Cloudflare token
+        if: env.HAS_TOKEN != 'true'
+        run: echo "::notice::仓库还没有 CLOUDFLARE_API_TOKEN，跳过部署（设置方法见 docs/deploy.md）"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.HAS_TOKEN == 'true'
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      # 和 CI 回归测试同一份 Hugo 图片缓存（只读）：有缓存时整站构建几秒，没有时约 1 分钟
+      - uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        if: env.HAS_TOKEN == 'true'
+        with:
+          path: resources/_gen
+          key: hugo-resources-v2-${{ hashFiles('build.sh', 'layouts/_markup/**') }}-${{ hashFiles('content/**', 'assets/**', 'tests/fixtures/**', 'tests/theme/site-fixture/**') }}
+          restore-keys: hugo-resources-v2-${{ hashFiles('build.sh', 'layouts/_markup/**') }}-
+
+      # build.sh 和 Cloudflare 构建时完全一样：CF_PAGES_BRANCH=main 是正式站（正式域名、访问统计）；
+      # 其他分支用 CF_PAGES_URL 作为站点地址，并带上测试短文
+      - name: Build
+        if: env.HAS_TOKEN == 'true'
+        run: |
+          if [ "$BRANCH" = main ]; then
+            CF_PAGES_BRANCH=main bash build.sh
+          else
+            CF_PAGES_BRANCH="$BRANCH" CF_PAGES_URL="https://$BRANCH.leo-blog-bgy.pages.dev" bash build.sh
+          fi
+
+      - name: Install wrangler
+        if: env.HAS_TOKEN == 'true'
+        working-directory: tools/deploy
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Upload to Cloudflare Pages
+        id: upload
+        if: env.HAS_TOKEN == 'true'
+        working-directory: tools/deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          MSG: ${{ github.event.pull_request.title || github.event.head_commit.message }}
+        run: |
+          set -o pipefail
+          msg="${MSG%%$'\n'*}"
+          npx wrangler pages deploy "$GITHUB_WORKSPACE/public" --project-name="$PROJECT" --branch="$BRANCH" \
+            --commit-hash="$SHA" --commit-message="$msg" --commit-dirty=true | tee "$RUNNER_TEMP/wrangler.log"
+          url="$(grep -oE 'https://[0-9a-f]{8}\.leo-blog-bgy\.pages\.dev' "$RUNNER_TEMP/wrangler.log" | head -n 1)"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "::notice::已部署：${url:-（没有从输出里取到地址）}"
+
+      - name: Comment preview links
+        if: env.HAS_TOKEN == 'true' && github.event_name == 'pull_request' && !cancelled()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          URL: ${{ steps.upload.outputs.url }}
+          OUTCOME: ${{ steps.upload.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const marker = '<!-- cf-pages-preview -->';
+            const ok = process.env.OUTCOME === 'success';
+            const lines = [
+              marker,
+              '### Cloudflare Pages 预览',
+              '',
+              '| | |',
+              '| --- | --- |',
+              `| 提交 | \`${pr.head.sha.slice(0, 7)}\` |`,
+              `| 状态 | ${ok ? '✅ 部署成功' : `❌ 部署失败（${process.env.OUTCOME}）`} |`,
+            ];
+            if (ok && /^https:\/\/[0-9a-f]{8}\.leo-blog-bgy\.pages\.dev$/.test(process.env.URL)) lines.push(`| 本次提交预览 | ${process.env.URL} |`);
+            if (ok) lines.push(`| 分支预览（始终指向最新提交） | https://${process.env.BRANCH}.leo-blog-bgy.pages.dev |`);
+            lines.push('', `[构建日志](${process.env.RUN_URL})`);
+            const body = lines.join('\n');
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr.number, per_page: 100 });
+            const existing = comments.find((c) => c.user.type === 'Bot' && c.body.startsWith(marker));
+            if (existing) await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body });
