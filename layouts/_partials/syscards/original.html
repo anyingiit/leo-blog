@@ -14,9 +14,7 @@
     {{- errorf "%s: 找不到底图 bg/%s" $page.File.Path $name -}}
   {{- end -}}
 {{- end -}}
-{{- $first := index $page.Params.pages 0 -}}
-{{- if .skipFirst }}{{ $html = replaceRE `^[^\n]*\n` "" $html }}{{ $first = add $first 1 }}{{ end -}}
 {{- $html = replace $html `<img class="sc-bg" ` `<img class="sc-bg" loading="lazy" decoding="async" ` -}}
-<div class="s1-sheets sc-sheets" data-first-page="{{ $first }}">
+<div class="s1-sheets sc-sheets" data-first-page="{{ index $page.Params.pages 0 }}">
   <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>
 </div>

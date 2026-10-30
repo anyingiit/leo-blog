@@ -8,7 +8,16 @@
 {{- define "main" }}
 {{- $en := ne .Lang "zh" }}
 {{- if .Params.version }}
-  {{- partial "syscards/whole.html" . }}
+  {{- $m := partial "syscards/meta.html" . }}
+  <header class="page-header s1-header">
+    <div class="s1-crumb"><a href="{{ $m.column.RelPermalink }}">{{ $m.column.Title }}</a> › <a href="{{ $m.root.RelPermalink }}">{{ strings.TrimSuffix "中文译本" $m.root.Title }}</a></div>
+    <h1>{{ .Params.version }} 目录</h1>
+  </header>
+  {{- partial "syscards/versionbar.html" (dict "page" .) }}
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" true) }}
+  {{- partial "syscards/downloads.html" (dict "v" . "style" "cards") }}
+  {{- partial "syscards/toc.html" . }}
+  {{- partial "syscards/rights.html" . }}
 {{- else if .Params.latest }}
   {{- $m := partial "syscards/meta.html" . }}
   {{- $l := $m.latest }}
@@ -19,12 +28,12 @@
   </header>
   {{- partial "syscards/notice.html" (dict "page" . "card" true) }}
   <div class="s1-cta">
-    <a class="s1-btn" href="{{ $l.RelPermalink }}">{{ if $en }}Start reading {{ $l.Params.version }} (Chinese){{ else }}开始阅读最新版 {{ $l.Params.version }}{{ end }}</a>
+    <a class="s1-btn" href="{{ $l.RelPermalink }}{{ (index $l.Params.chapters 0).slug }}/">{{ if $en }}Start reading {{ $l.Params.version }} (Chinese){{ else }}开始阅读最新版 {{ $l.Params.version }}{{ end }}</a>
     <a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original (Anthropic){{ else }}英文原版（Anthropic）{{ end }}</a>
   </div>
   {{- partial "syscards/downloads.html" (dict "v" $l "style" "cards" "en" $en) }}
   <h2>{{ if $en }}Contents{{ else }}目录{{ end }}（{{ $l.Params.version }}）</h2>
-  {{- partial "syscards/whole-toc.html" $l | replaceRE `href="#` (printf `href="%s#` $l.RelPermalink) | safeHTML }}
+  {{- partial "syscards/toc.html" $l }}
   <h2 id="versions">{{ if $en }}All versions{{ else }}全部版本{{ end }}</h2>
   <table class="s1-versions">
     <thead><tr><th>{{ if $en }}Version{{ else }}译本版本{{ end }}</th><th>{{ if $en }}Finalized{{ else }}定稿{{ end }}</th><th class="s1-dl-col">{{ if $en }}Downloads{{ else }}全文下载{{ end }}</th></tr></thead>
@@ -52,7 +61,8 @@
   <article class="post-entry sc-entry" id="{{ path.Base .RelPermalink }}">
     <header class="entry-header"><h2><a href="{{ .RelPermalink }}">{{ $name }}</a></h2></header>
     <footer class="entry-footer"><span class="s1-vtag">{{ $l.Params.version }}</span><span>{{ if $en }}Published <span class="sc-nobr">{{ .Params.released }}</span> · {{ .Params.pages }} pages{{ else }}原版 <span class="sc-nobr">{{ .Params.released }}</span> 发布 · {{ .Params.pages }}&nbsp;页{{ end }}</span>
-      <span class="sc-links"><a href="{{ $l.RelPermalink }}" aria-label="{{ if $en }}Read online: {{ else }}在线阅读：{{ end }}{{ $name }}">{{ if $en }}Read online{{ else }}在线阅读{{ end }}</a><a href="{{ $d.html.url }}" target="_blank" rel="noopener" aria-label="HTML：{{ $name }}">HTML ↗</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" aria-label="{{ if $en }}Download PDF: {{ else }}下载 PDF：{{ end }}{{ $name }}">PDF ↓ {{ $d.pdf.size }}</a></span></footer>
+      <span class="sc-links"><a href="{{ $l.RelPermalink }}{{ (index $l.Params.chapters 0).slug }}/" aria-label="{{ if $en }}Read online: {{ else }}在线阅读：{{ end }}{{ $name }}">{{ if $en }}Read online{{ else }}在线阅读{{ end }}</a><a href="{{ $d.html.url }}" target="_blank" rel="noopener" aria-label="HTML：{{ $name }}">HTML ↗</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" aria-label="{{ if $en }}Download PDF: {{ else }}下载 PDF：{{ end }}{{ $name }}">PDF ↓ {{ $d.pdf.size }}</a></span></footer>
+    <details class="sc-entry-toc"><summary>{{ if $en }}Contents{{ else }}目录{{ end }}（{{ len $l.Params.chapters }}{{ if $en }} chapters{{ else }}&nbsp;章{{ end }}）</summary>{{ partial "syscards/toc.html" $l }}</details>
   </article>
   {{- end }}
   {{- partial "syscards/rights.html" . }}
