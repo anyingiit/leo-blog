@@ -326,7 +326,9 @@ for (const engine of ENGINES) {
       const ref = `data:image/png;base64,${readFileSync(join(FIX, f)).toString("base64")}`;
       const r = await compare(s.page, await sheet.screenshot(), ref);
       assert.ok(Math.abs(r.size[0] - r.size[2]) <= 2 && Math.abs(r.size[1] - r.size[3]) <= 2, `${f} 尺寸 ${r.size}`);
-      assert.ok(r.mean < 1 && r.worst < 30, `${f} 与 PDF 不同：8×8 块平均差 ${r.mean.toFixed(2)}，最大 ${r.worst.toFixed(1)}（错位 ${r.dx},${r.dy}）`);
+      // WebKit 的字形比 Chromium 略重，整页文字都均匀地多出一点差（不是错位）；字密的第 12 页平均约 1.1
+      const meanMax = engine === "webkit" ? 1.5 : 1;
+      assert.ok(r.mean < meanMax && r.worst < 30, `${f} 与 PDF 不同：8×8 块平均差 ${r.mean.toFixed(2)}，最大 ${r.worst.toFixed(1)}（错位 ${r.dx},${r.dy}）`);
       // 比对本身灵敏：文字层错开 3px，或底图缺了，都应该被抓出来
       for (const css of [".sc-sheet svg { transform: translate(0, 3px); }", ".sc-sheet .sc-bg { visibility: hidden; }"]) {
         const tag = await s.page.addStyleTag({ content: css });
