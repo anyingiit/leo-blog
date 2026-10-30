@@ -513,10 +513,12 @@ for (const engine of ENGINES) {
     }
     // 2. 读者在加载完成前自己动了页面（按键）：之后不再被拉回目标
     const href = links[0].split(":~:")[0], id = decodeURIComponent(href.split("#")[1]);
-    let y0;
-    await visit(href, async () => { await page.evaluate(() => scrollTo(0, 0)); await page.keyboard.press("PageDown"); await page.waitForTimeout(300); y0 = await y(); });
-    await page.waitForTimeout(1200); // 最后一次检查在 load 后 1 秒
-    assert.equal(await y(), y0, "读者动过页面后不应再被拉回目标");
+    // 按键翻页本身的滚动时机不定，所以不比较翻到哪；在守护期内（load 后 1.5 秒）再把页面设回 0，应保持在 0、不被拉回
+    await visit(href, () => page.keyboard.press("PageDown"));
+    await page.waitForTimeout(200);
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(600);
+    assert.equal(await y(), 0, "读者动过页面后不应再被拉回目标");
     // 3. 带 :~:text= 的完整链接：浏览器把句子滚到屏幕中间（目标 id 在屏幕上半）后不被拉回 id；
     //    加载完成后不久页面又被设回 0（iOS Safari 真实点击时出现过）：回到句子处，而不是 id 处
     for (const full of links.filter((l) => l.includes(":~:"))) {
