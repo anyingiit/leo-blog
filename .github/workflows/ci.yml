@@ -25,12 +25,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # 按分钟计费、每个任务向上取整到整分钟，所以几十秒就跑完的检查合并成一个任务（docs/testing.md「CI 用量」）
-  # 它也决定这次要跑哪些浏览器测试（tests/ci-plan.mjs）：只跳过输入没变、已在相同文件上通过过的测试
-  lint:
-    name: Lint and build
+  # 公开仓库的标准运行机不计分钟，任务按"墙钟时间最短"拆：互不依赖的检查各自一个任务同时跑（docs/testing.md「CI 并行」）。
+  # 先用十几秒决定这次要跑哪些浏览器测试（tests/ci-plan.mjs）：只跳过输入没变、已在相同文件上通过过的测试
+  plan:
+    name: Plan
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read # 读 PR 改了哪些文件
@@ -38,15 +38,13 @@ jobs:
     outputs:
       regression: ${{ steps.plan.outputs.regression }}
       visual: ${{ steps.plan.outputs.visual }}
-      browsers: ${{ steps.plan.outputs.browsers }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          submodules: recursive
           fetch-depth: 2 # main 上的合并提交要和它的两个父提交比较
 
-      # 放在最前面：后面的检查失败也不影响浏览器测试照常决定和运行。查询出错一律按全跑处理
+      # 查询出错一律按全跑处理
       - name: Decide which tests to run
         id: plan
         env:
@@ -74,6 +72,16 @@ jobs:
           fi
           printf '%s\n' "$files" | node tests/ci-plan.mjs $tested
 
+  # 任务名不要改：main 的保护规则要求这个检查通过
+  lint:
+    name: Lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Check that actions are pinned to full commit SHAs
         shell: bash
         run: |
@@ -99,54 +107,54 @@ jobs:
         if: ${{ !cancelled() }}
         run: node tests/ci-coverage.mjs
 
-      # 英文配图脚本的回归测试，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）
-      - name: Test image-i18n
-        if: ${{ !cancelled() }}
+  # Python 工具的回归测试，每个工具一个任务：
+  # image-i18n 英文配图脚本，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）；
+  # s1-import S-1 译本发布工具，并核对已发布版本的冻结下载文件（PDF 页数、每页「非官方」标记、文字层、sha256；docs/testing.md）；
+  # bilingual-import 双语对照译文的导入、发布工具，并核对每篇已发布的冻结下载文件（docs/bilingual-translations.md）
+  python:
+    name: Python tests (${{ matrix.tool }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [tools/image-i18n, tools/s1-import, tools/bilingual-import]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Run unittest
+        env:
+          TOOL: ${{ matrix.tool }}
         run: |
           python3 -m venv /tmp/venv
-          /tmp/venv/bin/pip install --quiet -r tools/image-i18n/requirements.txt
-          /tmp/venv/bin/python -m unittest discover -s tools/image-i18n -v
+          /tmp/venv/bin/pip install --quiet -r "$TOOL/requirements.txt"
+          /tmp/venv/bin/python -m unittest discover -s "$TOOL" -v
 
-      # S-1 译本发布工具 release.py 的回归测试，并核对已发布版本的冻结下载文件（PDF 页数、每页「非官方」标记、文字层、sha256；docs/testing.md）
-      - name: Test s1-import
-        if: ${{ !cancelled() }}
-        run: |
-          /tmp/venv/bin/pip install --quiet -r tools/s1-import/requirements.txt
-          /tmp/venv/bin/python -m unittest discover -s tools/s1-import -v
-
-      # 双语对照译文的导入、发布工具，并核对每篇已发布的冻结下载文件（docs/bilingual-translations.md）
-      - name: Test bilingual-import
-        run: |
-          /tmp/venv/bin/pip install --quiet -r tools/bilingual-import/requirements.txt
-          /tmp/venv/bin/python -m unittest discover -s tools/bilingual-import -v
-
-  # 浏览器测试在 Playwright 官方镜像里运行（按 digest 锁定）：浏览器和系统依赖已装好，不用每次下载安装，
+  # 浏览器测试都在 Playwright 官方镜像里运行（按 digest 锁定）：浏览器和系统依赖已装好，不用每次下载安装，
   # 截图基准也在同一镜像里生成，换机器不会因字体渲染不同而误报。
-  # 每个浏览器一个任务，三种设备在任务内依次跑：拉镜像（约 50 秒）和取整只算两次，而不是六次（docs/testing.md「CI 用量」）。
   #
-  # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）× 电脑/平板/手机，
-  # 各自在浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
-  # chromium 任务还跑站点回归测试：tests/ 下所有 *.test.mjs（node --test 自动发现），包括图片处理和短文栏目（tests/README.md）、
-  # 站点整体检查 site.test.mjs、CI 覆盖检查 ci-coverage.test.mjs。
-  visual:
-    name: Browser tests (${{ matrix.browser }})
-    needs: lint
-    # Lint and build 失败也照跑；拿不到计划时按全跑
-    if: ${{ !cancelled() && needs.lint.outputs.browsers != '[]' }}
+  # 站点回归测试：tests/ 下所有 *.test.mjs，包括图片处理和短文栏目（tests/README.md）、站点整体检查 site.test.mjs、
+  # S-1 译本、双语译文等，分成 5 组同时跑（tests/ci-shards.mjs 按实测耗时分组，新加的文件自动分进去，
+  # 每个测试在且只在一组里跑；单元测试 tests/ci-shards.test.mjs 核对组数和这里的 matrix 一致）
+  regression:
+    name: Regression tests (${{ matrix.shard }}/5)
+    needs: plan
+    # 拿不到计划时按全跑
+    if: ${{ !cancelled() && needs.plan.outputs.regression != 'false' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
     strategy:
       fail-fast: false
       matrix:
-        browser: ${{ fromJSON(needs.lint.outputs.browsers || '["chromium","webkit"]') }}
-    env:
-      # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium 任务里跑一次
-      PROJECTS: --project=${{ matrix.browser }}-desktop --project=${{ matrix.browser }}-tablet --project=${{ matrix.browser }}-phone${{ matrix.browser == 'chromium' && ' --project=output' || '' }}
+        shard: [1, 2, 3, 4, 5]
     defaults:
       run:
-        working-directory: tests/theme
+        working-directory: tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -159,10 +167,9 @@ jobs:
 
       # Hugo 处理过的图片（resources/_gen）跨运行复用：整站冷构建约 55 秒，其中几乎都是把文章配图转成 WebP，有缓存只要 2 秒。
       # Hugo 按源文件和处理参数给缓存文件命名，内容变了就重新生成；Hugo 版本（build.sh）或图片渲染钩子变了则整份缓存作废。
-      # 回归测试一结束就保存：之后的主题测试只用固定文章构建，--gc 会把正式文章的图片从 resources/_gen 清掉
+      # 每组的测试都构建正式站（含全部文章），缓存由第 1 组保存，其他组只读
       - uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         id: hugo-cache
-        if: matrix.browser == 'chromium' && needs.lint.outputs.regression != 'false'
         with:
           path: resources/_gen
           key: hugo-resources-v2-${{ hashFiles('build.sh', 'layouts/_markup/**') }}-${{ hashFiles('content/**', 'assets/**', 'tests/fixtures/**', 'tests/theme/site-fixture/**') }}
@@ -171,7 +178,6 @@ jobs:
       # s1-links.test.mjs 用 pypdf 读冻结 PDF 的书签和页内链接。镜像里没有 pip，apt 装 python3-pip 会卡住，
       # pypdf 是纯 Python，直接下载固定版本的 wheel（校验 sha256）解压到 site-packages
       - name: Install pypdf
-        if: matrix.browser == 'chromium' && needs.lint.outputs.regression != 'false'
         timeout-minutes: 3
         run: |
           python3 - <<'PY'
@@ -183,29 +189,56 @@ jobs:
           PY
           python3 -I -c "import pypdf; print('pypdf', pypdf.__version__)"
 
-      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠和页头语言切换（见 tests/README.md）
+      - name: Install test dependencies
+        run: npm ci
+
+      # 用 tests/fixtures 里的测试短文构建整站，检查图片处理、原位分组、折叠和页头语言切换等（见 tests/README.md）
       - name: Run regression tests
-        if: matrix.browser == 'chromium' && needs.lint.outputs.regression != 'false'
-        working-directory: tests
-        run: |
-          npm ci
-          npm test
+        run: node ci-shards.mjs "${{ matrix.shard }}" 5
 
       - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        if: matrix.browser == 'chromium' && needs.lint.outputs.regression != 'false' && steps.hugo-cache.outputs.cache-hit != 'true'
+        if: ${{ !cancelled() && matrix.shard == 1 && steps.hugo-cache.outputs.cache-hit != 'true' }}
         with:
           path: resources/_gen
           key: ${{ steps.hugo-cache.outputs.cache-primary-key }}
 
+  # 主题与样式回归测试（docs/testing.md）：Chromium（≈Chrome）和 WebKit（≈Safari）× 电脑/平板/手机，每种组合一个任务，
+  # 各自在浅色/深色、多种网络状态下逐像素比对截图，并检查交互。
+  # 非视觉输出快照（文件清单、<head>、RSS、搜索索引）与浏览器无关，只在 chromium-desktop 任务里跑一次
+  visual:
+    name: Browser tests (${{ matrix.browser }}-${{ matrix.device }})
+    needs: plan
+    # 拿不到计划时按全跑
+    if: ${{ !cancelled() && needs.plan.outputs.visual != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+        device: [desktop, tablet, phone]
+    env:
+      PROJECTS: --project=${{ matrix.browser }}-${{ matrix.device }}${{ matrix.browser == 'chromium' && matrix.device == 'desktop' && ' --project=output' || '' }}
+    defaults:
+      run:
+        working-directory: tests/theme
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Install test dependencies
-        if: ${{ !cancelled() && needs.lint.outputs.visual != 'false' }}
         run: npm ci
 
-      # 记录 CPU 型号：零容差截图如果在不同型号的机器上出现差异，可以据此排查。
-      # 回归测试失败也照常跑，一次运行就能看到全部问题
+      # 记录 CPU 型号：零容差截图如果在不同型号的机器上出现差异，可以据此排查
       - name: Run visual and behavior tests
         id: tests
-        if: ${{ !cancelled() && needs.lint.outputs.visual != 'false' }}
         env:
           REPEAT: ${{ inputs.repeat_each || 1 }}
         run: |
@@ -223,15 +256,13 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.tests.outcome == 'failure'
         with:
-          name: visual-${{ matrix.browser }}
-          # 只带本任务自己生成的基准目录（output 只有 chromium 跑），合并多个任务的产物时不会用旧文件覆盖新文件
+          name: visual-${{ matrix.browser }}-${{ matrix.device }}
+          # 只带本任务自己生成的基准目录（output 只有 chromium-desktop 跑），合并多个任务的产物时不会用旧文件覆盖新文件
           path: |
             tests/theme/test-results-failed/
             tests/theme/playwright-report/
-            tests/theme/__snapshots__/${{ matrix.browser }}-desktop/
-            tests/theme/__snapshots__/${{ matrix.browser }}-tablet/
-            tests/theme/__snapshots__/${{ matrix.browser }}-phone/
-            ${{ matrix.browser == 'chromium' && 'tests/theme/__snapshots__/output/' || '' }}
+            tests/theme/__snapshots__/${{ matrix.browser }}-${{ matrix.device }}/
+            ${{ matrix.browser == 'chromium' && matrix.device == 'desktop' && 'tests/theme/__snapshots__/output/' || '' }}
           retention-days: 14
 
   # 把各视觉任务重新生成的基准图合并推到 ci-baselines/pr-<编号> 分支（只在同仓库 PR 的视觉任务失败时运行）。
@@ -254,8 +285,8 @@ jobs:
         with:
           pattern: visual-*
           path: ${{ runner.temp }}/visual
-          # 只有一个浏览器失败时只有一个产物，不合并的话它会直接解压到 path 下（没有 visual-<浏览器>/ 子目录），
-          # 下面按子目录找就什么也拷不到、误报"没有变化"。两个产物的目录互不重叠，合并解压不会互相覆盖
+          # 只有一个任务失败时只有一个产物，不合并的话它会直接解压到 path 下（没有 visual-<浏览器>-<设备>/ 子目录），
+          # 下面按子目录找就什么也拷不到、误报"没有变化"。各产物的基准目录互不重叠，合并解压不会互相覆盖
           merge-multiple: true
 
       - name: Push baselines branch
@@ -272,3 +303,20 @@ jobs:
             commit -q -m "Regenerated screenshot baselines for ${{ github.event.pull_request.head.sha }}"
           git push -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/$BRANCH"
           echo "::notice::新基准图已推到 $BRANCH，核对后取回：git fetch origin $BRANCH && git checkout FETCH_HEAD -- tests/theme/__snapshots__"
+
+  # 汇总：上面任何一个任务失败或被取消，这里就失败（被计划跳过的不算）。
+  # 想让 main 的保护规则只认一个检查、又覆盖全部测试时，要求这个检查即可（docs/testing.md「CI 并行」）
+  all:
+    name: All tests passed
+    needs: [plan, lint, python, regression, visual]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check job results
+        env:
+          FAILED: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | grep '"result"' || true
+          [ "$FAILED" = false ]

@@ -1,2 +1,4 @@
+# release.py 用 tools/s1-import 的 PDF 文字层修正和检查（pypdf、pikepdf）
+-r ../s1-import/requirements.txt
 beautifulsoup4==4.15.0
 PyYAML==6.0.3
