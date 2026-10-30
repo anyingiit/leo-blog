@@ -21,7 +21,8 @@ before(async () => {
   server = await serve(site.out);
   pages = sitePages(site.out);
   console.log(`扫描 ${pages.length} 个页面`);
-  browsers.chromium = await chromium.launch();
+  // Linux 上 Chromium 默认按 hinting 把字宽取整，和 Mac 不同；关掉，字宽更接近读者的机器
+  browsers.chromium = await chromium.launch({ args: ["--font-render-hinting=none"] });
   // CI 里必须有 WebKit；本地没装时只跳过 WebKit 的用例
   browsers.webkit = await webkit.launch().catch((e) => { if (process.env.CI) throw e; return null; });
 });
