@@ -174,6 +174,10 @@ body.s1-immersive:has(.s1-reflow:not([hidden])) .s1-ibar-zoom { display: none; }
 .s1-dl-acts a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
 .s1-dl-line { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 14px; }
 .s1-dl-line a { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; text-decoration: underline; text-underline-offset: 3px; }
+/* 「HTML ↗ 18.3 MB」作为一个整体换行，不在链接中间断开（版本表的说明一长，下载栏变窄时曾拆成「HTML / ↗」「18.3 / MB」） */
+.s1-dl-line a { white-space: nowrap; }
+/* 版本表的下载栏只占放得下链接的最小宽度，多出的宽度留给前几栏，避免它们被挤成三行 */
+.s1-versions .s1-dl-col { width: 1%; }
 .s1-dl-line small { color: var(--secondary); }
 .s1-dl-sha { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--secondary); }
 .s1-dl-sha code { font-size: 11px; }
