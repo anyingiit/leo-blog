@@ -12,6 +12,7 @@ import html
 import math
 import os
 import re
+import unicodedata
 
 import pymupdf
 from fontTools import subset as ftsub
@@ -27,7 +28,7 @@ FONTS = {
     "poppinsmedium": "Poppins-Medium.ttf", "poppinssemibold": "Poppins-SemiBold.ttf", "robotomonoregular": "RobotoMono-Regular.ttf",
 }
 FONT_DIR = "opus-5.5/pipeline/fonts"
-SCALE = 2  # 底图 2 倍（612pt 宽的页 → 1224px），和 S-1 原版里的图片同一清晰度
+SCALE = 3  # 底图 3 倍（612pt 宽的页 → 1836px）：文字在 SVG 里本来就清晰，表格线和图表在 2x 屏上也不发软（2 倍时会）
 
 
 def font_class(f):
@@ -56,7 +57,7 @@ class Fonts:
         os.makedirs(out_dir, exist_ok=True)
         css = []
         for f in sorted(self.used):
-            tt = TTFont(os.path.join(self.dir, f))
+            tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
             o = ftsub.Options()
             o.flavor = "woff2"
             o.layout_features = ["*"]
@@ -173,12 +174,155 @@ def split_md(md, total_pages):
     return chapters
 
 
+ZWSP = "&#8203;"
+
+
+def _punct(c):
+    return unicodedata.category(c)[0] in "PS"
+
+
+def _before(t, i):
+    """t[i] 之前的那个字；短代码（脚注引用）在 Hugo 渲染 Markdown 时是一串字母占位，当文字看"""
+    return "x" if t.endswith(">}}", 0, i) else (t[i - 1] if i > 0 else " ")
+
+
+def _after(t, i):
+    return "x" if t.startswith("{{<", i) else (t[i] if i < len(t) else " ")
+
+
+def _word(c):
+    return not (c.isspace() or _punct(c))
+
+
+def _emphasis(t, skip=()):
+    """译文 Markdown 的强调星号，CommonMark 在中文里常认不出开合，原样露出星号：
+    紧挨全角标点又紧挨汉字（**译注：**Claude、见**「附录」**一节）；相邻几段强调拼成一串（*甲。****乙。****丙*，
+    HTML 里是 </i><b><i>）；嵌套（***[图] 标题。***y* 轴…*，HTML 里是 <b>标题</b><i>y</i> 轴…）。
+    先按译文的写法配对：从左到右，每串星号要么结束栈顶的几段强调、要么开始一段、要么前一段结束后一段开始；
+    一串三个星号开始的那段（粗斜体）可以只结束内层的粗体。选落单星号最少的配法；一样少时，前面是标点、后面是文字的
+    先当结束，前面是文字、后面是标点的先当开始，其余整段结束 > 开始 > 只结束一部分（拼接、嵌套只出现在标点旁）。
+    再写成 CommonMark 一定照这样配的样子：嵌在别的强调里的一层改用 _（* 和 _ 不会互相配对，里外层不会配错）；
+    开始的前面、结束的后面紧挨文字时补零宽空格实体（& 是标点，显示不变），让它只能当开始或只能当结束；
+    一串里前一段结束、后一段开始，中间也补一个。
+    配不上的星号（译文里本来就当普通字符用，HTML 里也原样显示）转义成 \\*，不让 CommonMark 另配。
+    前后都是空白的星号不是强调（列表符号、乘号），不动；skip 里的区间（代码）不动"""
+    runs = []
+    for m in re.finditer(r"(?<!\\)\*+", t):
+        a, b = m.start(), m.end()
+        if any(x <= a < y for x, y in skip):
+            continue
+        pre, post = _before(t, a), _after(t, b)
+        if pre.isspace() and post.isspace():
+            continue
+        runs.append((a, b, pre, post))
+    memo = {}
+
+    def push(stack, n):
+        """开始一段 n 个星号的强调；外层是 * 就用 _，反之亦然"""
+        return stack + ((n, "_" if stack and stack[-1][1] == "*" else "*"),)
+
+    def best(i, stack):
+        """(落单数, 每串的 (结束写成的字符, 开始写成的字符))；stack 里是 (星号数, 写成的字符)"""
+        if i == len(runs):
+            return (0, ()) if not stack else (len(runs) + 1, ())
+        key = (i, stack)
+        if key in memo:
+            return memo[key]
+        a, b, pre, post = runs[i]
+        n = b - a
+        can_open, can_close = not post.isspace(), bool(stack) and not pre.isspace()
+        exact, rest, opens = [], [], []
+        if can_close:  # 结束栈顶的几段（整段）
+            s, shut = 0, ""
+            for k in range(1, len(stack) + 1):
+                s += stack[-k][0]
+                shut += stack[-k][1] * stack[-k][0]
+                if s == n:
+                    exact.append(((shut, ""), stack[:-k]))
+                elif s < n and n - s <= 3 and can_open:
+                    st = push(stack[:-k], n - s)
+                    rest.append(((shut, st[-1][1] * (n - s)), st))
+                elif s < n:  # 多出来的星号是普通字符（如 **Terminal-Bench 2.0*** 的注释星号）
+                    rest.append(((shut, "", n - s), stack[:-k]))
+                if s >= n:
+                    break
+            if stack[-1][0] == 3:  # 粗斜体只结束内层
+                ch = stack[-1][1]
+                for c in (2, 1):
+                    if c <= n and (n == c or (can_open and n - c <= 3)):
+                        st = stack[:-1] + ((3 - c, ch),)
+                        if n > c:
+                            st = push(st, n - c)
+                        rest.append(((ch * c, st[-1][1] * (n - c) if n > c else ""), st))
+        if can_open and n <= 3:
+            st = push(stack, n)
+            opens.append((("", st[-1][1] * n), st))
+        if _punct(pre) and _word(post):
+            opts = exact + rest + opens
+        elif _word(pre) and _punct(post):
+            opts = opens + exact + rest
+        else:
+            opts = exact + opens + rest
+        res = None
+        for p, st in opts:
+            cost, more = best(i + 1, st)
+            cost += p[2] if len(p) > 2 else 0
+            if res is None or cost < res[0]:
+                res = (cost, (p,) + more)
+            if cost == 0:
+                break
+        cost, more = best(i + 1, stack)
+        if res is None or cost + 1 < res[0]:
+            res = (cost + 1, (None,) + more)
+        memo[key] = res
+        return res
+
+    plan = list(best(0, ())[1])
+    # 只包住标点的强调（如 **[左下*：*]**）CommonMark 认不准，又看不出差别：去掉
+    for i in range(len(plan) - 1):
+        p, q = plan[i], plan[i + 1]
+        if p and q and p[1] and not p[0] and q[0].startswith(p[1]) and not any(map(_word, t[runs[i][1]:runs[i + 1][0]])):
+            plan[i] = ("", "") + tuple(p[2:])
+            plan[i + 1] = (q[0][len(p[1]):],) + tuple(q[1:])
+    out, j = [], 0
+    for (a, b, pre, post), p in zip(runs, plan):
+        out.append(t[j:a])
+        j = b
+        if p is None:
+            out.append("\\*" * (b - a))
+            continue
+        shut, start = p[:2]
+        if not shut and not start:
+            out.append("\\*" * p[2] if len(p) > 2 else "")
+            continue
+        # * 的开始前面是标点、后面是文字（或结束反过来）时 CommonMark 才认；_ 要求更严：开始前面、结束后面不能是文字
+        lead = ZWSP if not shut and _word(pre) and (_punct(post) or start[0] == "_") else ""
+        tail = ZWSP if not start and _word(post) and (_punct(pre) or shut[-1] == "_") else ""
+        out.append(lead + shut + (ZWSP if shut and start else "") + start + tail + ("\\*" * p[2] if len(p) > 2 else ""))
+    return "".join(out + [t[j:]])
+
+
 def _escape_inline(text):
-    """代码以外的 < 和 $：站点没开 unsafe，原样 HTML 会被丢掉；$ 不能被当成公式（docs/testing.md）"""
-    parts = re.split(r"(`+[^`]*`+)", text)
+    """代码以外的 < 和 $：站点没开 unsafe，原样 HTML 会被丢掉；$ 不能被当成公式（docs/testing.md）。
+    脚注：各卡的脚注定义都在「脚注」一章，引用在别的章，goldmark 会丢掉没有引用的定义、留下字面的 [^N]，
+    所以两头都换成短代码（sc-fn 定义、sc-fnref 引用）"""
+    parts, links = re.split(r"(`+[^`]*`+)", text), []
     for i in range(0, len(parts), 2):
-        parts[i] = re.sub(r"(?<!\\)\$", r"\\$", parts[i].replace("<", "&lt;"))
-    return "".join(parts)
+        t = re.sub(r"(?<!\\)\$", r"\\$", parts[i].replace("<", "&lt;"))
+        if i == 0:
+            t = re.sub(r"^\[\^(\d+)\]:\s*", r"{{< sc-fn \1 >}} ", t)
+        t = re.sub(r"\[\^(\d+)\](?!:)", r"{{< sc-fnref \1 >}}", t)
+        # 链接文字里的强调自成一体（CommonMark 不和链接外的配对；译文常写成 **甲**[**乙**](…)**丙**）：
+        # 先单独处理，外面配对时整个链接当成一个以 [ 开头、) 结尾的字
+        parts[i] = re.sub(r"(!?)\[([^\[\]]*)\]\(([^()\s]*)\)",
+                          lambda m: links.append(m.group(1) + "[" + (m.group(2) if m.group(1) else _emphasis(m.group(2))) + "](" + m.group(3) + ")")
+                          or f"[\0{len(links) - 1}\0)", t)
+    skip, k = [], 0
+    for i, part in enumerate(parts):
+        if i % 2:
+            skip.append((k, k + len(part)))
+        k += len(part)
+    return re.sub(r"\[\0(\d+)\0\)", lambda m: links[int(m.group(1))], _emphasis("".join(parts), skip))
 
 
 def to_hugo(ch):
@@ -198,6 +342,8 @@ def to_hugo(ch):
                 out.append("{{< s1-page %d >}}" % (n - 1))
         else:
             out.append(_escape_inline(l))
+            if out[-1].startswith("{{< sc-fn "):
+                out.append("")  # 每条脚注自成一段（原文是连续的 [^N]: 行）
     text = "\n".join(out).strip("\n")
     return re.sub(r"\n{3,}", "\n\n", text) + "\n"
 

@@ -20,7 +20,7 @@ Claude Haiku 5.5 并非前沿模型，但与 Haiku 4.5 相比，它在网络安�
 
 #### 3.3.1 ExploitBench
 
-ExploitBench[^1] 是一项网络安全基准测试，用于评估 AI 模型能在软件漏洞利用流程中推进到何种程度（而非将漏洞利用作为单一的通过/失败事件来评分）。我们最近对此有[更详细的介绍](https://red.anthropic.com/2026/exploit-evals/)。
+ExploitBench{{< sc-fnref 1 >}} 是一项网络安全基准测试，用于评估 AI 模型能在软件漏洞利用流程中推进到何种程度（而非将漏洞利用作为单一的通过/失败事件来评分）。我们最近对此有[更详细的介绍](https://red.anthropic.com/2026/exploit-evals/)。
 
 {{< s1-page 23 >}}
 
@@ -64,7 +64,7 @@ Haiku 5.5 完成了全部挑战的 3.3%，相比 Claude Sonnet 5 的 0.7% 和 Cl
 
 ![](images/p027_0.webp)
 
-***[图 3.3.2.A] Haiku 5.5 相比 Haiku 4.5 和 Sonnet 5 有所提升，但在 CyScenarioBench 上的得分不及其他近期发布的模型。**柱状图显示各模型的总体解决率，为我们子集中 10 个挑战的平均值。本评估在关闭我们的网络安全缓解措施的情况下运行。*
+***[图 3.3.2.A] Haiku 5.5 相比 Haiku 4.5 和 Sonnet 5 有所提升，但在 CyScenarioBench 上的得分不及其他近期发布的模型。**&#8203;柱状图显示各模型的总体解决率，为我们子集中 10 个挑战的平均值。本评估在关闭我们的网络安全缓解措施的情况下运行。*
 
 #### 3.3.3 Binary Exploitation Benchmark（原名 OSS-Fuzz）
 
@@ -78,7 +78,7 @@ Claude Haiku 5.5 产生了 3 次控制流劫持。相比之下，Claude Mythos 5
 
 ![](images/p028_0.webp)
 
-***[图 3.3.3.A] 在漏洞利用开发方面，Claude Haiku 5.5 相比 Claude Haiku 4.5 有小幅提升，与 Claude Sonnet 5 持平。**在漏洞检测方面，它相比 Claude Haiku 4.5 提升了一个台阶，与 Claude Sonnet 5 相当。*
+***[图 3.3.3.A] 在漏洞利用开发方面，Claude Haiku 5.5 相比 Claude Haiku 4.5 有小幅提升，与 Claude Sonnet 5 持平。**&#8203;在漏洞检测方面，它相比 Claude Haiku 4.5 提升了一个台阶，与 Claude Sonnet 5 相当。*
 
 #### 3.3.4 ExploitGym
 

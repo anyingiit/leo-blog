@@ -44,7 +44,7 @@
     <div class="post-meta">原文第&nbsp;{{ index .Params.pages 0 }}{{ if ne (index .Params.pages 0) (index .Params.pages 1) }}–{{ index .Params.pages 1 }}{{ end }}&nbsp;页</div>
   </header>
   {{- partial "syscards/versionbar.html" (dict "page" .) }}
-  {{- partial "syscards/notice-short.html" (dict "page" . "card" true) }}
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" true "brief" true) }}
   <details class="s1-chtoc"><summary>章节目录</summary>{{ partial "syscards/toc.html" (dict "v" $v "current" $slug) }}</details>
   <div class="s1-switchbar">
     <div class="s1-switch" role="group" aria-label="版式">

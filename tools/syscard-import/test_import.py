@@ -5,7 +5,7 @@
 另外，本机有译文仓库的克隆时设 SYSCARDS_SRC=<克隆路径>，会把瘦身过的 PDF 与原文件逐页对比（渲染像素、文字层、书签、链接）。
 CI 里没有原文件，这一项跳过；无损的做法本身由合成 PDF 的测试覆盖。
 """
-import hashlib, importlib.util, json, os, subprocess, tempfile, unittest
+import glob, hashlib, importlib.util, json, os, re, subprocess, sys, tempfile, unittest
 
 import pikepdf, pypdf, pypdfium2
 
@@ -17,6 +17,8 @@ LIMIT = 25 * 1024 * 1024
 spec = importlib.util.spec_from_file_location("syscard_import", os.path.join(HERE, "import.py"))
 imp = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(imp)
+sys.path.insert(0, HERE)
+import chapters, reference  # noqa: E402
 
 
 def front_matter(name):
@@ -25,8 +27,14 @@ def front_matter(name):
 
 
 def cards():
-    """每份卡一个目录（叶子包），按 weight（官网列表的顺序）"""
-    out = [dict(front_matter(f"{d}/index.md"), slug=d) for d in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, d, "index.md"))]
+    """每份卡一个目录：卡片首页 <卡>/_index.md + 每个版本 <卡>/<版本>/_index.md，按 weight（官网列表的顺序）。
+    返回卡片首页的 front matter，加上 slug 和 versions（版本目录名 → 版本页 front matter）"""
+    out = []
+    for d in os.listdir(DIR):
+        if not os.path.isfile(os.path.join(DIR, d, "_index.md")):
+            continue
+        vs = {os.path.basename(os.path.dirname(f)): front_matter(os.path.relpath(f, DIR)) for f in glob.glob(os.path.join(DIR, d, "v*", "_index.md"))}
+        out.append(dict(front_matter(f"{d}/_index.md"), slug=d, versions=vs))
     return sorted(out, key=lambda c: c["weight"])
 
 
@@ -139,6 +147,47 @@ class ReadmeParsing(unittest.TestCase):
         self.assertEqual(imp.official_order(html), ["opus-5-5", "haiku-5-5"])
 
 
+class BoldAndFootnotes(unittest.TestCase):
+    """chapters._escape_inline：全角标点旁的加粗、跨章的脚注"""
+    md = staticmethod(chapters._escape_inline)
+
+    def test_bold_next_to_fullwidth_punctuation(self):
+        z = chapters.ZWSP
+        self.assertEqual(self.md("> **译注：**Claude 的安全机制"), f"> **译注：**{z}Claude 的安全机制")
+        self.assertEqual(self.md("见**「附录」**一节"), f"见{z}**「附录」**{z}一节")
+        # 本来就成立的加粗不动
+        for t in ("**VCT：** 一项评估", "这是**重点**。", "**A** 和 **B**", "a **b** c"):
+            self.assertEqual(self.md(t), t)
+        # 后面紧跟脚注引用（Hugo 渲染 Markdown 时短代码是一串字母占位）：结尾本来就成立，不补
+        self.assertEqual(self.md("SWE-Bench **Pro**[^12] 由"), "SWE-Bench **Pro**{{< sc-fnref 12 >}} 由")
+        # 星号紧挨括号：括号前的星号是开始；嵌在加粗里的斜体改用 _，不会和外层配错
+        self.assertEqual(self.md("| **Claude Opus 5.5*（仅有用）*** |"), f"| **Claude Opus 5.5{z}_（仅有用）_** |")
+        # 相邻两段强调拼成的四个星号
+        self.assertEqual(self.md("*甲。****乙。****丙*"), f"*甲。*{z}***乙。***{z}*丙*")
+        self.assertEqual(self.md("**恶意（%）****（拒绝率）**"), f"**恶意（%）**{z}**（拒绝率）**")
+        # 图注：整段斜体里套加粗标题，标题后面紧跟一段斜体（***[图] 标题。***y* 轴…*）
+        self.assertEqual(self.md("***[图 1] 标题。***y* 轴。*"), f"***[图 1] 标题。**{z}_y_ 轴。*")
+        self.assertEqual(self.md("***[表 1] 标题。**正文以**粗体**标出。*"), f"***[表 1] 标题。**{z}正文以{z}__粗体__{z}标出。*")
+        # 只包住标点的强调（HTML 里是 <b>。</b>）去掉：CommonMark 认不准，又看不出差别
+        self.assertEqual(self.md("***[表 1] 标题。**正文破坏**。***"), f"***[表 1] 标题。**{z}正文破坏。*")
+        self.assertEqual(self.md("**[左下*：*]**在诱导"), f"**[左下：]**{z}在诱导")
+        # 加粗后面多出的注释星号是普通字符
+        self.assertEqual(self.md("| **Terminal-Bench 2.0*** | **82%** |"), "| **Terminal-Bench 2.0**\\* | **82%** |")
+        # 译文里本来就当普通字符用的星号（HTML 里也原样显示）：转义，别和别处配对
+        self.assertEqual(self.md("混合在我的二**元决策树里"), "混合在我的二\\*\\*元决策树里")
+        # 代码里的星号不动
+        self.assertEqual(self.md("`**kwargs**：`x"), "`**kwargs**：`x")
+
+    def test_footnotes(self):
+        self.assertEqual(self.md("BBQ[^7]评估了"), "BBQ{{< sc-fnref 7 >}}评估了")
+        self.assertEqual(self.md("[^7]: Parrish, A., et al."), "{{< sc-fn 7 >}} Parrish, A., et al.")
+        self.assertEqual(self.md("`a[^1]`"), "`a[^1]`")
+
+    def test_to_hugo_footnote_paragraphs(self):
+        ch = dict(pages=[10, 10], lines=["[^1]: a", "[^2]: b"])
+        self.assertEqual(chapters.to_hugo(ch), "{{< sc-fn 1 >}} a\n\n{{< sc-fn 2 >}} b\n")
+
+
 class PublishedFiles(unittest.TestCase):
     """仓库里导入的每份系统卡"""
     zh = front_matter("_index.md")
@@ -148,36 +197,80 @@ class PublishedFiles(unittest.TestCase):
         self.assertGreaterEqual(len(self.cards), 10)
         self.assertEqual([c["weight"] for c in self.cards], list(range(1, len(self.cards) + 1)))
         for c in self.cards:
-            en = front_matter(f"{c['slug']}/index.en.md")
-            for k in ("facts", "downloads", "official", "released", "pages", "weight", "sourceCommit"):
+            en = front_matter(f"{c['slug']}/_index.en.md")
+            for k in ("facts", "official", "released", "pages", "weight", "latest", "sourceCommit"):
                 self.assertEqual(en[k], c[k], f"{c['slug']} {k}")
             self.assertEqual(c["sourceCommit"], self.zh["sourceCommit"])
-            for path in (f"{c['slug']}/index.md", f"{c['slug']}/index.en.md", "_index.md", "_index.en.md"):
-                text = open(os.path.join(DIR, path), encoding="utf-8").read()
-                self.assertNotIn("github.com", text, f"{path}：译文仓库不公开")
+            self.assertIn(c["latest"], c["versions"], f"{c['slug']} 最新版本")
+            for name, v in c["versions"].items():
+                # 版本号与译文仓库同步：语义化版本 X.Y.Z、tag <卡>/vX.Y.Z；网页上按 S-1 的写法（补丁号为 0 时省略）
+                self.assertRegex(v["repoVersion"], r"^\d+\.\d+\.\d+$")
+                self.assertEqual(v["tag"], f"{c['slug']}/v{v['repoVersion']}")
+                self.assertEqual(name, v["version"])
+                self.assertEqual(v["version"], "v" + re.sub(r"\.0$", "", v["repoVersion"]))
+            for path in glob.glob(os.path.join(DIR, c["slug"], "**", "*.md"), recursive=True):
+                text = open(path, encoding="utf-8").read()
+                self.assertNotIn("anthropic-system-cards-zh", text, f"{path}：译文仓库不公开")
 
     def test_files(self):
         for c in self.cards:
-            for kind in ("html", "pdf"):
-                path = os.path.join(DIR, c["slug"], c["downloads"][kind]["file"])
-                data = open(path, "rb").read()
-                self.assertEqual(len(data), c["downloads"][kind]["bytes"], path)
-                self.assertEqual(hashlib.sha256(data).hexdigest(), c["downloads"][kind]["sha256"], path)
-                self.assertLessEqual(len(data), LIMIT, f"{path} 超过 Cloudflare Pages 单文件上限")
-            pdf = c["downloads"]["pdf"]
-            self.assertEqual(pdf.get("slimmed", False), pdf.get("sourceBytes", 0) > LIMIT, c["slug"])
-            self.assertEqual(sorted(os.listdir(os.path.join(DIR, c["slug"], "files"))),
-                             sorted(os.path.basename(c["downloads"][k]["file"]) for k in ("html", "pdf")), "files/ 下只有这两个文件")
+            for name, v in c["versions"].items():
+                vdir = os.path.join(DIR, c["slug"], name)
+                for kind in ("html", "pdf"):
+                    path = os.path.join(vdir, v["downloads"][kind]["file"])
+                    data = open(path, "rb").read()
+                    self.assertEqual(len(data), v["downloads"][kind]["bytes"], path)
+                    self.assertEqual(hashlib.sha256(data).hexdigest(), v["downloads"][kind]["sha256"], path)
+                    self.assertLessEqual(len(data), LIMIT, f"{path} 超过 Cloudflare Pages 单文件上限")
+                pdf = v["downloads"]["pdf"]
+                self.assertEqual(pdf.get("slimmed", False), pdf.get("sourceBytes", 0) > LIMIT, c["slug"])
+                self.assertEqual(sorted(os.listdir(os.path.join(vdir, "files"))),
+                                 sorted(os.path.basename(v["downloads"][k]["file"]) for k in ("html", "pdf")), "files/ 下只有这两个文件")
+
+    def test_chapters(self):
+        """章节连续覆盖全部页；每章有重排版和原版版式（每页一张底图、一个文字层），重排版里没有漏掉的 Markdown"""
+        for c in self.cards:
+            for name, v in c["versions"].items():
+                chs = v["chapters"]
+                self.assertEqual(chs[0]["pages"][0], 1)
+                self.assertEqual(chs[-1]["pages"][1], c["pages"])
+                for a, b in zip(chs, chs[1:]):
+                    self.assertIn(b["pages"][0], (a["pages"][1], a["pages"][1] + 1), f"{c['slug']} {b['slug']} 与上一章不连续")
+                for ch in chs:
+                    d = os.path.join(DIR, c["slug"], name, ch["slug"])
+                    md = open(os.path.join(d, "index.md"), encoding="utf-8").read().split("\n---\n", 1)[1]
+                    prose = re.sub(r"```[\s\S]*?```|`[^`\n]*`", "", md)
+                    self.assertNotRegex(prose, r"\[\^\d+\]", f"{c['slug']} {ch['slug']} 有没换掉的脚注")
+                    orig = open(os.path.join(d, "original.html"), encoding="utf-8").read()
+                    pages = range(ch["pages"][0], ch["pages"][1] + 1)
+                    self.assertEqual(re.findall(r'aria-label="原文第 (\d+) 页"', orig), [str(p) for p in pages], f"{c['slug']} {ch['slug']}")
+                    self.assertEqual(sorted(os.listdir(os.path.join(d, "bg"))), [f"p{p:03d}.webp" for p in pages])
+                fns = os.path.join(DIR, c["slug"], name, "footnotes", "index.md")
+                if os.path.exists(fns):
+                    defs = set(re.findall(r"\{\{< sc-fn (\d+) >\}\}", open(fns, encoding="utf-8").read()))
+                    refs = set()
+                    for f in glob.glob(os.path.join(DIR, c["slug"], name, "*", "index.md")):
+                        refs |= set(re.findall(r"\{\{< sc-fnref (\d+) >\}\}", open(f, encoding="utf-8").read()))
+                    self.assertTrue(defs, f"{c['slug']} 脚注一章没有脚注")
+                    # 原文有极少数脚注只有引用没有定义（编号跳号），只要求有定义的都被引用或引用都能找到大多数定义
+                    self.assertGreaterEqual(len(refs & defs), 0.9 * len(refs), f"{c['slug']} 脚注引用找不到定义")
+
+    def test_reference_images_are_current(self):
+        """tests/fixtures/syscards/ 的像素基准就是现在这份 PDF 渲染出来的（换了 PDF 要重新跑 reference.py）"""
+        for slug, page in reference.PAGES:
+            want = open(os.path.join(reference.OUT, reference.name(slug, page)), "rb").read()
+            self.assertEqual(reference.render(slug, page), want, f"{slug} 第 {page} 页：重新运行 tools/syscard-import/reference.py")
 
     def test_pdfs_readable_and_slimmed_ones_have_no_duplicate_images(self):
         for c in self.cards:
-            path = os.path.join(DIR, c["slug"], c["downloads"]["pdf"]["file"])
-            r = pypdf.PdfReader(path)
-            self.assertEqual(len(r.pages), c["pages"], f"{c['slug']} 页数与原版不同")
-            self.assertEqual(len(r.outline) > 0, c["downloads"]["pdf"]["bookmarks"], f"{c['slug']} 书签")
-            if c["downloads"]["pdf"].get("slimmed"):
-                keys = [imp._stream_key(o) for o in images(path)]
-                self.assertEqual(len(keys), len(set(keys)), f"{c['slug']} 还有重复的图片")
+            for name, v in c["versions"].items():
+                path = os.path.join(DIR, c["slug"], name, v["downloads"]["pdf"]["file"])
+                r = pypdf.PdfReader(path)
+                self.assertEqual(len(r.pages), c["pages"], f"{c['slug']} 页数与原版不同")
+                self.assertEqual(len(r.outline) > 0, v["downloads"]["pdf"]["bookmarks"], f"{c['slug']} 书签")
+                if v["downloads"]["pdf"].get("slimmed"):
+                    keys = [imp._stream_key(o) for o in images(path)]
+                    self.assertEqual(len(keys), len(set(keys)), f"{c['slug']} 还有重复的图片")
 
     @unittest.skipUnless(os.environ.get("SYSCARDS_SRC"), "设 SYSCARDS_SRC=<译文仓库克隆> 时逐页对比原文件")
     def test_slimmed_pdfs_match_source(self):
@@ -185,16 +278,18 @@ class PublishedFiles(unittest.TestCase):
         commit = subprocess.run(["git", "-C", src, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
         self.assertEqual(commit, self.zh["sourceCommit"], "译文仓库要切到导入时的提交")
         for c in self.cards:
-            h = c["downloads"]["html"]
-            self.assertEqual(open(os.path.join(src, c["slug"], h["name"]), "rb").read(), open(os.path.join(DIR, c["slug"], h["file"]), "rb").read(),
+            v = c["versions"][c["latest"]]
+            vdir = os.path.join(DIR, c["slug"], c["latest"])
+            h = v["downloads"]["html"]
+            self.assertEqual(open(os.path.join(src, c["slug"], h["name"]), "rb").read(), open(os.path.join(vdir, h["file"]), "rb").read(),
                              f"{c['slug']} HTML 逐字节原样")
-            pdf = c["downloads"]["pdf"]
+            pdf = v["downloads"]["pdf"]
             orig = os.path.join(src, c["slug"], pdf["name"])
             if not pdf.get("slimmed"):
                 self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), pdf["sha256"], f"{c['slug']} 原样复制")
                 continue
             self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), pdf["sourceSha256"])
-            mine = os.path.join(DIR, c["slug"], pdf["file"])
+            mine = os.path.join(vdir, pdf["file"])
             a, b = pypdfium2.PdfDocument(orig), pypdfium2.PdfDocument(mine)
             for i in range(len(a)):
                 self.assertEqual(a[i].render(scale=100 / 72).to_pil().tobytes(), b[i].render(scale=100 / 72).to_pil().tobytes(), f"{c['slug']} 第 {i + 1} 页像素")
@@ -202,7 +297,6 @@ class PublishedFiles(unittest.TestCase):
             ra, rb = pypdf.PdfReader(orig), pypdf.PdfReader(mine)
             self.assertEqual(outline(ra), outline(rb), f"{c['slug']} 书签")
             self.assertEqual([len(p.get("/Annots") or []) for p in ra.pages], [len(p.get("/Annots") or []) for p in rb.pages])
-
 
 if __name__ == "__main__":
     unittest.main()

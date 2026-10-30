@@ -15,7 +15,7 @@ import release  # noqa: E402
 
 
 def released_versions():
-    for index in sorted(glob.glob(os.path.join(REPO, "content", "**", "_index.md"), recursive=True)
+    for index in sorted(glob.glob(os.path.join(REPO, "content", "translations", "anthropic-s1", "**", "_index.md"), recursive=True)
                         + glob.glob(os.path.join(REPO, "tests", "fixtures", "s1-preview", "versions", "*", "_index.md"))):
         fm = open(index, encoding="utf-8").read().split("\n---\n", 1)[0]
         m = re.search(r"^downloads: (.+)$", fm, re.M)

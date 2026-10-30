@@ -165,8 +165,9 @@ test("草稿不发布", () => {
 
 // ── 中英文副本（项目规则：每篇文章都有英文副本）─────────────────────────
 
-// 例外：S-1 这类英文文件的中文译本（translations/<译本>/<版本>/），英文版就是原文（SEC 上的原件），只在译本首页给英文说明
-const isS1Version = (f) => /^translations\/[^/]+\/v[^/]+\//.test(f);
+// 例外：S-1、系统卡这类英文文件的中文译本的版本和章节（translations/<译本>/<版本>/、translations/system-cards/<卡>/<版本>/），
+// 英文版就是原文（Anthropic 官网、SEC 上的原件），只在译本首页给英文说明
+const isS1Version = (f) => /^translations\/(system-cards\/)?[^/]+\/v[^/]+\//.test(f);
 
 test("每篇已发布的中文文章都有英文副本，反之亦然", () => {
   for (const f of contentFiles.filter((f) => !isDraft(f) && !isS1Version(f))) {

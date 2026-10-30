@@ -1,4 +1,0 @@
-/* 方案 D：栏目页每份卡可展开目录 */
-.sc-entry-toc { margin-top: 8px; font-size: 14px; }
-.sc-entry-toc summary { cursor: pointer; color: var(--secondary); min-height: 32px; display: flex; align-items: center; }
-.sc-entry-toc .s1-toc { margin: 4px 0 0; }

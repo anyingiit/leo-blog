@@ -1,5 +1,6 @@
 ---
 title: "Claude Opus 5.5 系统卡中文译本 v1.0"
+description: "Claude Opus 5.5 系统卡中文译本 v1.0 的目录和全文下载（非官方，AI 翻译）"
 version: "v1.0"
 repoVersion: "1.0.0"
 tag: "opus-5.5/v1.0.0"

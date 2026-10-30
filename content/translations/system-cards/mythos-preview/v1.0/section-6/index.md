@@ -34,7 +34,7 @@ description: "Claude Mythos Preview 系统卡中文译本 v1.0 · 6 能力（非
 
 ![](images/p186_0.webp)
 
-***[图 6.2.1.A] SWE-bench 评估通过率与记忆过滤阈值的关系。**上图展示了 Claude Mythos Preview、Claude Opus 4.6 和 Claude Sonnet 4.6 在 SWE-bench Verified（n=500）、Multilingual（n=297）和 Pro（n=731）上的通过率随过滤严格程度的变化。每个模型都在如下问题子集上重新评分：按任一模型计，审计模型给出的记忆概率均 ≤ x 轴取值。柱形表示在每个阈值下保留的问题数量。在阈值 1.0（最右侧）时，所有问题均被保留，曲线与表 6.3.A 中的主要成绩一致；向左移动会剔除被判定为越来越可能被记忆的问题。在整个阈值范围内，在全部三个基准测试上，Claude Mythos Preview 都保持着对两个基线的显著领先。在我们的参考阈值 0.7（一个有意设定的高召回率设置，会剔除每个基准测试 8–15% 的问题）下，Claude Mythos Preview 相对于 Opus 4.6 的领先幅度最多缩小 3.5 个百分点。最左侧的不稳定是在通过过滤的问题少于约 30 个时出现的小样本噪声。随着记忆过滤放宽、更多被标记的问题被加回，Claude Mythos Preview 的通过率大致保持稳定，而 Claude Opus 4.6 和 Claude Sonnet 4.6 的通过率则有所下降。这与以下情况相符：Claude Mythos Preview 记忆了一些较难的被标记问题，而这些问题基线模型并未独立解出。*
+***[图 6.2.1.A] SWE-bench 评估通过率与记忆过滤阈值的关系。**&#8203;上图展示了 Claude Mythos Preview、Claude Opus 4.6 和 Claude Sonnet 4.6 在 SWE-bench Verified（n=500）、Multilingual（n=297）和 Pro（n=731）上的通过率随过滤严格程度的变化。每个模型都在如下问题子集上重新评分：按任一模型计，审计模型给出的记忆概率均 ≤ x 轴取值。柱形表示在每个阈值下保留的问题数量。在阈值 1.0（最右侧）时，所有问题均被保留，曲线与表 6.3.A 中的主要成绩一致；向左移动会剔除被判定为越来越可能被记忆的问题。在整个阈值范围内，在全部三个基准测试上，Claude Mythos Preview 都保持着对两个基线的显著领先。在我们的参考阈值 0.7（一个有意设定的高召回率设置，会剔除每个基准测试 8–15% 的问题）下，Claude Mythos Preview 相对于 Opus 4.6 的领先幅度最多缩小 3.5 个百分点。最左侧的不稳定是在通过过滤的问题少于约 30 个时出现的小样本噪声。随着记忆过滤放宽、更多被标记的问题被加回，Claude Mythos Preview 的通过率大致保持稳定，而 Claude Opus 4.6 和 Claude Sonnet 4.6 的通过率则有所下降。这与以下情况相符：Claude Mythos Preview 记忆了一些较难的被标记问题，而这些问题基线模型并未独立解出。*
 
 我们的检测器并不完美，但这一结果对阈值的选择是稳健的，并且与 Claude Mythos Preview 在任何训练语料中都不存在的内部基准测试上的提升相一致。我们的结论是，记忆并不能解释它在 SWE-bench 上的提升。
 
@@ -50,7 +50,7 @@ CharXiv Reasoning 是我们在第 6.11.3 节中为 Claude Mythos Preview 报告�
 
 ![](images/p187_0.webp)
 
-***[图 6.2.2.A] CharXiv Reasoning（子集）分数。**我们在原始 CharXiv 基准测试的一个问题子集上评估各模型，同时使用原始问答对和难度与歧义程度大致相当的手动改写变体。Claude Mythos Preview 在自适应思考（adaptive thinking）和 max 推理强度（effort）下进行评估。Gemini 3.1 Pro Preview 在默认的动态思考档位“high”下进行评估。GPT-5.4 Pro 在推理设置为“high”的情况下进行评估。*
+***[图 6.2.2.A] CharXiv Reasoning（子集）分数。**&#8203;我们在原始 CharXiv 基准测试的一个问题子集上评估各模型，同时使用原始问答对和难度与歧义程度大致相当的手动改写变体。Claude Mythos Preview 在自适应思考（adaptive thinking）和 max 推理强度（effort）下进行评估。Gemini 3.1 Pro Preview 在默认的动态思考档位“high”下进行评估。GPT-5.4 Pro 在推理设置为“high”的情况下进行评估。*
 
 在 CharXiv 的一个包含 100 个条目的改编版上，Claude Mythos Preview、Gemini 3.1 Pro Preview 和 GPT-5.4 Pro 在改编版上的得分均高于在对应原始子集上的得分。这表明原始基准测试上可归因于记忆的表现是有限的。我们的结论是，污染不太可能对 Claude Mythos Preview 在 CharXiv 上的表现有实质性贡献。
 
@@ -63,7 +63,7 @@ CharXiv Reasoning 是我们在第 6.11.3 节中为 Claude Mythos Preview 报告�
 | **SWE-bench Pro** | **77.8%** | 53.4% | 57.7% | 54.2% |
 | **SWE-bench Multilingual** | **87.3%** | 77.8% | — | — |
 | **SWE-bench Multimodal** | **59%** | 27.1% | — | — |
-| **Terminal-Bench 2.0*** | **82%** | 65.4% | 75.1% | 68.5% |
+| **Terminal-Bench 2.0**\* | **82%** | 65.4% | 75.1% | 68.5% |
 | **GPQA Diamond** | **94.5%** | 91.3% | 92.8% | 94.3% |
 
 #### 6.2.3 MMMU-Pro
@@ -92,7 +92,7 @@ MMMU-Pro 是我们通常会在本系统卡（System Card）中（具体而言，
 |  | **使用工具** | **93.2%** | 84.7% | - | - |
 | **OSWorld** |  | **79.6%** | 72.7% | 75.0% |  |
 
-***[表 6.3.A] 能力评估总览。**除非另有说明，Claude Mythos Preview 的所有结果均采用以下标准配置：自适应思考，max 推理强度，默认采样设置（temperature、top_p），取 5 次试验的平均值。上下文窗口大小因评估而异，且不超过 100 万 token。每行中的最佳得分以**粗体**标出。竞品数据取自各开发方公开发布的系统卡或基准测试排行榜。早期 Claude 模型的评估细节参见 [Claude Opus 4.6 系统卡](https://www.anthropic.com/claude-opus-4-6-system-card)。*对于 Terminal-Bench 2.0，OpenAI 的报告得分使用了专门的运行框架（harness），因此该行中各模型之间的比较并不精确。其他所有得分均使用 Terminus-2 运行框架。*
+***[表 6.3.A] 能力评估总览。**&#8203;除非另有说明，Claude Mythos Preview 的所有结果均采用以下标准配置：自适应思考，max 推理强度，默认采样设置（temperature、top_p），取 5 次试验的平均值。上下文窗口大小因评估而异，且不超过 100 万 token。每行中的最佳得分以&#8203;__粗体__&#8203;标出。竞品数据取自各开发方公开发布的系统卡或基准测试排行榜。早期 Claude 模型的评估细节参见 [Claude Opus 4.6 系统卡](https://www.anthropic.com/claude-opus-4-6-system-card)。*&#8203;对于 Terminal-Bench 2.0，OpenAI 的报告得分使用了专门的运行框架（harness），因此该行中各模型之间的比较并不精确。其他所有得分均使用 Terminus-2 运行框架。\*
 
 ### 6.4 SWE-bench Verified、Pro、Multilingual 与 Multimodal
 
@@ -114,13 +114,13 @@ SWE-bench（Software Engineering Bench）在真实世界软件工程任务上测
 
 Claude Mythos Preview 取得了 **82% 的平均奖励**，为 89 个不同任务各 5 次尝试的平均值（共计 445 次试验）。我们将 Claude Mythos Preview 配置为以最高推理强度（自适应模式）运行，每个任务的总 token 预算为 100 万，每次请求的最大输出 token 为 32K。Terminal-Bench 对推理延迟较为敏感：固定的实际耗时超时意味着解码较慢的端点在每个任务中完成的回合更少。我们报告的得分使用了生产环境 API 端点，以考虑这些动态因素。
 
-Terminal-Bench 2.0 的超时限制有时相当严格，对思考型模型尤其如此，这有可能使真实的能力跃升被采样速度等看似无关的混杂因素所掩盖。此外，部分 Terminal-Bench 2.0 任务存在歧义，且资源规格有限，无法让智能体充分探索完整的解空间——维护者目前正在 [2.1 更新](https://github.com/harbor-framework/terminal-bench-2/pull/53)中解决这两个问题。为了在排除混杂因素的情况下单独衡量智能体编程能力，我们还使用 GitHub 上提供的最新 2.1 修复运行了 Terminal-Bench，同时将超时限制提高到 4 小时（大约是 2.0 基线的四倍）。这使平均奖励达到 **92.1%**。在相同条件下，我们测得使用 Codex CLI 运行框架的 GPT-5.4 取得 75.3%（高于基线规格下的 68.3%）[^23]。
+Terminal-Bench 2.0 的超时限制有时相当严格，对思考型模型尤其如此，这有可能使真实的能力跃升被采样速度等看似无关的混杂因素所掩盖。此外，部分 Terminal-Bench 2.0 任务存在歧义，且资源规格有限，无法让智能体充分探索完整的解空间——维护者目前正在 [2.1 更新](https://github.com/harbor-framework/terminal-bench-2/pull/53)中解决这两个问题。为了在排除混杂因素的情况下单独衡量智能体编程能力，我们还使用 GitHub 上提供的最新 2.1 修复运行了 Terminal-Bench，同时将超时限制提高到 4 小时（大约是 2.0 基线的四倍）。这使平均奖励达到 **92.1%**。在相同条件下，我们测得使用 Codex CLI 运行框架的 GPT-5.4 取得 75.3%（高于基线规格下的 68.3%）{{< sc-fnref 23 >}}。
 
 {{< s1-page 190 >}}
 
 ### 6.6 GPQA Diamond
 
-Graduate-Level Google-Proof Q&A 基准测试（GPQA）[^24] 是一组具有挑战性的多项选择科学题。我们使用包含 198 道题的 Diamond 子集——即领域专家能答对、但大多数非专家答不对的题目。
+Graduate-Level Google-Proof Q&A 基准测试（GPQA）{{< sc-fnref 24 >}} 是一组具有挑战性的多项选择科学题。我们使用包含 198 道题的 Diamond 子集——即领域专家能答对、但大多数非专家答不对的题目。
 
 Claude Mythos Preview 在 [GPQA Diamond](https://arxiv.org/abs/2311.12022) 上取得 94.55%，为 5 次试验的平均值。
 
@@ -140,7 +140,7 @@ Claude Mythos Preview 取得 97.6% 的得分，为每道题 10 次试验的平�
 
 ![](images/p192_0.webp)
 
-***[图 6.8.A] USAMO 2026 得分。**Claude Mythos Preview 在数学证明方面远强于 Claude Opus 4.6。*
+***[图 6.8.A] USAMO 2026 得分。**&#8203;Claude Mythos Preview 在数学证明方面远强于 Claude Opus 4.6。*
 
 我们注意到，三位评判者中有两位是 Anthropic 模型，它们[可能](https://arxiv.org/abs/2410.21819)存在偏向 Claude Mythos Preview 的[偏差](https://matharena.ai/usamo/)；与此相抵的是，Gemini 3.1 Pro 认同这些得分，并且在 58/60 份解答中未发现任何问题。
 
@@ -148,7 +148,7 @@ Claude Mythos Preview 取得 97.6% 的得分，为每道题 10 次试验的平�
 
 [GraphWalks](https://huggingface.co/datasets/openai/graphwalks) 是一个多跳长上下文基准测试：上下文窗口中填充着一个由十六进制哈希节点构成的有向图，模型必须从一个随机起始节点出发执行广度优先搜索（BFS），或找出其父节点。
 
-Claude Mythos Preview 在 BFS 256K-1M 上得分 80.0%，在 parents 256k-1M 上得分 97.7%，均为 5 次试验的平均值[^25]。与此前的 Claude 模型一样，我们的评分修正了已发布 F1 指标中的一处歧义（真值集合为空时，空预测记为 1.0 而非 0），并对 BFS 提示词作了澄清，要求给出恰好位于深度 N 的节点，而非深度不超过 N 的节点；详情参见 [Claude Opus 4.6 系统卡](https://www-cdn.anthropic.com/0dd865075ad3132672ee0ab40b05a53f14cf5288.pdf)。
+Claude Mythos Preview 在 BFS 256K-1M 上得分 80.0%，在 parents 256k-1M 上得分 97.7%，均为 5 次试验的平均值{{< sc-fnref 25 >}}。与此前的 Claude 模型一样，我们的评分修正了已发布 F1 指标中的一处歧义（真值集合为空时，空预测记为 1.0 而非 0），并对 BFS 提示词作了澄清，要求给出恰好位于深度 N 的节点，而非深度不超过 N 的节点；详情参见 [Claude Opus 4.6 系统卡](https://www-cdn.anthropic.com/0dd865075ad3132672ee0ab40b05a53f14cf5288.pdf)。
 
 {{< s1-page 192 >}}
 
@@ -194,37 +194,37 @@ Claude Mythos Preview 在不使用工具时得分 56.8%，使用工具时得分 
 
 #### 6.11.1 LAB-Bench FigQA
 
-LAB-Bench FigQA 是一个视觉推理基准测试，测试模型能否正确解读和分析生物学研究论文中复杂科学图表的信息。该基准测试是 FutureHouse 开发的 [Language Agent Biology Benchmark（LAB-Bench）](https://arxiv.org/abs/2407.10362)的一部分，[^26]后者评估 AI 在实际科学研究任务中的能力。
+LAB-Bench FigQA 是一个视觉推理基准测试，测试模型能否正确解读和分析生物学研究论文中复杂科学图表的信息。该基准测试是 FutureHouse 开发的 [Language Agent Biology Benchmark（LAB-Bench）](https://arxiv.org/abs/2407.10362)的一部分，{{< sc-fnref 26 >}}后者评估 AI 在实际科学研究任务中的能力。
 
 在自适应思考、max 推理强度且不使用工具的情况下，Claude Mythos Preview 在 FigQA 上取得 79.7% 的得分。在自适应思考、max 推理强度并使用 Python 工具的情况下，Claude Mythos Preview 取得 89.0% 的得分。在两种设置下，Claude Mythos Preview 均优于 Claude Opus 4.6，后者分别得分 58.5% 和 75.1%。Claude Sonnet 4.6 在相同设置下得分 59.3% 和 76.7%。
 
 ![](images/p195_0.webp)
 
-***[图 6.11.1.A] LAB-Bench FigQA 得分。**模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。人类专家基线按原始 LAB-Bench 论文中的报告值显示。得分为五次运行的平均值。图中显示 95% 置信区间。*
+***[图 6.11.1.A] LAB-Bench FigQA 得分。**&#8203;模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。人类专家基线按原始 LAB-Bench 论文中的报告值显示。得分为五次运行的平均值。图中显示 95% 置信区间。*
 
 {{< s1-page 195 >}}
 
 #### 6.11.2 ScreenSpot-Pro
 
-[ScreenSpot-Pro](https://arxiv.org/abs/2504.07981) 是一个 GUI 定位基准测试，测试模型能否根据自然语言指令，在专业桌面应用程序的高分辨率截图中精确定位特定的用户界面元素。[^27]该基准测试由新加坡国立大学及合作机构的研究人员开发，包含 1,581 个经专家标注的任务，涵盖三种操作系统上的 23 个专业应用程序——包括 IDE、CAD 软件和创意工具——目标元素平均占屏幕面积不到 0.1%。
+[ScreenSpot-Pro](https://arxiv.org/abs/2504.07981) 是一个 GUI 定位基准测试，测试模型能否根据自然语言指令，在专业桌面应用程序的高分辨率截图中精确定位特定的用户界面元素。{{< sc-fnref 27 >}}该基准测试由新加坡国立大学及合作机构的研究人员开发，包含 1,581 个经专家标注的任务，涵盖三种操作系统上的 23 个专业应用程序——包括 IDE、CAD 软件和创意工具——目标元素平均占屏幕面积不到 0.1%。
 
 在自适应思考、最高推理强度且不使用工具的情况下，Claude Mythos Preview 在 ScreenSpot-Pro 上取得 79.5% 的得分。在自适应思考、最高推理强度并使用 Python 工具的情况下，Claude Mythos Preview 取得 92.8% 的得分。在两种设置下，Claude Mythos Preview 均优于 Claude Sonnet 4.6——后者不使用工具时得分 65.0%，使用工具时得分 82.4%——以及 Claude Opus 4.6——后者不使用工具时得分 57.7%，使用工具时得分 83.1%。
 
 ![](images/p196_0.webp)
 
-***[图 6.11.2.A] ScreenSpot-Pro 得分。**模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。得分为五次运行的平均值。图中显示 95% 置信区间。*
+***[图 6.11.2.A] ScreenSpot-Pro 得分。**&#8203;模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。得分为五次运行的平均值。图中显示 95% 置信区间。*
 
 {{< s1-page 196 >}}
 
 #### 6.11.3 CharXiv Reasoning
 
-[CharXiv Reasoning](https://arxiv.org/abs/2406.18521) 是一个全面的图表理解评估套件，基于 2,323 张取自 arXiv 论文的真实世界图表构建，这些论文涵盖八个主要科学学科。[^28]该基准测试考察模型能否综合复杂科学图表中的视觉信息，以回答需要多步推理的问题。
+[CharXiv Reasoning](https://arxiv.org/abs/2406.18521) 是一个全面的图表理解评估套件，基于 2,323 张取自 arXiv 论文的真实世界图表构建，这些论文涵盖八个主要科学学科。{{< sc-fnref 28 >}}该基准测试考察模型能否综合复杂科学图表中的视觉信息，以回答需要多步推理的问题。
 
 我们在验证集的 1,000 道题上评估模型，并对五次运行的分数取平均。在使用自适应思考、max 推理强度且不使用工具的条件下，Claude Mythos Preview 在 CharXiv Reasoning 上得分 86.1%。在使用自适应思考、max 推理强度及 Python 工具的条件下，Claude Mythos Preview 得分 93.2%。Claude Opus 4.6 的相应得分分别为 69.1% 和 84.7%，Claude Sonnet 4.6 分别为 73.1% 和 85.1%。
 
 ![](images/p197_0.webp)
 
-***[图 6.11.3.A] CharXiv Reasoning 得分。**模型在自适应思考和 max 推理强度下进行评估，分别使用和不使用 Python 工具。分数为五次运行的平均值。图中显示 95% 置信区间。*
+***[图 6.11.3.A] CharXiv Reasoning 得分。**&#8203;模型在自适应思考和 max 推理强度下进行评估，分别使用和不使用 Python 工具。分数为五次运行的平均值。图中显示 95% 置信区间。*
 
 #### 6.11.4 OSWorld
 

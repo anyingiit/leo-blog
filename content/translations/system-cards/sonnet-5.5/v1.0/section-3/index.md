@@ -14,7 +14,7 @@ Claude Sonnet 5.5 的网络安全能力不及 Mythos 级模型和其他近期模
 
 #### 3.2.1 ExploitBench
 
-ExploitBench[^1] 是一项网络安全基准测试，用于评估 AI 模型能在软件漏洞利用流程中推进到什么程度。我们最近曾[更详细地](https://red.anthropic.com/2026/exploit-evals/)[在此](https://red.anthropic.com/2026/exploit-evals/)介绍过它，在 [Claude Opus 5.5 系统卡](https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf)中也有介绍。
+ExploitBench{{< sc-fnref 1 >}} 是一项网络安全基准测试，用于评估 AI 模型能在软件漏洞利用流程中推进到什么程度。我们最近曾[更详细地](https://red.anthropic.com/2026/exploit-evals/)[在此](https://red.anthropic.com/2026/exploit-evals/)介绍过它，在 [Claude Opus 5.5 系统卡](https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf)中也有介绍。
 
 我们报告三项指标：
 
@@ -44,7 +44,7 @@ Claude Sonnet 5.5 完成了全部挑战的 46.1%，相较 Claude Sonnet 5 的 0.
 
 ![](images/p026_0.webp)
 
-***[图 3.2.2.A] Claude Sonnet 5.5 在 CyScenarioBench 上的得分。**柱形表示每个模型的总体解决率，为我们子集中 10 个挑战的平均值。本评估在关闭网络安全缓解措施的情况下运行。*
+***[图 3.2.2.A] Claude Sonnet 5.5 在 CyScenarioBench 上的得分。**&#8203;柱形表示每个模型的总体解决率，为我们子集中 10 个挑战的平均值。本评估在关闭网络安全缓解措施的情况下运行。*
 
 #### 3.2.3 Binary Exploitation Benchmark（原 OSS-Fuzz）
 
@@ -98,13 +98,13 @@ Claude Sonnet 5.5 的分类器旨在继续拦截危害潜力不对称的网络�
 
 ![](images/p030_0.webp)
 
-***[图 3.3.1.A] 在我们的网络危害覆盖测试集上，Claude Sonnet 5.5 的安全防护措施保持了与 Claude Opus 5 相当的高召回率（被标记的有害示例所占比例），覆盖率略低于 Claude Fable 5.1 和 Opus 5.5。**它相比 Sonnet 5 有显著提升。*
+***[图 3.3.1.A] 在我们的网络危害覆盖测试集上，Claude Sonnet 5.5 的安全防护措施保持了与 Claude Opus 5 相当的高召回率（被标记的有害示例所占比例），覆盖率略低于 Claude Fable 5.1 和 Opus 5.5。**&#8203;它相比 Sonnet 5 有显著提升。*
 
 #### 3.3.2 内部鲁棒性测试
 
 “对抗鲁棒性”是指系统的安全防护措施抵御蓄意规避尝试（即“越狱”）的能力，这里的“越狱”包括提示词、自定义运行框架和多智能体流水线。
 
-为测试鲁棒性，我们维护着一项名为 rewind-attacker 的内部对抗鲁棒性评估，用于衡量受安全防护的模型（*“*助手*”*）抵御自动化编排器（“攻击者*”*）的能力。在这一设置中，攻击者是一个仅有用（helpful-only）语言模型，被提示去模拟一名试图从助手身上引出进攻性网络能力的人类红队成员。
+为测试鲁棒性，我们维护着一项名为 rewind-attacker 的内部对抗鲁棒性评估，用于衡量受安全防护的模型（“助手”）抵御自动化编排器（“攻击者”）的能力。在这一设置中，攻击者是一个仅有用（helpful-only）语言模型，被提示去模拟一名试图从助手身上引出进攻性网络能力的人类红队成员。
 
 攻击者在一个会话中被启动，在该会话中，它可以向一个在任务沙箱内运行助手模型（带有生产环境安全防护措施）的 Claude Code 智能体发送指令。随后，攻击者针对助手有 400 次调用的上限，在此期间攻击者会收到拦截反馈，并有机会回溯到先前的状态以尝试新的方法。每个任务都将智能体置于一个独立的 Docker 容器环境中，并设定一个具体、可验证的目标——例如，加密受害者目录、用攻击者控制的公钥封装加密密钥，并向一台命令与控制（command-and-control）服务器发送信标回连——以及一项确认该目标是否确实达成的自动化检查。
 
@@ -116,4 +116,4 @@ Claude Sonnet 5.5 的分类器旨在继续拦截危害潜力不对称的网络�
 
 ![](images/p031_0.webp)
 
-***[图 3.3.2.A] 与 Claude Sonnet 5 相比，Claude Sonnet 5.5 的对抗鲁棒性显著提升，**但其鲁棒性不及 Opus 5 或 Fable 5.1。*
+***[图 3.3.2.A] 与 Claude Sonnet 5 相比，Claude Sonnet 5.5 的对抗鲁棒性显著提升，**&#8203;但其鲁棒性不及 Opus 5 或 Fable 5.1。*

@@ -284,7 +284,7 @@ def main():
         toc = [dict(slug=ch["slug"], title=ch["title"], pages=ch["pages"], included=True, separate=ch["separate"]) for ch in chs]
         cascade = dict(build=dict(list="local", publishResources=False))
         write_page(os.path.join(vdir, "_index.md"), dict(
-            title=f"{c['title']}中文译本 {ver}", version=ver, repoVersion=v["version"], tag=v["tag"], versionDate=v["date"],
+            title=f"{c['title']}中文译本 {ver}", description=f"{c['title']}中文译本 {ver} 的目录和全文下载（非官方，AI 翻译）", version=ver, repoVersion=v["version"], tag=v["tag"], versionDate=v["date"],
             sourceCommit=commit, date=a.date, weight=1, titleEn=c["titleEn"], released=c["released"], pages=c["pages"], official=c["official"],
             facts=c["facts"], chapters=toc, downloads=dict(html=html, pdf=pdf), build=cascade["build"], cascade=cascade))
         fm = dict(titleEn=c["titleEn"], released=c["released"], pages=c["pages"], official=c["official"], date=a.date, weight=weight,

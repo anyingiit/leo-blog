@@ -21,7 +21,7 @@ description: "Claude Haiku 5.5 系统卡中文译本 v1.0 · 5 智能体安全�
 
 {{< s1-page 47 >}}
 
-| **模型** | **恶意（%）****（拒绝率）** | **两用与良性（%）****（成功率）** |
+| **模型** | **恶意（%）**&#8203;**（拒绝率）** | **两用与良性（%）**&#8203;**（成功率）** |
 |---|---|---|
 | **Claude Haiku 5.5** | 84.3% | 98.9% |
 | **Claude Sonnet 5.5** | 85.2% | 98.4% |
@@ -29,7 +29,7 @@ description: "Claude Haiku 5.5 系统卡中文译本 v1.0 · 5 智能体安全�
 | **Claude Mythos 5.1** | **88.5%** | 99.3% |
 | **Claude Haiku 4.5** | 66.6% | 88.7% |
 
-***[表 5.1.1.A] Claude Code 评估结果。**越高越好。每列中的最佳分数以**粗体**标出；次优分数以下划线标出（注意，二者均未考虑误差范围）。由于评估更新，以往模型的结果可能与此前系统卡（System Card）中的结果存在差异。*
+***[表 5.1.1.A] Claude Code 评估结果。**&#8203;越高越好。每列中的最佳分数以&#8203;__粗体__&#8203;标出；次优分数以下划线标出（注意，二者均未考虑误差范围）。由于评估更新，以往模型的结果可能与此前系统卡（System Card）中的结果存在差异。*
 
 与 Claude Haiku 4.5 相比，Claude Haiku 5.5 在恶意请求以及两用与良性请求上均有提升。它拒绝了 84.3% 的恶意请求，高于此前的 66.6%；并协助完成了 98.9% 的两用与良性请求，高于此前的 88.7%。它在恶意任务上的拒绝率略低于 Claude Sonnet 5.5（85.2%）和 Claude Mythos 5.1（88.5%），高于 Claude Opus 5.5（81.0%）。它在两用与良性请求上的成功率与 Claude Sonnet 5.5、Claude Opus 5.5 和 Claude Mythos 5.1 相当。
 
@@ -51,7 +51,7 @@ description: "Claude Haiku 5.5 系统卡中文译本 v1.0 · 5 智能体安全�
 | **Claude Mythos 5.1** |  |  | **87.50%** |
 | **Claude Haiku 4.5** |  |  | 58.93% |
 
-***[表 5.1.2.A] 未施加缓解措施时的恶意计算机使用评估结果。**越高越好。对于 Claude Haiku 4.5、Claude Haiku 5.5 和 Claude Sonnet 5.5，比率为开启思考与关闭思考结果的平均值；对于 Claude Mythos 5.1 和 Claude Opus 5.5，则仅为开启思考的结果。每列中的最佳分数以**粗体**标出；次优分数以下划线标出（注意，这并未考虑误差范围）。由于评估更新，以往模型的结果可能与此前系统卡中的结果存在差异。*
+***[表 5.1.2.A] 未施加缓解措施时的恶意计算机使用评估结果。**&#8203;越高越好。对于 Claude Haiku 4.5、Claude Haiku 5.5 和 Claude Sonnet 5.5，比率为开启思考与关闭思考结果的平均值；对于 Claude Mythos 5.1 和 Claude Opus 5.5，则仅为开启思考的结果。每列中的最佳分数以&#8203;__粗体__&#8203;标出；次优分数以下划线标出（注意，这并未考虑误差范围）。由于评估更新，以往模型的结果可能与此前系统卡中的结果存在差异。*
 
 Claude Haiku 5.5 拒绝了 82.59% 的恶意计算机使用任务，高于 Claude Haiku 4.5 的 58.93%。这一比例高于 Claude Sonnet 5.5 和 Claude Opus 5.5（均为 79.46%），但低于 Claude Mythos 5.1（87.50%）。
 
@@ -65,11 +65,11 @@ Claude Haiku 5.5 拒绝了 82.59% 的恶意计算机使用任务，高于 Claude
 
 #### 5.2.1 外部红队测试
 
-我们使用间接提示词注入（Indirect Prompt Injection，IPI）基准测试[^3]来评估我们的模型，该基准测试由 Gray Swan 与英国人工智能安全研究所（UK AI Security Institute）、美国人工智能标准与创新中心（US Center for AI Standards and Innovation；现已更名为美国超级智能创新与标准推进中心（Center for Advancing Innovation and Standards for Super Intelligence，CAISSI））以及多家模型开发者合作创建。对 Claude 模型的评估未启用我们为提升安全性而在各产品中部署的额外提示词注入防护措施。完整方法请参阅 [Claude Opus 5.5 系统卡](https://www.anthropic.com/claude-opus-5-5-system-card)。
+我们使用间接提示词注入（Indirect Prompt Injection，IPI）基准测试{{< sc-fnref 3 >}}来评估我们的模型，该基准测试由 Gray Swan 与英国人工智能安全研究所（UK AI Security Institute）、美国人工智能标准与创新中心（US Center for AI Standards and Innovation；现已更名为美国超级智能创新与标准推进中心（Center for Advancing Innovation and Standards for Super Intelligence，CAISSI））以及多家模型开发者合作创建。对 Claude 模型的评估未启用我们为提升安全性而在各产品中部署的额外提示词注入防护措施。完整方法请参阅 [Claude Opus 5.5 系统卡](https://www.anthropic.com/claude-opus-5-5-system-card)。
 
 ![](images/p050_0.webp)
 
-***[图 5.2.1.A] 来自 Gray Swan IPI 基准测试（2026 年 Q1+Q2）的间接提示词注入攻击，**分数越低越好。所有模型均使用扩展思考（extended thinking）。结果表示攻击者在 k=1、k=10 和 k=15 次尝试后找到一次成功攻击的概率。Qwen 3.8、DeepSeek-V4-Pro 和 GLM-5.3 未在 GUI 计算机使用场景中进行评估。对 Claude 模型的评估未启用专门针对提示词注入的防护措施。*
+***[图 5.2.1.A] 来自 Gray Swan IPI 基准测试（2026 年 Q1+Q2）的间接提示词注入攻击，**&#8203;分数越低越好。所有模型均使用扩展思考（extended thinking）。结果表示攻击者在 k=1、k=10 和 k=15 次尝试后找到一次成功攻击的概率。Qwen 3.8、DeepSeek-V4-Pro 和 GLM-5.3 未在 GUI 计算机使用场景中进行评估。对 Claude 模型的评估未启用专门针对提示词注入的防护措施。*
 
 在这项基准测试上，Claude Haiku 5.5 相比 Claude Haiku 4.5 有大幅提升，在 k=15 次尝试时将攻击成功率（attack success rate）从 83.2% 降至 7.1%，降低了 10 倍以上。Claude Haiku 5.5 在编程（k=15 时为 0.2%）和工具使用（4.0%）方面高度鲁棒，而其剩余的漏洞大多出现在 GUI 计算机使用中（24.4%）。它的鲁棒性仍不及我们最新的模型 Claude Sonnet 5.5（k=15 时为 3.4%）、Claude Opus 5.5（1.0%）和 Claude Fable 5.1（1.0%）。在非 Claude 模型中，Gemini 4 Argon 最为鲁棒（k=15 时为 0.7%），而 Claude Haiku 5.5 与 Gemini 3.8 Flash（5.5%）和 GPT-6 Astra（8.5%）相当。
 
@@ -92,7 +92,7 @@ Claude Haiku 5.5 拒绝了 82.59% 的恶意计算机使用任务，高于 Claude
 
 我们使用 Gray Swan 的外部自适应红队测试（red-teaming）工具 [Shade](https://www.grayswan.ai/solutions/ai-red-teaming#shade)，来评估我们的模型在编程环境中对提示词注入的鲁棒性。Shade 智能体结合搜索、强化学习（reinforcement learning）和人在回路的洞见，迭代地提升利用模型漏洞的能力。Gray Swan 在测试场景上针对较早的 Claude 模型训练攻击者，然后在相同场景上原封不动地用它攻击最新模型。
 
-***[表 5.2.2.1.A] Shade 间接提示词注入攻击在编程环境中的攻击成功率**。越低越好。每列中的最佳分数以**粗体**标出；次优分数以下划线标出（注意，这并未考虑误差范围）。攻击者在每个场景中进行 200 次尝试。尝试级攻击成功率是在获得有效响应的尝试中成功尝试所占的比例；场景级攻击成功率是至少有一次尝试成功的场景所占的比例。所有模型均在自适应思考（adaptive thinking）下进行评估。*
+***[表 5.2.2.1.A] Shade 间接提示词注入攻击在编程环境中的攻击成功率&#8203;__。越低越好。每列中的最佳分数以__&#8203;粗体**标出；次优分数以下划线标出（注意，这并未考虑误差范围）。攻击者在每个场景中进行 200 次尝试。尝试级攻击成功率是在获得有效响应的尝试中成功尝试所占的比例；场景级攻击成功率是至少有一次尝试成功的场景所占的比例。所有模型均在自适应思考（adaptive thinking）下进行评估。*
 
 {{< s1-page 51 >}}
 

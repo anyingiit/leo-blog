@@ -1,5 +1,6 @@
 ---
 title: "Claude Fable 5.1 与 Claude Mythos 5.1 系统卡中文译本 v1.0"
+description: "Claude Fable 5.1 与 Claude Mythos 5.1 系统卡中文译本 v1.0 的目录和全文下载（非官方，AI 翻译）"
 version: "v1.0"
 repoVersion: "1.0.0"
 tag: "fable-5.1-mythos-5.1/v1.0.0"

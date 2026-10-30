@@ -1,6 +1,6 @@
 {{- /*
   Hugo 自带的站点地图模板（hugo v0.158.0 tpl/tplimpl/embedded/templates/sitemap.xml）原样照抄，
-  只在末尾加上 S-1 译本最新版本的版本页和章节：它们是 build.list: local（不进首页、RSS、站内搜索），
+  只在末尾加上 S-1 译本和每份系统卡译本最新版本的版本页和章节：它们是 build.list: local（不进首页、RSS、站内搜索），
   Hugo 自带模板因此会漏掉它们。历史版本不加（它们 noindex，见译本首页 _index.md 的 cascade）。
   升级 Hugo 时对照上游模板，有变化就同步。
 */ -}}
@@ -27,7 +27,7 @@
   </url>
     {{- end -}}
   {{ end }}
-  {{- range where .Pages "Type" "s1" }}
+  {{- range where .Pages "Type" "in" (slice "s1" "syscards") }}
     {{- if and .IsSection .Params.latest }}
       {{- with .GetPage .Params.latest }}
         {{- range (slice .) | append .RegularPages }}

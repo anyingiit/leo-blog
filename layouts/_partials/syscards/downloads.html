@@ -14,7 +14,7 @@
     <p>{{ if $en }}Page for page with the original{{ if $d.pdf.bookmarks }}, with bookmarks{{ end }}.{{ else }}与原版逐页对应{{ if $d.pdf.bookmarks }}，带章节书签{{ end }}。{{ end }}</p>
     <p class="s1-dl-acts"><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}">{{ if $en }}Download{{ else }}下载{{ end }} .pdf ↓</a></p>
   </div>
-  <p class="s1-dl-sha">SHA-256：HTML <code title="{{ $d.html.sha }}">{{ substr $d.html.sha 0 12 }}…</code> PDF <code title="{{ $d.pdf.sha }}">{{ substr $d.pdf.sha 0 12 }}…</code></p>
+  <p class="s1-dl-sha">SHA-256{{ if $en }}: {{ else }}：{{ end }}HTML <code title="{{ $d.html.sha }}">{{ substr $d.html.sha 0 12 }}…</code> PDF <code title="{{ $d.pdf.sha }}">{{ substr $d.pdf.sha 0 12 }}…</code></p>
 </div>
 {{- else }}
 <span class="s1-dl-line">{{ with .label }}<span class="s1-dl-label">{{ . }}</span>{{ end }}<a href="{{ $d.html.url }}" target="_blank" rel="noopener" title="HTML">HTML ↗ <small>{{ $d.html.size }}</small></a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" title="PDF">PDF ↓ <small>{{ $d.pdf.size }}</small></a></span>

@@ -10,22 +10,22 @@ description: "Claude Sonnet 5 系统卡中文译本 v1.0 · 8 能力（非官方
 
 {{< s1-page 115 >}}
 
-***[表 8.1.A] 能力评估总览。**除非另有说明，所有 Claude Sonnet 5 结果均采用以下标准配置：max 推理强度（effort）下的自适应思考（adaptive thinking）、默认采样设置（temperature、top_p），取 5 次试验的平均值。上下文窗口大小因评估而异。标准配置使用 100 万 token；BrowseComp 使用 1000 万 token 的上限并启用上下文压缩（context compaction），在 200k 时触发。其他评估的范围为 300k 至 100 万 token。每行的最佳分数以**粗体**标出。竞争对手的数据取自各开发者已发布的系统卡（System Card）或基准测试排行榜。*
+***[表 8.1.A] 能力评估总览。**&#8203;除非另有说明，所有 Claude Sonnet 5 结果均采用以下标准配置：max 推理强度（effort）下的自适应思考（adaptive thinking）、默认采样设置（temperature、top_p），取 5 次试验的平均值。上下文窗口大小因评估而异。标准配置使用 100 万 token；BrowseComp 使用 1000 万 token 的上限并启用上下文压缩（context compaction），在 200k 时触发。其他评估的范围为 300k 至 100 万 token。每行的最佳分数以&#8203;__粗体__&#8203;标出。竞争对手的数据取自各开发者已发布的系统卡（System Card）或基准测试排行榜。*
 
 ### 8.2 SWE-bench Verified、Pro、Multilingual 和 Multimodal
 
 SWE-bench（Software Engineering Bench）在真实世界软件工程任务上测试 AI 模型。我们报告四个变体，其得分为五次试验的平均值：
 
-- SWE-bench **Verified**[^16] 是一个包含 500 道题目的子集，每道题均经人类工程师验证为可解。Claude Sonnet 5 取得了 85.2%。
-- SWE-bench **Pro**[^17] 是更难的变体：题目取自持续维护的代码仓库，涉及更大的多文件 diff，且公开真值泄露更少。Sonnet 5 取得了 63.2%。
+- SWE-bench **Verified**{{< sc-fnref 16 >}} 是一个包含 500 道题目的子集，每道题均经人类工程师验证为可解。Claude Sonnet 5 取得了 85.2%。
+- SWE-bench **Pro**{{< sc-fnref 17 >}} 是更难的变体：题目取自持续维护的代码仓库，涉及更大的多文件 diff，且公开真值泄露更少。Sonnet 5 取得了 63.2%。
 - SWE-bench **Multilingual** 将该形式扩展到涵盖 9 种编程语言的 300 道题目。Sonnet 5 取得了 78.3%。
-- SWE-bench **Multimodal**[^18] 在 issue 描述中加入了视觉上下文（截图、设计稿）；关于内部运行框架（harness）的详情，参见 [Claude Opus 4.7 系统卡](https://cdn.sanity.io/files/4zrzovbb/website/037f06850df7fbe871e206dad004c3db5fd50340.pdf)第 9.3 节。Sonnet 5 取得了 28.1%。
+- SWE-bench **Multimodal**{{< sc-fnref 18 >}} 在 issue 描述中加入了视觉上下文（截图、设计稿）；关于内部运行框架（harness）的详情，参见 [Claude Opus 4.7 系统卡](https://cdn.sanity.io/files/4zrzovbb/website/037f06850df7fbe871e206dad004c3db5fd50340.pdf)第 9.3 节。Sonnet 5 取得了 28.1%。
 
 所有 SWE-bench 变体均使用标准配置，采样结果中包含思考块。关于我们的记忆化筛查，参见 [Mythos](https://www-cdn.anthropic.com/08ab9158070959f88f296514c21b7facce6f52bc.pdf) [Preview 系统卡](https://www-cdn.anthropic.com/08ab9158070959f88f296514c21b7facce6f52bc.pdf)第 6.2.1 节。
 
 ### 8.3 Terminal-Bench 2.1
 
-Terminal-Bench 2.1[^19] 在终端和命令行环境中的真实世界编程任务上测试 AI 模型。我们使用 [mini-SWE-agent](https://swe-agent.com/latest/) 作为运行框架，因为与 Terminus-2 相比，它对超时更为稳健。在 `xhigh` 推理强度下，Terminus-2 遇到的超时次数是 mini-SWE-agent 的 2.7×，这是由于它通过 tmux 会话等待命令执行的方式所致；这使得最终得分噪声更大、可读性更低。
+Terminal-Bench 2.1{{< sc-fnref 19 >}} 在终端和命令行环境中的真实世界编程任务上测试 AI 模型。我们使用 [mini-SWE-agent](https://swe-agent.com/latest/) 作为运行框架，因为与 Terminus-2 相比，它对超时更为稳健。在 `xhigh` 推理强度下，Terminus-2 遇到的超时次数是 mini-SWE-agent 的 2.7×，这是由于它通过 tmux 会话等待命令执行的方式所致；这使得最终得分噪声更大、可读性更低。
 
 116在 [GKE 集群](https://www.anthropic.com/engineering/infrastructure-noise)上，以 1× 超时率和 pod 抢占前 3× 内存上限的设置，Claude Sonnet 5 在 `xhigh` 推理强度下取得了 80.4% 的平均奖励，该结果为 89 个不同任务各尝试 5 次的平均值（共 445 次试验）。
 
@@ -35,7 +35,7 @@ Sonnet 4.6 在同一评估和同一基础设施上、以 `high` 推理强度取�
 
 ### 8.4 FrontierCode
 
-FrontierCode[^20] 是由 Cognition 创建的智能体编程基准测试，包含 150 个软件工程任务。任务源自开源代码仓库中的真实拉取请求（pull request），例如：修复 Python 框架 `aiohttp` 中的 websocket bug、加固 Prisma 的浏览器 bundle，或扩展 JSON schema 的 lint 规则。
+FrontierCode{{< sc-fnref 20 >}} 是由 Cognition 创建的智能体编程基准测试，包含 150 个软件工程任务。任务源自开源代码仓库中的真实拉取请求（pull request），例如：修复 Python 框架 `aiohttp` 中的 websocket bug、加固 Prisma 的浏览器 bundle，或扩展 JSON schema 的 lint 规则。
 
 每个任务向智能体提供一个已检出的代码仓库和一条 issue 描述；随后智能体在容器化环境中自主工作，生成最终补丁，期间没有人工干预，也没有超时信息。补丁依据阻断性功能标准（主要是留出的单元测试）以及加权评分细则标准进行评分，其中包括针对所需测试覆盖率和禁止的实现模式的、由模型评分的检查项。任务由底层代码仓库的维护者编写，并由 Cognition 研究人员逐一审核，其中随机抽取的一部分经人工求解，以验证公平性。
 
@@ -49,7 +49,7 @@ FrontierCode[^20] 是由 Cognition 创建的智能体编程基准测试，包含
 
 ### 8.5 CursorBench
 
-CursorBench[^21] 是 Cursor 推出的智能体编程基准测试，由真实编程任务（取自内部使用和外部流量）组成，并在 Cursor 的生产环境智能体运行框架中执行。所有分数和每任务成本均由 Cursor 独立测量和报告。Claude Sonnet 5 得分 61.2%，相比之下 Sonnet 4.6 为 49%，Opus 4.8 为 63.8%。
+CursorBench{{< sc-fnref 21 >}} 是 Cursor 推出的智能体编程基准测试，由真实编程任务（取自内部使用和外部流量）组成，并在 Cursor 的生产环境智能体运行框架中执行。所有分数和每任务成本均由 Cursor 独立测量和报告。Claude Sonnet 5 得分 61.2%，相比之下 Sonnet 4.6 为 49%，Opus 4.8 为 63.8%。
 
 118
 
@@ -75,7 +75,7 @@ Claude Sonnet 5 得分 79.5%，为每道题 10 次尝试的平均值。我们使
 
 ArXivMath 是由 MathArena 维护的研究级数学最终答案型基准。题目每月从近期 arXiv 论文摘要中提取，再经过自动和人工检查筛选，以确保其自成一体、非平凡且可验证。由于题目取自活跃的研究，该基准比竞赛 / 奥赛类基准更贴近现实，与数学研究的联系也更紧密。
 
-我们使用 2026 年 4 月和 5 月[^22]发布的题目（共 81 道）进行评估，选择这两期是为了避免与 Sonnet 5 的训练数据发生污染。Sonnet 5 不使用工具时得分 65.7%，使用工具时得分 72.2%，两者均开启扩展思考（extended thinking），并为每道题四次尝试的平均值。[^23]
+我们使用 2026 年 4 月和 5 月{{< sc-fnref 22 >}}发布的题目（共 81 道）进行评估，选择这两期是为了避免与 Sonnet 5 的训练数据发生污染。Sonnet 5 不使用工具时得分 65.7%，使用工具时得分 72.2%，两者均开启扩展思考（extended thinking），并为每道题四次尝试的平均值。{{< sc-fnref 23 >}}
 
 120
 
@@ -83,11 +83,11 @@ ArXivMath 是由 MathArena 维护的研究级数学最终答案型基准。题�
 
 ![](images/p121_0.webp)
 
-***[图 8.7.A] ArxivMath（4 月和 5 月）准确率分数。**Claude Opus 4.8 和 Claude Sonnet 5 在开启扩展思考的情况下进行内部评估；Claude Fable 5、GPT-5.5 和 Gemini 3.5 Flash 的分数来自 MathArena 排行榜。*
+***[图 8.7.A] ArxivMath（4 月和 5 月）准确率分数。**&#8203;Claude Opus 4.8 和 Claude Sonnet 5 在开启扩展思考的情况下进行内部评估；Claude Fable 5、GPT-5.5 和 Gemini 3.5 Flash 的分数来自 MathArena 排行榜。*
 
 ### 8.8 ProgramBench
 
-ProgramBench[^24] 是一个长上下文智能体编程基准测试，包含 200
+ProgramBench{{< sc-fnref 24 >}} 是一个长上下文智能体编程基准测试，包含 200
 
 个程序重建任务。智能体仅获得由某个开源项目编译而成的二进制文件及该项目的文档，必须在无法访问互联网、不使用反编译工具的情况下，重建一个能复现原程序行为的代码库。任务范围从小型终端工具（jq、ripgrep）到大型系统（FFmpeg、SQLite、PHP 解释器）。提交结果依据基于执行的行为测试进行评分——整个基准共有 247,000 余个此类测试，均通过智能体驱动的模糊测试生成。
 
@@ -109,7 +109,7 @@ Humanity’s Last Exam（HLE）是一个处于人类知识前沿的多模态基�
 
 ![](images/p122_0.webp)
 
-***[图 8.9.1.A] Humanity’s Last Exam 准确率分数。**Gemini 和 GPT 模型的分数取自已发布的结果。*
+***[图 8.9.1.A] Humanity’s Last Exam 准确率分数。**&#8203;Gemini 和 GPT 模型的分数取自已发布的结果。*
 
 122
 
@@ -117,11 +117,11 @@ Humanity’s Last Exam（HLE）是一个处于人类知识前沿的多模态基�
 
 ![](images/p123_0.webp)
 
-***[图 8.9.1.B] 不同推理强度档位下的 HLE 分数。**每个数据点代表每个模型在不同推理强度档位下的单次运行，token 使用总量至多 100 万。*
+***[图 8.9.1.B] 不同推理强度档位下的 HLE 分数。**&#8203;每个数据点代表每个模型在不同推理强度档位下的单次运行，token 使用总量至多 100 万。*
 
 #### 8.9.2 BrowseComp
 
-BrowseComp[^25] 测试智能体在开放网络上查找难以定位的信息的能力。我们运行 Claude Sonnet 5 时使用了网络搜索、网页抓取、程序化工具调用和代码执行[^26]。Sonnet 5 在使用自适应思考、max 推理强度、1000 万 token 上限的设置下得分 84.7%。为突破 100 万 token 的上下文窗口，我们使用了上下文压缩，在 200k token 时触发。我们使用评估屏蔽列表来避免污染（见附录 9.2）。
+BrowseComp{{< sc-fnref 25 >}} 测试智能体在开放网络上查找难以定位的信息的能力。我们运行 Claude Sonnet 5 时使用了网络搜索、网页抓取、程序化工具调用和代码执行{{< sc-fnref 26 >}}。Sonnet 5 在使用自适应思考、max 推理强度、1000 万 token 上限的设置下得分 84.7%。为突破 100 万 token 的上下文窗口，我们使用了上下文压缩，在 200k token 时触发。我们使用评估屏蔽列表来避免污染（见附录 9.2）。
 
 在给定的任务成本下，Claude Sonnet 5 的准确率与 Claude Opus 4.8 相当。
 
@@ -149,7 +149,7 @@ Claude Sonnet 5 在多模态推理上缩小了与 Claude Opus 4.8 的差距，�
 
 ![](images/p125_0.webp)
 
-***[图 8.10.1.A] GDP.pdf 分数。**模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。平均评分项通过率分数为五次运行的平均值。图中显示 95% 置信区间（confidence interval，CI）。*
+***[图 8.10.1.A] GDP.pdf 分数。**&#8203;模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。平均评分项通过率分数为五次运行的平均值。图中显示 95% 置信区间（confidence interval，CI）。*
 
 125
 
@@ -157,7 +157,7 @@ Claude Sonnet 5 在多模态推理上缩小了与 Claude Opus 4.8 的差距，�
 
 #### 8.10.2 OSWorld-Verified
 
-OSWorld[^27] 是一个多模态基准测试，评估智能体通过鼠标和键盘操作与一台运行中的 Ubuntu 虚拟机交互、完成真实世界计算机任务（如编辑文档、浏览网页和管理文件）的能力。我们遵循默认设置，分辨率为 1080p，每个任务的操作步数上限为 100。
+OSWorld{{< sc-fnref 27 >}} 是一个多模态基准测试，评估智能体通过鼠标和键盘操作与一台运行中的 Ubuntu 虚拟机交互、完成真实世界计算机任务（如编辑文档、浏览网页和管理文件）的能力。我们遵循默认设置，分辨率为 1080p，每个任务的操作步数上限为 100。
 
 我们调整了 OSWorld-Verified 评估的运行方式，以更好地反映真实世界中的表现。如 [Claude Opus 4.8 系统卡](http://anthropic.com/claude-opus-4-8-system-card)中所述，这些调整包括修复一个影响批量动作的缩放工具 bug，以及将每轮 token 上限从 16K 提高到 128K。随后我们在这些调整下重新评估了 Claude Sonnet 4.6，发现我们此前一直低报了它在 OSWorld 上的表现。我们在下文报告其表现。
 
@@ -165,7 +165,7 @@ Claude Sonnet 5 的 OSWorld 得分为 81.2%（首次尝试成功率，五次运�
 
 ![](images/p126_0.webp)
 
-***[图 8.10.2.A] 各模型在 max 推理强度下的外部 OSWorld-Verified 分数。**Claude 模型在 OSWorld-Verified（361 个任务，100 步）上以自适应思考和 max 推理强度进行评估。分数为五次运行平均的 pass@1。Gemini 和 GPT 模型的分数取自已发布的结果。*
+***[图 8.10.2.A] 各模型在 max 推理强度下的外部 OSWorld-Verified 分数。**&#8203;Claude 模型在 OSWorld-Verified（361 个任务，100 步）上以自适应思考和 max 推理强度进行评估。分数为五次运行平均的 pass@1。Gemini 和 GPT 模型的分数取自已发布的结果。*
 
 126
 
@@ -189,7 +189,7 @@ BenchCAD 是一个程序化 CAD 推理基准测试，由 17,900 个经执行验�
 
 ![](images/p128_0.webp)
 
-***[图 8.10.3.A] BenchCAD Vision2Code 子集分数。**模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。分数为五次运行的平均值。图中显示 95% 置信区间。*
+***[图 8.10.3.A] BenchCAD Vision2Code 子集分数。**&#8203;模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。分数为五次运行的平均值。图中显示 95% 置信区间。*
 
 #### 8.10.4 ChartMuseum
 
@@ -205,7 +205,7 @@ ChartMuseum 是一个图表问答基准测试，包含 1,162 道由专家标注�
 
 ![](images/p129_0.webp)
 
-***[图 8.10.4.A] ChartMuseum 分数。**模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。分数为五次运行的平均值。图中显示 95% 置信区间。*
+***[图 8.10.4.A] ChartMuseum 分数。**&#8203;模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。分数为五次运行的平均值。图中显示 95% 置信区间。*
 
 #### 8.10.5 CharXiv Reasoning
 
@@ -221,7 +221,7 @@ CharXiv Reasoning 是一个全面的图表理解评估套件，由 2,323 张取�
 
 ![](images/p130_0.webp)
 
-***[图 8.10.5.A] CharXiv Reasoning 分数。**Claude 模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。Claude 模型的分数为五次运行的平均值。图中显示 95% 置信区间。*
+***[图 8.10.5.A] CharXiv Reasoning 分数。**&#8203;Claude 模型在自适应思考和 max 推理强度下评估，分别使用和不使用 Python 工具。Claude 模型的分数为五次运行的平均值。图中显示 95% 置信区间。*
 
 130
 
@@ -233,7 +233,7 @@ CharXiv Reasoning 是一个全面的图表理解评估套件，由 2,323 张取�
 
 ![](images/p131_0.webp)
 
-***[图 8.11.1.A] OfficeQA 与 OfficeQA Pro 在 Anthropic 内部智能体运行框架上的精确匹配准确率。**除 Claude Opus 4.7 以其默认推理强度设置运行外，所有模型均在 max 推理强度下使用自适应思考运行。Claude Sonnet 5 与 Claude Opus 4.7 的得分为 5 次试验的平均值，Claude Sonnet 4.6 与 Claude Opus 4.8 的得分为单次试验结果。*
+***[图 8.11.1.A] OfficeQA 与 OfficeQA Pro 在 Anthropic 内部智能体运行框架上的精确匹配准确率。**&#8203;除 Claude Opus 4.7 以其默认推理强度设置运行外，所有模型均在 max 推理强度下使用自适应思考运行。Claude Sonnet 5 与 Claude Opus 4.7 的得分为 5 次试验的平均值，Claude Sonnet 4.6 与 Claude Opus 4.8 的得分为单次试验结果。*
 
 [OfficeQA](https://www.databricks.com/blog/introducing-officeqa-benchmark-end-to-end-grounded-reasoning) 是 Databricks 发布的一项公开基准测试，评估模型在由大量历史 Treasury Bulletin（美国财政部公报）文档构成的语料上进行端到端有据推理的能力。模型必须在整个语料中定位相关表格，并基于这些表格进行精确的数值推理。我们以智能体方式进行评估：文档以提取后的文本形式提供于沙箱化的环境中，并提供代码执行工具；OfficeQA Pro 是推荐用于前沿模型的、难度更高的 133 题子集。得分采用精确匹配（五次试验的平均值），耗尽输出预算的回合记为错误。
 
@@ -257,11 +257,11 @@ Sonnet 5（1219）与 Opus 4.7（1207）和 Opus 4.8（1222）在统计上持平
 
 ![](images/p133_0.webp)
 
-***[图 8.11.2.A] Real-World Finance v2 ELO。**每个模型尝试 294 项量化金融任务；由 Claude Opus 4.8 评分者对交付物进行两两比较，评分采用 Bradley-Terry 拟合，其中 Sonnet 4.6、Opus 4.8、Mythos 和 Fable 5 锚定于其先前公布的数值。误差线为 95% 自助法置信区间（bootstrap confidence interval）。*
+***[图 8.11.2.A] Real-World Finance v2 ELO。**&#8203;每个模型尝试 294 项量化金融任务；由 Claude Opus 4.8 评分者对交付物进行两两比较，评分采用 Bradley-Terry 拟合，其中 Sonnet 4.6、Opus 4.8、Mythos 和 Fable 5 锚定于其先前公布的数值。误差线为 95% 自助法置信区间（bootstrap confidence interval）。*
 
 #### 8.11.3 Legal Agent Benchmark
 
-Legal Agent Benchmark[^28]（LAB）是由 Harvey AI 创建的开源基准测试。该基准测试包含 1,200 多项任务，覆盖 24 个不同的执业领域。每项任务都包含一个封闭文档集（.xlsx、.docx、.eml、.pptx），其中包括电子邮件往来、律所模板、程序性文件以及其他客户案件材料，智能体必须从中筛查信息才能完成任务。任务指令以合伙人向授薪律师发出的简短“工作委托”形式撰写。任务指令还规定了预期的输出文档及格式。评估采用 LLM 评判模型（LLM-as-a-judge），依据一套由专家撰写的评分细则标准进行通过/不通过判定（每项被评估任务的标准数：最小值=23，中位数=56，最大值=194）。LAB 的标准报告方式仅在所有标准均满足时才将任务视为成功。
+Legal Agent Benchmark{{< sc-fnref 28 >}}（LAB）是由 Harvey AI 创建的开源基准测试。该基准测试包含 1,200 多项任务，覆盖 24 个不同的执业领域。每项任务都包含一个封闭文档集（.xlsx、.docx、.eml、.pptx），其中包括电子邮件往来、律所模板、程序性文件以及其他客户案件材料，智能体必须从中筛查信息才能完成任务。任务指令以合伙人向授薪律师发出的简短“工作委托”形式撰写。任务指令还规定了预期的输出文档及格式。评估采用 LLM 评判模型（LLM-as-a-judge），依据一套由专家撰写的评分细则标准进行通过/不通过判定（每项被评估任务的标准数：最小值=23，中位数=56，最大值=194）。LAB 的标准报告方式仅在所有标准均满足时才将任务视为成功。
 
 我们在 1,235 道题上测试了 Claude Sonnet 5（1,251 道题中有 16 道因数据缺陷被排除；排除项在测试前即已确定），其全通过率为 8.92%（± 0.36，n=5），平均评分项通过率为 88.26%（自适应思考，max 推理强度）。Sonnet 4.6 的全通过率为 8.00%（± 0.19，n=5），平均评分项通过率为 88.48%。按
 
@@ -271,11 +271,11 @@ Legal Agent Benchmark[^28]（LAB）是由 Harvey AI 创建的开源基准测试�
 
 #### 8.11.4 GDPval-AA v2
 
-GDPval-AA v2 由 [Artificial Analysis](https://artificialanalysis.ai/) 开发，是一个独立的评估框架，用于在具有经济价值的真实世界专业任务上测试 AI 模型。该基准测试使用来自 OpenAI 的 [GDPval 黄金数据库](https://huggingface.co/datasets/openai/gdpval)[^29] 的 220 项任务，涵盖 9 个主要行业中的 44 种职业。任务模拟真实的专业工作成果，包括文档、幻灯片、图表和电子表格。模型在智能体循环中获得 shell 访问权限和网页浏览能力来解决任务，表现通过基于模型输出盲评两两比较得出的 ELO 评分来衡量。Claude 模型包揽了排行榜前三名。Claude Sonnet 5 排名第二（ELO 1618），与 Opus 4.8（ELO 1615）在统计上持平，仅次于 Fable 5（ELO 1783）。评估由 Artificial Analysis 独立运行。
+GDPval-AA v2 由 [Artificial Analysis](https://artificialanalysis.ai/) 开发，是一个独立的评估框架，用于在具有经济价值的真实世界专业任务上测试 AI 模型。该基准测试使用来自 OpenAI 的 [GDPval 黄金数据库](https://huggingface.co/datasets/openai/gdpval){{< sc-fnref 29 >}} 的 220 项任务，涵盖 9 个主要行业中的 44 种职业。任务模拟真实的专业工作成果，包括文档、幻灯片、图表和电子表格。模型在智能体循环中获得 shell 访问权限和网页浏览能力来解决任务，表现通过基于模型输出盲评两两比较得出的 ELO 评分来衡量。Claude 模型包揽了排行榜前三名。Claude Sonnet 5 排名第二（ELO 1618），与 Opus 4.8（ELO 1615）在统计上持平，仅次于 Fable 5（ELO 1783）。评估由 Artificial Analysis 独立运行。
 
 #### 8.11.5 Toolathlon
 
-Toolathlon[^30] 是一项智能体基准测试，包含 108 项真实世界工具使用任务，涵盖办公效率、电子商务与运营、数据分析以及网络研究。任务以真实的应用状态作为初始设定，并由基于执行的检查器评分，这些检查器会验证生成的产出物及其副作用。该基准测试提供了 32 个应用中的 604 个工具；任务平均约 20 轮，要求正确选择工具、按正确顺序执行多个步骤，并给出与检查器要求完全一致的输出。
+Toolathlon{{< sc-fnref 30 >}} 是一项智能体基准测试，包含 108 项真实世界工具使用任务，涵盖办公效率、电子商务与运营、数据分析以及网络研究。任务以真实的应用状态作为初始设定，并由基于执行的检查器评分，这些检查器会验证生成的产出物及其副作用。该基准测试提供了 32 个应用中的 604 个工具；任务平均约 20 轮，要求正确选择工具、按正确顺序执行多个步骤，并给出与检查器要求完全一致的输出。
 
 我们在 max 推理强度下使用自适应思考运行了内部运行框架。遵循 Toolathlon 论文的评估方案，我们报告全部 108 项任务上 3 次试验平均的 Pass@1，同时报告 Pass@3（三次试验中至少一次正确）、Pass³（三次试验全部正确）以及每条轨迹的平均轮次。
 
@@ -297,7 +297,7 @@ Claude Sonnet 5 的 Pass@1 为 54.3%（三次试验平均）。这使其领先�
 | **Claude Opus 4.6** | 56.8 | 66.7 | 47.2 | 16.9 |
 | **Claude Sonnet 4.5** | 41.0 | 54.6 | 28.7 | 32.0 |
 
-***[表 8.11.5.A] 使用内部运行框架的 Toolathlon 得分。**各模型均在 max 推理强度下使用自适应思考进行评估。Pass@1、Pass@3 和 Pass³ 按论文的评估方案，基于全部 108 项任务、每项 3 次试验计算。*
+***[表 8.11.5.A] 使用内部运行框架的 Toolathlon 得分。**&#8203;各模型均在 max 推理强度下使用自适应思考进行评估。Pass@1、Pass@3 和 Pass³ 按论文的评估方案，基于全部 108 项任务、每项 3 次试验计算。*
 
 关于与已发布排行榜可比性的说明。我们的运行框架复刻了上游的任务定义、提示词和基于执行的检查器，并通过重放已发布的 claude-sonnet-4.5 轨迹进行了验证。为控制自已发布轨迹以来的实时依赖漂移和上游仓库变更，我们将金融数据源和容器镜像固定到离线快照，并镜像当前的上游状态。按已发布的版本，大约四分之一的任务无法完成；我们对这些任务未作改动。固定版本的净效应：我们的得分比严格与上游等价的运行框架高约 3 分——这一偏差在此处报告的各 Claude 模型之间保持不变。另外，已发布排行榜中 Opus 4.7 的数据采用的是作者的默认配置，而非 max 推理强度。
 
@@ -307,7 +307,7 @@ Claude Sonnet 5 的 Pass@1 为 54.3%（三次试验平均）。这使其领先�
 
 #### 8.11.6 AutomationBench
 
-AutomationBench[^31] 是 Zapier 推出的一项基准测试，衡量智能体能否完成贴近现实的端到端业务工作流。任务基于真实客户在销售、市场营销、运营、客户支持、财务和人力资源领域的工作流模式构建。每项任务都将智能体置于一家模拟公司中，该公司拥有数十个 REST API 端点，覆盖 47 个应用（CRM、Slack、Google Workspace 等）。在仅给出一条自然语言指令的情况下，智能体必须通过搜索自主发现正确的端点，进行数十次顺序执行、相互依赖的 API 调用，查阅并遵守分层业务政策文档，同时避开刻意设置的干扰项。每项任务的评分为通过或不通过，依据是否满足针对模拟应用状态的所有确定性断言（例如，是否应用了正确的 CRM 更新）。
+AutomationBench{{< sc-fnref 31 >}} 是 Zapier 推出的一项基准测试，衡量智能体能否完成贴近现实的端到端业务工作流。任务基于真实客户在销售、市场营销、运营、客户支持、财务和人力资源领域的工作流模式构建。每项任务都将智能体置于一家模拟公司中，该公司拥有数十个 REST API 端点，覆盖 47 个应用（CRM、Slack、Google Workspace 等）。在仅给出一条自然语言指令的情况下，智能体必须通过搜索自主发现正确的端点，进行数十次顺序执行、相互依赖的 API 调用，查阅并遵守分层业务政策文档，同时避开刻意设置的干扰项。每项任务的评分为通过或不通过，依据是否满足针对模拟应用状态的所有确定性断言（例如，是否应用了正确的 CRM 更新）。
 
 在衡量私有留出评估集表现的 AutomationBench 排行榜上，Claude Sonnet 5（max 推理强度）得分为 13.5%，较 Claude Sonnet 4.6（max 推理强度）的 5.3% 有显著提升。
 
@@ -327,7 +327,7 @@ AutomationBench[^31] 是 Zapier 推出的一项基准测试，衡量智能体能
 
 #### 8.12.1 HealthBench 结果
 
-HealthBench[^32] 是一项开源评估，旨在评估真实医疗健康情境中的安全性、准确性和沟通能力。该基准测试使用 48,000 多条由专家撰写的评分细则条目，对涵盖 26 个医学专科的 5,000 段多轮患者对话进行评分。
+HealthBench{{< sc-fnref 32 >}} 是一项开源评估，旨在评估真实医疗健康情境中的安全性、准确性和沟通能力。该基准测试使用 48,000 多条由专家撰写的评分细则条目，对涵盖 26 个医学专科的 5,000 段多轮患者对话进行评分。
 
 137
 
@@ -339,7 +339,7 @@ HealthBench[^32] 是一项开源评估，旨在评估真实医疗健康情境中
 
 #### 8.12.2 HealthBench Professional 结果
 
-HealthBench Professional[^33] 是一项临床任务基准测试，由 525 段医生撰写的对话组成，涵盖临床会诊、文书记录和研究任务，每段对话均由 LLM 评判模型依据评分细则标准进行评分。
+HealthBench Professional{{< sc-fnref 33 >}} 是一项临床任务基准测试，由 525 段医生撰写的对话组成，涵盖临床会诊、文书记录和研究任务，每段对话均由 LLM 评判模型依据评分细则标准进行评分。
 
 138
 
@@ -351,7 +351,7 @@ HealthBench Professional[^33] 是一项临床任务基准测试，由 525 段医
 
 ### 8.13 多语言表现
 
-我们在三项多语言基准测试——Global MMLU（GMMLU）[^34]、INCLUDE[^35] 和 Multi-task Indic Language Understanding Benchmark（MILU）[^36]——上评估了 Claude Sonnet 5，以考察模型在一系列语言上的表现。
+我们在三项多语言基准测试——Global MMLU（GMMLU）{{< sc-fnref 34 >}}、INCLUDE{{< sc-fnref 35 >}} 和 Multi-task Indic Language Understanding Benchmark（MILU）{{< sc-fnref 36 >}}——上评估了 Claude Sonnet 5，以考察模型在一系列语言上的表现。
 
 GMMLU 将标准 MMLU 评估扩展到 42 种语言，涵盖从法语和德语等高资源语言到约鲁巴语、伊博语和齐切瓦语等低资源语言。MILU 覆盖 11 种语言——10 种印度语言（孟加拉语、古吉拉特语、印地语、卡纳达语、马拉雅拉姆语、马拉地语、奥里亚语、旁遮普语、泰米尔语和泰卢固语）以及英语——并测试植根文化背景的知识理解能力。INCLUDE 覆盖 44 种语言，其题目取自
 
@@ -363,7 +363,7 @@ GMMLU 将标准 MMLU 评估扩展到 42 种语言，涵盖从法语和德语等�
 
 ![](images/p140_0.webp)
 
-***[图 8.13.1.A] GMMLU 平均准确率。**所有 Claude 模型均在 max 推理强度下使用自适应思考。每个模型仅运行了单次试验。*
+***[图 8.13.1.A] GMMLU 平均准确率。**&#8203;所有 Claude 模型均在 max 推理强度下使用自适应思考。每个模型仅运行了单次试验。*
 
 140
 
@@ -373,7 +373,7 @@ GMMLU 将标准 MMLU 评估扩展到 42 种语言，涵盖从法语和德语等�
 
 ![](images/p141_0.webp)
 
-***[图 8.13.2.A] MILU 平均准确率。**所有 Claude 模型均在 max 推理强度下使用自适应思考。得分为 5 次试验的平均值。*
+***[图 8.13.2.A] MILU 平均准确率。**&#8203;所有 Claude 模型均在 max 推理强度下使用自适应思考。得分为 5 次试验的平均值。*
 
 141
 
@@ -383,7 +383,7 @@ GMMLU 将标准 MMLU 评估扩展到 42 种语言，涵盖从法语和德语等�
 
 ![](images/p142_0.webp)
 
-***[图 8.13.3.A] INCLUDE 平均准确率。**所有 Claude 模型均在 max 推理强度下使用自适应思考。得分为 5 次试验的平均值。*
+***[图 8.13.3.A] INCLUDE 平均准确率。**&#8203;所有 Claude 模型均在 max 推理强度下使用自适应思考。得分为 5 次试验的平均值。*
 
 ### 8.14 生命科学能力
 
@@ -429,7 +429,7 @@ GMMLU 将标准 MMLU 评估扩展到 42 种语言，涵盖从法语和德语等�
 
 ![](images/p144_2.webp)
 
-***[图 8.14.6.A] 生命科学能力的评估结果。**在六项生命科学基准测试上，Claude Sonnet 5 较 Claude Sonnet 4.6 有所提升，平均表现接近 Claude Opus 4.8，但低于 Claude Mythos 5。分数为各任务特定的 0–1 指标（越高越好）。成对面板显示每个模型在两个子基准测试上的结果（较浅色 = 第一种条件）。*
+***[图 8.14.6.A] 生命科学能力的评估结果。**&#8203;在六项生命科学基准测试上，Claude Sonnet 5 较 Claude Sonnet 4.6 有所提升，平均表现接近 Claude Opus 4.8，但低于 Claude Mythos 5。分数为各任务特定的 0–1 指标（越高越好）。成对面板显示每个模型在两个子基准测试上的结果（较浅色 = 第一种条件）。*
 
 144
 

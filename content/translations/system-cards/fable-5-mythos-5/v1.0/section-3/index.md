@@ -37,7 +37,7 @@ Claude Mythos 5 展现出我们迄今评估过的所有模型中最强的整体�
 
 #### 3.2.1 ExploitBench
 
-ExploitBench[^5] 是一项网络安全基准测试，用于评估 AI 模型能在软件漏洞利用流程中推进多远（而不是将漏洞利用作为单一的通过/失败事件来评分）。我们最近对此有[更详细的介绍](https://red.anthropic.com/2026/exploit-evals/)。
+ExploitBench{{< sc-fnref 5 >}} 是一项网络安全基准测试，用于评估 AI 模型能在软件漏洞利用流程中推进多远（而不是将漏洞利用作为单一的通过/失败事件来评分）。我们最近对此有[更详细的介绍](https://red.anthropic.com/2026/exploit-evals/)。
 
 {{< s1-page 58 >}}
 
@@ -111,7 +111,7 @@ Mythos 5 单次尝试即复现了 83.8% 的目标漏洞，并在 99.4% 的任务
 
 ![](images/p063_0.webp)
 
-***[图 3.2.4.A] Claude Mythos 5 在 88.4% 的尝试中产出了可用的漏洞利用，**领先于 Claude Mythos Preview（70.8%），并远远领先于 Claude Opus 4.8（8.8%）；后者常常能达到寄存器控制，但很少能完成漏洞利用。*
+***[图 3.2.4.A] Claude Mythos 5 在 88.4% 的尝试中产出了可用的漏洞利用，**&#8203;领先于 Claude Mythos Preview（70.8%），并远远领先于 Claude Opus 4.8（8.8%）；后者常常能达到寄存器控制，但很少能完成漏洞利用。*
 
 #### 3.2.5 UK AISI 的外部能力测试
 

@@ -28,13 +28,13 @@ description: "Claude Opus 4.7 系统卡中文译本 v1.0 · 3 网络安全（非
 
 #### 3.3.1 Cybench
 
-这一公开的网络安全能力基准测试由来自四场 CTF 竞赛的 40 道 CTF 题目组成。我们实现了该基准测试中的部分题目。更多细节可参见介绍该基准测试的论文[^5]。如上所述，鉴于该基准测试已经饱和，我们认为它已不足以充分反映当前前沿模型的能力。
+这一公开的网络安全能力基准测试由来自四场 CTF 竞赛的 40 道 CTF 题目组成。我们实现了该基准测试中的部分题目。更多细节可参见介绍该基准测试的论文{{< sc-fnref 5 >}}。如上所述，鉴于该基准测试已经饱和，我们认为它已不足以充分反映当前前沿模型的能力。
 
 由于基础设施方面的限制，我们在其中 35 道题目构成的子集上运行评估。
 
 ![](images/p049_0.webp)
 
-***[图 3.3.1.A] Cybench 公开网络安全能力基准测试的结果。**Claude Opus 4.7 的表现略逊于 Opus 4.6 和 Mythos Preview，但差距很小，我们认为可以忽略不计。*
+***[图 3.3.1.A] Cybench 公开网络安全能力基准测试的结果。**&#8203;Claude Opus 4.7 的表现略逊于 Opus 4.6 和 Mythos Preview，但差距很小，我们认为可以忽略不计。*
 
 在每道题目进行 10 次试验的情况下，Claude Opus 4.7 以 100% 的成功率解出了几乎所有题目，pass@1 达到 96%。
 
@@ -42,13 +42,13 @@ description: "Claude Opus 4.7 系统卡中文译本 v1.0 · 3 网络安全（非
 
 #### 3.3.2 CyberGym
 
-我们在 [CyberGym](https://www.cybergym.io/)[^6] 上评估了 Claude Opus 4.7。该基准测试考察 AI 智能体在获得某一缺陷的高层描述后，在真实开源软件项目中找到此前已被发现的漏洞的能力（称为*定向漏洞复现*）。
+我们在 [CyberGym](https://www.cybergym.io/){{< sc-fnref 6 >}} 上评估了 Claude Opus 4.7。该基准测试考察 AI 智能体在获得某一缺陷的高层描述后，在真实开源软件项目中找到此前已被发现的漏洞的能力（称为*定向漏洞复现*）。
 
 所报告的分数是在 CyberGym 套件全部 1,507 个任务上进行定向漏洞复现的 pass@1 评估。我们报告的是在整个套件上每个任务尝试一次的汇总表现。请注意，Opus 4.6 的分数已从 Mythos Preview 系统卡（System Card）中最初报告的 0.67 更新为 0.74，因为我们更新了运行框架（harness）参数，以更好地激发模型的网络安全能力。
 
 ![](images/p050_0.webp)
 
-***[图 3.3.2.A] CyberGym 上的结果。**Claude Opus 4.7 的表现与 Opus 4.6 大致相同，但不及 Mythos Preview。*
+***[图 3.3.2.A] CyberGym 上的结果。**&#8203;Claude Opus 4.7 的表现与 Opus 4.6 大致相同，但不及 Mythos Preview。*
 
 Claude Opus 4.7 的表现与 Opus 4.6 几乎完全相同，我们认为二者的数值差异可以忽略不计。
 
@@ -62,7 +62,7 @@ Claude Opus 4.7 的表现与 Opus 4.6 几乎完全相同，我们认为二者的
 
 ![](images/p051_0.webp)
 
-***[图 3.3.3.A] Firefox shell 漏洞利用评估的结果。**Claude Opus 4.7 实现部分控制的频率是 Opus 4.6 的两倍以上，但仍远低于 Mythos Preview。*
+***[图 3.3.3.A] Firefox shell 漏洞利用评估的结果。**&#8203;Claude Opus 4.7 实现部分控制的频率是 Opus 4.6 的两倍以上，但仍远低于 Mythos Preview。*
 
 {{< s1-page 51 >}}
 

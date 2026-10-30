@@ -1,5 +1,6 @@
 ---
 title: "Claude Mythos Preview 系统卡中文译本 v1.0"
+description: "Claude Mythos Preview 系统卡中文译本 v1.0 的目录和全文下载（非官方，AI 翻译）"
 version: "v1.0"
 repoVersion: "1.0.0"
 tag: "mythos-preview/v1.0.0"
