@@ -75,3 +75,56 @@ export async function sheetMargins(page) {
   }, [png, bg]);
   return { rect, pixel };
 }
+
+// 模拟 Cloudflare 的邮件地址混淆（Scrape Shield → Email Address Obfuscation，正式站开着）：
+// 页面里的 mailto 链接换成 /cdn-cgi/l/email-protection# 加密地址和 [email protected] 占位，
+// 并在每个被改的地址后面第一个 <script 前插一个解码脚本（线上实测的位置，可能落进 <template> 里）。
+// 解码脚本按线上 email-decode.min.js 的行为写：解开页面和 <template> 里的地址，然后把自己从父节点移走。
+// 浏览器上下文 ctx 里经 base 访问的 HTML 都过一遍，返回改写后的页面（按地址），测试可以核对插在哪里。
+// intoTemplate：另外在每个 <template> 里也插一个，模拟最坏情况（模板里有脚本时线上就会这样）
+export const CF_DECODER = "/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js";
+const CF_DECODER_JS = `!function(){"use strict";
+var P="/cdn-cgi/l/email-protection#";
+function dec(s,i){var k=parseInt(s.substr(i,2),16),o="";for(var j=i+2;j<s.length;j+=2)o+=String.fromCharCode(parseInt(s.substr(j,2),16)^k);try{o=decodeURIComponent(escape(o))}catch(e){}return o}
+function run(r){
+  r.querySelectorAll("a").forEach(function(a){var i=a.href.indexOf(P);if(i>-1)a.href="mailto:"+dec(a.href,i+P.length)});
+  r.querySelectorAll(".__cf_email__").forEach(function(s){s.parentNode.replaceChild(document.createTextNode(dec(s.getAttribute("data-cfemail"),0)),s)});
+  r.querySelectorAll("template").forEach(function(t){run(t.content)});
+}
+run(document);
+var me=document.currentScript||document.scripts[document.scripts.length-1];me.parentNode.removeChild(me);
+}();`;
+export function cfObfuscate(html, { intoTemplate = false } = {}) {
+  const enc = (email) => {
+    const k = 0x5a, b = Buffer.from(email, "utf8");
+    return [k, ...b.map((c) => c ^ k)].map((c) => c.toString(16).padStart(2, "0")).join("");
+  };
+  html = html.replace(/<a href="?mailto:([^"\s>]+)"?>([^<]*)<\/a>/g, (m, email, text) => {
+    const e = enc(email);
+    const body = text === email ? `<span class="__cf_email__" data-cfemail="${e}">[email&#160;protected]</span>` : text;
+    return `<a href="/cdn-cgi/l/email-protection#${e}">${body}</a>`;
+  });
+  // 替换后的位置会变，按替换后的文本重新找每个地址，再在它后面第一个 <script 前插解码脚本（同一处只插一次）
+  const tag = `<script data-cfasync="false" src="${CF_DECODER}"></script>`;
+  const spots = new Set();
+  for (const m of html.matchAll(/\/cdn-cgi\/l\/email-protection#/g)) {
+    const s = html.indexOf("<script", m.index);
+    spots.add(s < 0 ? html.lastIndexOf("</body>") : s);
+  }
+  if (intoTemplate) for (const m of html.matchAll(/<\/template>/g)) spots.add(m.index);
+  for (const s of [...spots].sort((a, b) => b - a)) html = html.slice(0, s) + tag + html.slice(s);
+  return html;
+}
+export async function cfEmailObfuscation(ctx, base, opts) {
+  const served = new Map();
+  await ctx.route(base + "/cdn-cgi/**", (r) => r.fulfill({ contentType: "text/javascript", body: CF_DECODER_JS }));
+  await ctx.route(base + "/**", async (r) => {
+    if (r.request().resourceType() !== "document") return r.fallback();
+    const res = await r.fetch();
+    if (!/text\/html/.test(res.headers()["content-type"] || "")) return r.fulfill({ response: res });
+    const html = cfObfuscate(await res.text(), opts);
+    served.set(new URL(r.request().url()).pathname, html);
+    return r.fulfill({ response: res, body: html });
+  });
+  return served;
+}

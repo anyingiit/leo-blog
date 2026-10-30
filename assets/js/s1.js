@@ -1,5 +1,5 @@
 // S-1 译本：
-// - 原版页面按容器宽度缩放（首屏的缩放由 original.html 里的内联脚本先设好）；加宽方案允许放大到 1.4 倍
+// - 原版页面按容器宽度缩放；加宽方案允许放大到 1.4 倍
 // - 方案 C 的重排/原版切换（宽屏、窄屏分别记住选择；没选过时宽屏默认原版、窄屏默认重排；切换时停在同一原文页）
 // - 沉浸阅读：网址带 ?read=1 时隐藏站点外壳，只留正文和细顶栏（目录、页码、翻章、版式、缩放、退出）。
 //   进入时保持读者当前的版式，可在顶栏切换。退出时回到进入前的版式。
@@ -48,8 +48,11 @@
   const sw = document.querySelector(".s1-switch");
   const ensureOriginal = () => {
     if (tpl && original && !original.firstChild) {
-      original.append(tpl.content.cloneNode(true));
-      for (const s of original.querySelectorAll("script")) s.remove();
+      // 插入前去掉模板里的脚本：插进页面的脚本会执行，Cloudflare 的邮件地址混淆会把解码脚本插在模板里，
+      // 执行时它已被移走，找不到父节点就报错（解码在页面加载时已经做过，模板里的地址也由它解开）
+      const frag = tpl.content.cloneNode(true);
+      for (const s of frag.querySelectorAll("script")) s.remove();
+      original.append(frag);
       number(original);
     }
   };
