@@ -1,6 +1,6 @@
 ---
 title: "Claude Opus 4.8 系统卡中文译本"
-description: "Anthropic《Claude Opus 4.8 System Card》（2026-05-28，246 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
+description: "Anthropic《Claude Opus 4.8 System Card》（246 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
 titleEn: "Claude Opus 4.8 System Card"
 released: "2026-05-28"
 pages: 246

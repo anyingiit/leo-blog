@@ -1,6 +1,6 @@
 ---
 title: "Claude Fable 5.1 与 Claude Mythos 5.1 系统卡中文译本"
-description: "Anthropic《Claude Fable 5.1 & Claude Mythos 5.1 System Card》（2026-09-01，212 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
+description: "Anthropic《Claude Fable 5.1 & Claude Mythos 5.1 System Card》（212 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
 titleEn: "Claude Fable 5.1 & Claude Mythos 5.1 System Card"
 released: "2026-09-01"
 pages: 212

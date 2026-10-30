@@ -1,6 +1,6 @@
 ---
 title: "Claude Fable 5 与 Claude Mythos 5 系统卡中文译本"
-description: "Anthropic《Claude Fable 5 & Claude Mythos 5 System Card》（2026-06-09，317 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
+description: "Anthropic《Claude Fable 5 & Claude Mythos 5 System Card》（317 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
 titleEn: "Claude Fable 5 & Claude Mythos 5 System Card"
 released: "2026-06-09"
 pages: 317

@@ -1,6 +1,6 @@
 ---
 title: "Claude Mythos Preview 系统卡中文译本"
-description: "Anthropic《Claude Mythos Preview System Card》（2026-04-07，245 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
+description: "Anthropic《Claude Mythos Preview System Card》（245 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
 titleEn: "Claude Mythos Preview System Card"
 released: "2026-04-07"
 pages: 245

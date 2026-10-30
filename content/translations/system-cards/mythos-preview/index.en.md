@@ -1,6 +1,6 @@
 ---
 title: "Claude Mythos Preview System Card — Unofficial Chinese Translation"
-description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Mythos Preview System Card (2026-04-07, 245 pages)."
+description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Mythos Preview System Card (245 pages)."
 titleEn: "Claude Mythos Preview System Card"
 released: "2026-04-07"
 pages: 245

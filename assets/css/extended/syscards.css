@@ -9,3 +9,5 @@
 /* 卡片页和 S-1 版本页一样用列表页的灰底（PaperMod 的 .list） */
 body:has(.sc-cardpage) { background: var(--code-bg); }
 [data-theme="dark"] body:has(.sc-cardpage) { background: var(--theme); }
+/* 页码范围「第 11–18 页」和日期整体换行，不在短横处拆开 */
+.sc-nobr { white-space: nowrap; }

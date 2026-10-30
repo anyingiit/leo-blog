@@ -1,6 +1,6 @@
 ---
 title: "Claude Fable 5.1 & Claude Mythos 5.1 System Card — Unofficial Chinese Translation"
-description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Fable 5.1 & Claude Mythos 5.1 System Card (2026-09-01, 212 pages)."
+description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Fable 5.1 & Claude Mythos 5.1 System Card (212 pages)."
 titleEn: "Claude Fable 5.1 & Claude Mythos 5.1 System Card"
 released: "2026-09-01"
 pages: 212

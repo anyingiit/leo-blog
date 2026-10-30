@@ -1,6 +1,6 @@
 ---
 title: "Claude Sonnet 5 System Card — Unofficial Chinese Translation"
-description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Sonnet 5 System Card (2026-06-30, 146 pages)."
+description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Sonnet 5 System Card (146 pages)."
 titleEn: "Claude Sonnet 5 System Card"
 released: "2026-06-30"
 pages: 146

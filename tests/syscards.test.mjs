@@ -51,6 +51,8 @@ const url = (c, kind) => `${P}${c.slug}/${c.zh.downloads[kind].file.replace(/\.r
 const attr = (html, name, value) => html.includes(`${name}=${value}`) || html.includes(`${name}="${value}"`);
 const notice = (html) => html.match(/<aside class="?s1-notice[\s\S]*?<\/aside>/)[0];
 const main = (html) => html.match(/<main[\s\S]*<\/main>/)[0];
+// 比对文字：去掉标签（不换行的 span），不换行空格当普通空格
+const text = (html) => html.replace(/<[^>]+>/g, "").replace(/\u00a0|&nbsp;/g, " ");
 
 test("测试前提：导入了系统卡，weight 从 1 连续编号，中英文页 front matter 相同（标题和简介除外）", () => {
   assert.ok(cards.length >= 10, `只有 ${cards.length} 份`);
@@ -112,9 +114,9 @@ for (const lang of ["zh", "en"]) {
       const row = rows[i][2];
       const name = lang === "zh" ? c.zh.title.replace(/中文译本$/, "") : c.zh.titleEn;
       assert.ok(attr(row, "href", page(c, lang)) && row.includes(`>${name}</a>`), `${c.slug} 链到卡片页`);
-      assert.ok(row.includes(lang === "zh" ? `原版 ${c.zh.released} 发布 · ${c.zh.pages} 页` : `Published ${c.zh.released} · ${c.zh.pages} pages`), `${c.slug} 日期和页数`);
-      assert.ok(row.includes(lang === "zh" ? `原文第 ${c.zh.facts.s22[0]}–${c.zh.facts.s22[1]} 页` : `pp. ${c.zh.facts.s22[0]}–${c.zh.facts.s22[1]}`), `${c.slug} 范围`);
-      if (c.zh.facts.unverifiedNumbers) assert.ok(row.includes(lang === "zh" ? `${c.zh.facts.unverifiedNumbers} 处原文数字` : `${c.zh.facts.unverifiedNumbers} numbers`), `${c.slug} 未核实项`);
+      assert.ok(text(row).includes(lang === "zh" ? `原版 ${c.zh.released} 发布 · ${c.zh.pages} 页` : `Published ${c.zh.released} · ${c.zh.pages} pages`), `${c.slug} 日期和页数`);
+      assert.ok(text(row).includes(lang === "zh" ? `原文第 ${c.zh.facts.s22[0]}–${c.zh.facts.s22[1]} 页` : `pp. ${c.zh.facts.s22[0]}–${c.zh.facts.s22[1]}`), `${c.slug} 范围`);
+      if (c.zh.facts.unverifiedNumbers) assert.ok(text(row).includes(lang === "zh" ? `${c.zh.facts.unverifiedNumbers} 处原文数字` : `${c.zh.facts.unverifiedNumbers} numbers`), `${c.slug} 未核实项`);
       assert.ok(attr(row, "href", url(c, "html")) && attr(row, "download", c.zh.downloads.pdf.name), `${c.slug} 下载`);
       assert.ok(row.includes(lang === "zh" ? `aria-label="在线阅读：${name}"` : `aria-label="Read the translation: ${name}"`), `${c.slug} 读屏链接名`);
     }
@@ -154,13 +156,13 @@ for (const lang of ["zh", "en"]) {
       if (f.s22Model) want.push(lang === "zh" ? `使用 ${f.s22Model} ` : `using ${f.s22Model}`);
       if (f.unverifiedNumbers) want.push(lang === "zh" ? `${f.unverifiedNumbers} 处原文数字` : `${f.unverifiedNumbers} numbers`);
       if (f.layoutFixes) want.push(lang === "zh" ? `发现 ${f.layoutFixes} 处问题` : `found ${f.layoutFixes} problems`);
-      for (const s of want) assert.ok(n.includes(s), `${c.slug}：${s}`);
+      for (const s of want) assert.ok(text(n).includes(s), `${c.slug}：${s}`);
       if (!f.scattered) assert.ok(!/零散段落|scattered/.test(n), `${c.slug} 没有零散段落就不提`);
       assert.equal(/内部链接|Cross-references/.test(n), f.linksLost, `${c.slug} 内部链接`);
       assert.ok(attr(n, "href", c.zh.official), `${c.slug} 声明里的原文链接`);
       // 折叠时那一行要点里就有这份卡的范围（和未核实项），不用展开
       const sum = read(page(c, lang)).match(/<summary>([\s\S]*?)<\/summary>/)[1];
-      assert.ok(sum.includes(lang === "zh" ? `原文第 ${f.s22[0]}–${f.s22[1]} 页` : `pp. ${f.s22[0]}–${f.s22[1]}`), `${c.slug} 要点里的范围`);
+      assert.ok(text(sum).includes(lang === "zh" ? `原文第 ${f.s22[0]}–${f.s22[1]} 页` : `pp. ${f.s22[0]}–${f.s22[1]}`), `${c.slug} 要点里的范围`);
       if (f.unverifiedNumbers) assert.ok(sum.includes(lang === "zh" ? "未经核实" : "not been verified"), `${c.slug} 要点里的未核实项`);
       assert.ok(!/<a\s/.test(sum), `${c.slug} 要点里不放链接`);
     }

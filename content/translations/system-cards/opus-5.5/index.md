@@ -1,6 +1,6 @@
 ---
 title: "Claude Opus 5.5 系统卡中文译本"
-description: "Anthropic《Claude Opus 5.5 System Card》（2026-09-22，230 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
+description: "Anthropic《Claude Opus 5.5 System Card》（230 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。"
 titleEn: "Claude Opus 5.5 System Card"
 released: "2026-09-22"
 pages: 230

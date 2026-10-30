@@ -1,6 +1,6 @@
 ---
 title: "Claude Opus 5 System Card — Unofficial Chinese Translation"
-description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Opus 5 System Card (2026-07-24, 198 pages)."
+description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Opus 5 System Card (198 pages)."
 titleEn: "Claude Opus 5 System Card"
 released: "2026-07-24"
 pages: 198

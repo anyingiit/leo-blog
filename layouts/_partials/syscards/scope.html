@@ -1,7 +1,7 @@
 {{- /* 一句话：这份卡由译者另行翻译的范围（facts，导入工具从译文仓库的翻译说明里取）。栏目页条目和卡片页简短声明用 */ -}}
 {{- $p := .Params }}{{ $f := $p.facts }}
 {{- if eq .Lang "zh" -}}
-2.2 节（原文第 {{ index $f.s22 0 }}–{{ index $f.s22 1 }} 页）{{ if $f.scattered }}和 {{ $f.scattered }} 个零散段落{{ end }}由译者{{ with $f.s22Model }}使用 {{ . }} {{ end }}另行翻译，未经 Claude 审校{{ with $f.unverifiedNumbers }}；其中 {{ . }} 处原文数字在译文中找不到，未经核实{{ end }}。
+2.2 节（原文<span class="sc-nobr">第 {{ index $f.s22 0 }}–{{ index $f.s22 1 }} 页</span>）{{ if $f.scattered }}和 {{ $f.scattered }} 个零散段落{{ end }}由译者{{ with $f.s22Model }}使用 {{ . }} {{ end }}另行翻译，未经 Claude 审校{{ with $f.unverifiedNumbers }}；其中 {{ . }} 处原文数字在译文中找不到，未经核实{{ end }}。
 {{- else -}}
-Section 2.2 (pp. {{ index $f.s22 0 }}–{{ index $f.s22 1 }}){{ if $f.scattered }} and {{ $f.scattered }} scattered paragraphs{{ end }} translated separately by the translator{{ with $f.s22Model }} using {{ . }}{{ end }}, not reviewed by Claude{{ with $f.unverifiedNumbers }}; {{ . }} numbers in the original could not be found in it and have not been verified{{ end }}.
+Section 2.2 (<span class="sc-nobr">pp. {{ index $f.s22 0 }}–{{ index $f.s22 1 }}</span>){{ if $f.scattered }} and {{ $f.scattered }} scattered paragraphs{{ end }} translated separately by the translator{{ with $f.s22Model }} using {{ . }}{{ end }}, not reviewed by Claude{{ with $f.unverifiedNumbers }}; {{ . }} numbers in the original could not be found in it and have not been verified{{ end }}.
 {{- end -}}

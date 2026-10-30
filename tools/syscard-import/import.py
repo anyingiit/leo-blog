@@ -244,11 +244,11 @@ def main():
                   facts=c["facts"], downloads=dict(html=html, pdf=pdf))
         write_page(os.path.join(page, "index.md"), dict(
             title=c["title"] + "中文译本",
-            description=f"Anthropic《{c['titleEn']}》（{c['released']}，{c['pages']} 页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
+            description=f"Anthropic《{c['titleEn']}》（{c['pages']}\u00a0页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
             **fm))
         write_page(os.path.join(page, "index.en.md"), dict(
             title=f"{c['titleEn']} — Unofficial Chinese Translation",
-            description=f"An unofficial, AI-produced Chinese translation of Anthropic's {c['titleEn']} ({c['released']}, {c['pages']} pages).",
+            description=f"An unofficial, AI-produced Chinese translation of Anthropic's {c['titleEn']} ({c['pages']} pages).",
             **fm))
 
     common = dict(type="syscards", date=a.date, sourceCommit=commit, sourceDate=commit_date,

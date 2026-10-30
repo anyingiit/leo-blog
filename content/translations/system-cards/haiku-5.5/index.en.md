@@ -1,6 +1,6 @@
 ---
 title: "Claude Haiku 5.5 System Card — Unofficial Chinese Translation"
-description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Haiku 5.5 System Card (2026-10-07, 144 pages)."
+description: "An unofficial, AI-produced Chinese translation of Anthropic's Claude Haiku 5.5 System Card (144 pages)."
 titleEn: "Claude Haiku 5.5 System Card"
 released: "2026-10-07"
 pages: 144

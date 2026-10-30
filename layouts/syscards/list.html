@@ -16,7 +16,7 @@
 <article class="post-entry sc-entry" id="{{ path.Base .RelPermalink }}">
   <header class="entry-header"><h2><a href="{{ .RelPermalink }}">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</a></h2></header>
   <div class="entry-content"><p>{{ partial "syscards/scope.html" . }}</p></div>
-  <footer class="entry-footer">{{ if $en }}Published {{ .Params.released }} · {{ .Params.pages }} pages{{ else }}原版 {{ .Params.released }} 发布 · {{ .Params.pages }} 页{{ end }}
+  <footer class="entry-footer">{{ if $en }}Published <span class="sc-nobr">{{ .Params.released }}</span> · {{ .Params.pages }} pages{{ else }}原版 <span class="sc-nobr">{{ .Params.released }}</span> 发布 · {{ .Params.pages }} 页{{ end }}
     <span class="sc-links">{{ $name := cond $en .Params.titleEn (strings.TrimSuffix "中文译本" .Title) }}<a href="{{ $d.html.url }}" target="_blank" rel="noopener" aria-label="{{ if $en }}Read the translation: {{ else }}在线阅读：{{ end }}{{ $name }}">{{ if $en }}Read the translation ↗{{ else }}在线阅读 ↗{{ end }}</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" aria-label="{{ if $en }}Download PDF: {{ else }}下载 PDF：{{ end }}{{ $name }}">PDF ↓ {{ $d.pdf.size }}</a></span></footer>
 </article>
 {{- end }}
