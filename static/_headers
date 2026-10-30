@@ -1,4 +1,11 @@
 # Cloudflare Pages 响应头（https://developers.cloudflare.com/pages/configuration/headers/）
+# 全站安全响应头（docs/security.md）：
+# frame-ancestors 'self' 只允许本站把页面放进 iframe（短片等本站内嵌入不受影响），别的网站不能套框冒充；
+# Permissions-Policy 关掉本站用不到的摄像头、麦克风、定位、支付、USB，第三方脚本也拿不到
+/*
+  Content-Security-Policy: frame-ancestors 'self'
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
 # S-1 译本的全文下载文件（<版本>/files/，见 tools/s1-import/release.py）不进搜索引擎：
 # 搜索结果里只出现带完整声明的在线页面；robots.txt 不屏蔽这些文件，否则爬虫读不到这个响应头
 /:root/:version/files/*

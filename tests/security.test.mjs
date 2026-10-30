@@ -2,6 +2,7 @@
 // 1. 模板和文章里从外站加载的脚本、样式表都带子资源完整性校验（SRI），CDN 被篡改时浏览器拒绝执行
 // 2. GitHub Actions 工作流：默认只读权限、不用会把写权限和密钥交给外部 PR 的触发器、run 里不直接拼接 PR 标题等外部文字、
 //    检出代码不留下凭据
+//    全站响应头：frame-ancestors、Permissions-Policy（static/_headers）
 // 3. 仓库里跟踪的文件不含常见格式的密钥（GitHub、AWS、Google、Slack、Stripe、Anthropic、OpenAI、私钥）
 // 运行：node --test tests/security.test.mjs
 import { test } from "node:test";
@@ -138,6 +139,26 @@ test("actions/checkout 都设了 persist-credentials: false（令牌不留在 .g
     const steps = code(text).split(/\n(?=\s*- )/).filter((s) => /uses:\s*actions\/checkout@/.test(s));
     for (const s of steps) assert.match(s, /persist-credentials:\s*false/, `${name}：${s.trim().split("\n")[0]}`);
   }
+});
+
+// ── 安全响应头（static/_headers，Cloudflare Pages 按路径加响应头）──────────
+
+test("全站响应头：禁止别的网站用 iframe 嵌入本站，关掉用不到的浏览器权限", () => {
+  const rules = {};
+  let path = null;
+  for (const line of readFileSync(join(root, "static/_headers"), "utf8").split("\n")) {
+    if (!line.trim() || line.startsWith("#")) continue;
+    if (!/^\s/.test(line)) { path = line.trim(); rules[path] ??= {}; continue; }
+    const m = line.trim().match(/^([^:]+):\s*(.*)$/);
+    rules[path][m[1].toLowerCase()] = m[2];
+  }
+  const all = rules["/*"] || {};
+  assert.equal(all["content-security-policy"], "frame-ancestors 'self'", "/* 要设 Content-Security-Policy: frame-ancestors 'self'");
+  for (const feature of ["camera", "microphone", "geolocation"]) {
+    assert.match(all["permissions-policy"] || "", new RegExp(`(^|,\\s*)${feature}=\\(\\)`), `Permissions-Policy 要关掉 ${feature}`);
+  }
+  // 其他路径不另设 CSP：Cloudflare 会把同名头合并成两条，浏览器按更严的执行，容易把页面弄坏
+  for (const [p, h] of Object.entries(rules)) if (p !== "/*") assert.ok(!("content-security-policy" in h), `${p} 另设了 CSP`);
 });
 
 // ── 3. 不提交密钥 ────────────────────────────────────────

@@ -15,6 +15,7 @@
 | `run` 脚本里不直接写 `${{ github.event.pull_request.title }}`、`${{ github.head_ref }}` 这类外部文字 | 会被当成命令执行（脚本注入）。要用就先放进 `env:`，再以 `"$VAR"` 引用 |
 | `actions/checkout` 都设 `persist-credentials: false` | 令牌不留在 `.git/config`，后面的步骤（包括 npm 包的安装脚本）读不到 |
 | `.claude/settings.json` 里的第三方插件市场用 `ref` 锁定到版本标签（如 `v1.0.3`） | 插件会在每个 Claude Code 会话里自动加载；不锁定的话，对方仓库一更新就生效 |
+| `static/_headers` 给全站加 `Content-Security-Policy: frame-ancestors 'self'` 和 `Permissions-Policy`（关掉摄像头、麦克风、定位、支付、USB），其他路径不另设 CSP | 别的网站不能把本站套进 iframe 冒充；本站自己的 iframe（短片）不受影响。不做完整 CSP：内联脚本多，要么形同虚设，要么容易把页面弄坏 |
 | `git ls-files` 列出的文本文件不含 GitHub、AWS、Google、Slack、Stripe、Anthropic、OpenAI 密钥和私钥 | 只认有固定前缀的格式；原样 HTML 里的 base64 图片会命中宽泛的规则，所以不查"长随机串" |
 
 另外，`ci.yml` 的 Lint and build 任务检查每个 `uses:` 都锁定到完整的提交哈希。
