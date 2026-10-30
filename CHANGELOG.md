@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- 文字重叠检查覆盖 WebKit（≈Safari）：`tests/s1-overlap.test.mjs` 在 Chromium 和 WebKit 里各查一遍；`tests/site.test.mjs` 新增规则，逐行量文字位置的测试都必须两种内核都跑（S-1 v1.1 的重叠只在 Safari 上出现，只用 Chromium 的检查漏掉了）。
 - S-1 译本发布 v1.1.1（译文仓库 anthropic-s1-zh v1.1.1：封面「抄送」栏和第 2 页标题在字体略宽的电脑上文字重叠，只改版式），v1.0、v1.1 保留为历史版本；新增 `tests/s1-overlap.test.mjs` 检查原版版式的文字重叠；版本表下载链接不再从中间断行。
 - S-1 译本发布 v1.1（译文仓库 anthropic-s1-zh v1.1.0：依外部审校清单修订语义、术语、体例和版式），v1.0 保留为历史版本；导入脚本遇到内容变了的同名配图时加内容哈希另存。
 - 《博客项目取得重大进展》移入短文，旧地址 `/posts/blog-project-progress/` 自动跳转。
