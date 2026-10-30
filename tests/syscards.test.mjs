@@ -42,7 +42,7 @@ const browsers = {};
 before(async () => {
   site = build();
   server = await serve(site.out);
-  browsers.chromium = await chromium.launch();
+  browsers.chromium = await chromium.launch({ args: ["--font-render-hinting=none"] }); // 同 short-labels：Linux 上关掉字宽取整，CI 与本机一致
   browsers.webkit = await webkit.launch().catch((e) => { if (process.env.CI) throw e; return null; });
 });
 after(async () => { for (const b of Object.values(browsers)) await b?.close(); server?.close(); site?.remove(); });

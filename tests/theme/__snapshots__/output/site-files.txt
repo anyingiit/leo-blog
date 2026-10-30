@@ -198,5 +198,17 @@ translations/page/1/index.html
 translations/sample-essay/files/sample-essay-zh-en-v1.0.html
 translations/sample-essay/files/sample-essay-zh-en-v1.0.pdf
 translations/sample-essay/index.html
+translations/system-cards/fonts/Lora-Bold.woff2
+translations/system-cards/fonts/Lora-BoldItalic.woff2
+translations/system-cards/fonts/Lora-Italic.woff2
+translations/system-cards/fonts/Lora-Regular.woff2
+translations/system-cards/fonts/NotoSansCJKSC.woff2
+translations/system-cards/fonts/NotoSansCJKSCBold.woff2
+translations/system-cards/fonts/NotoSansMonoCJKSC.woff2
+translations/system-cards/fonts/NotoSerifCJKSC.woff2
+translations/system-cards/fonts/NotoSerifCJKSCBold.woff2
+translations/system-cards/fonts/Poppins-Medium.woff2
+translations/system-cards/fonts/Poppins-SemiBold.woff2
+translations/system-cards/fonts/RobotoMono-Regular.woff2
 zh/index.html
 zh/sitemap.xml
