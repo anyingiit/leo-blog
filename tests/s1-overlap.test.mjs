@@ -32,7 +32,9 @@ const FACES = [
 ].join("");
 
 let browser;
-before(async () => { browser = await chromium.launch(); });
+// Linux 上字体微调（hinting）会把字宽取整，同一字体量出的行宽和 Mac（不取整）不同，CI 镜像默认就开着；
+// 关掉它，字宽与 Mac 一致，本地和 CI 结果也一致
+before(async () => { browser = await chromium.launch({ args: ["--font-render-hinting=none"] }); });
 after(async () => { await browser?.close(); });
 
 // 打开冻结的完整 HTML（只留前 maxPages 页），按 spacings 逐个加字距，返回每种字距下的重叠
