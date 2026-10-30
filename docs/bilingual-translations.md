@@ -58,6 +58,6 @@ python3 tools/bilingual-import/import.py content/translations/<slug>/source.html
 
 ## 测试
 
-`tools/bilingual-import/test_import.py`、`tools/bilingual-import/test_release.py`（CI 的 Lint and build → Test bilingual-import）、
-`tests/bilingual.test.mjs`（Browser tests (chromium) 里的回归测试，Chromium 和 WebKit 引擎都跑），以及 `tests/theme/visual.spec.mjs` 里的像素截图
+`tools/bilingual-import/test_import.py`、`tools/bilingual-import/test_release.py`（CI 的 Python tests (tools/bilingual-import)）、
+`tests/bilingual.test.mjs`（CI 的 Regression tests，Chromium 和 WebKit 引擎都跑），以及 `tests/theme/visual.spec.mjs` 里的像素截图
 （样例 `tests/theme/site-fixture/content/translations/sample-essay/`）。详见 [testing.md](testing.md)。
