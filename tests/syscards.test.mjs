@@ -5,7 +5,7 @@
 //     不超过 Cloudflare Pages 的 25 MiB、只发布一份、.raw 本身不发布；译文仓库不公开（页面上没有仓库链接）；
 //     栏目页：每份卡一条 PaperMod 条目（官网顺序、版本号、在线阅读/HTML/PDF 直链）；
 //     卡片首页（和 S-1 译本首页同样的顺序）：完整声明、开始阅读最新版和英文原版、下载卡片、目录（列出每章和页码、
-//     标出含另行翻译的章）、全部版本；英文页和 S-1 英文页一样不列中文目录；版本页的简短声明里有本卡的特殊情况；
+//     标出含另行翻译的章）、全部版本；英文页同 S-1 英文页：声明写成段落，链到中文译本；版本页的简短声明里有本卡的特殊情况；
 //     译者声明：所有卡的条目和措辞相同，只换卡名、日期、页数、版本，和「本卡另行翻译的部分」那一条（facts）；
 //     版本页：目录链到每一章；章节页：每章都有、重排版里没有漏掉的 Markdown（星号、脚注记号）、
 //     原文页码分隔和原版版式的页数与本章页码一致、底图都发布了、脚注引用链到「脚注」一章里存在的条目、上下章链接
@@ -55,7 +55,8 @@ const chap = (c, ch) => `${ver(c)}${ch.slug}/`;
 const url = (c, kind) => `${ver(c)}${c.v.downloads[kind].file.replace(/\.raw$/, "")}`;
 const attr = (html, name, value) => html.includes(`${name}=${value}`) || html.includes(`${name}="${value}"`);
 const main = (html) => html.match(/<main[\s\S]*<\/main>/)[0];
-const fullNotice = (html) => html.match(/<aside class="?s1-notice"? role="?note"? id="?notice"?>[\s\S]*?<\/aside>/)?.[0];
+// 完整声明：中文页是 S-1 的声明框，英文页同 S-1 英文页写成段落
+const fullNotice = (html) => html.match(/<aside class="?s1-notice"? role="?note"? id="?notice"?>[\s\S]*?<\/aside>|<div class="?post-content"? id="?notice"?>[\s\S]*?<\/div>/)?.[0];
 // 比对文字：去掉标签，不换行空格当普通空格
 const text = (html) => html.replace(/<[^>]+>/g, "").replace(/ |&nbsp;/g, " ").replace(/&#8203;|​/g, "");
 
@@ -123,21 +124,27 @@ for (const lang of ["zh", "en"]) {
     assert.equal(html.match(/mailto:leoycwan@gmail\.com/g)?.length, 2, "声明和权利行各一次");
   });
 
-  test(`${lang} 卡片首页：和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版、下载卡片、目录、全部版本`, () => {
+  test(`${lang} 卡片首页：${lang === "zh" ? "和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版、下载卡片、目录、全部版本" : "同 S-1 英文页：声明写成段落，链到中文译本"}`, () => {
     for (const c of cards) {
       const m = main(read(home(c, lang)));
       assert.ok(m.includes(`class=s1-crumb><a href=${list}>`), `${c.slug} 面包屑`);
-      const order = ["id=notice", "s1-cta", "s1-dl-cards", ...(lang === "zh" ? ["sc-toc"] : []), "s1-versions"]
-        .map((k) => m.indexOf(k));
+      assert.ok(!m.includes("s1-notice-short") && !m.includes("s1-vbar"), `${c.slug} 首页同 S-1：没有版本条和简短声明`);
+      if (lang === "en") {
+        assert.match(m, /<div class="?post-content"? id="?notice"?>\s*<p>This is an <strong>unofficial Chinese translation/, `${c.slug} 声明写成段落`);
+        assert.ok(attr(m, "href", home(c)), `${c.slug} 链到中文译本`);
+        assert.ok(attr(m, "href", c.zh.official), `${c.slug} 英文原版`);
+        assert.ok(!/s1-cta|s1-dl-cards|s1-versions|sc-toc/.test(m), `${c.slug} 同 S-1 英文页：没有下载、目录和版本表`);
+        assert.ok(!/[（）：]/.test(text(m)), `${c.slug} 英文页没有全角标点`);
+        continue;
+      }
+      const order = ["id=notice", "s1-cta", "s1-dl-cards", "sc-toc", "s1-versions"].map((k) => m.indexOf(k));
       assert.ok(order.every((x, i) => x > 0 && (i === 0 || x > order[i - 1])), `${c.slug} 各部分的顺序 ${order}`);
-      assert.ok(!m.includes("s1-notice-short") && !m.includes("s1-vbar"), `${c.slug} 首页同 S-1：只有完整声明，没有版本条`);
-      assert.ok(text(m).includes(lang === "zh" ? `开始阅读最新版 ${c.v.version}` : `latest version ${c.v.version}`), `${c.slug} 开始阅读最新版`);
-      if (lang === "zh") assert.ok(m.includes(`<h2>目录（${c.v.version}）</h2>`), `${c.slug} 目录标题带版本`);
+      assert.ok(text(m).includes(`开始阅读最新版 ${c.v.version}`), `${c.slug} 开始阅读最新版`);
+      assert.ok(m.includes(`<h2>目录（${c.v.version}）</h2>`), `${c.slug} 目录标题带版本`);
       assert.match(m, new RegExp(`class=s1-btn href=${chap(c, c.v.chapters[0])}>`), `${c.slug} 开始阅读进第一章`);
       assert.ok(attr(m, "href", c.zh.official), `${c.slug} 英文原版`);
       assert.ok(attr(m, "download", c.v.downloads.html.name) && attr(m, "download", c.v.downloads.pdf.name), `${c.slug} 下载用原文件名`);
       assert.ok(m.includes(c.v.downloads.pdf.sha256), `${c.slug} SHA-256`);
-      if (lang === "en") assert.ok(!/[（）：]/.test(text(m.replace(/<aside[\s\S]*?<\/aside>/g, "").replace(/<ol class="?s1-toc[\s\S]*?<\/ol>/g, ""))), `${c.slug} 英文页没有全角标点`);
       assert.match(m, /class="?s1-rights/);
     }
   });
@@ -162,8 +169,8 @@ test("zh 卡片首页和版本页的目录：每章一条，链到章节页，�
 
 for (const lang of ["zh", "en"]) {
   test(`${lang} 译者声明：所有卡的条目和措辞相同，只换卡名、日期、页数、版本和「本卡另行翻译的部分」（来自 facts）`, () => {
-    const generic = (n) => [...n.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => text(m[1]))
-      .filter((s, i) => i > 0 && !/^(本卡另行翻译的部分|Translated separately in this card|原文：|Original:)/.test(s));
+    const generic = (n) => [...n.matchAll(/<(li|p)>([\s\S]*?)<\/\1>/g)].map((m) => text(m[2]))
+      .filter((s, i) => i > 0 && !/^(本卡另行翻译的部分|Translated separately in this card|原文：|Original:|The Chinese translation:)/.test(s));
     const base = generic(fullNotice(read(home(cards[0], lang))));
     assert.ok(base.length >= 5);
     for (const c of cards) {
@@ -176,7 +183,7 @@ for (const lang of ["zh", "en"]) {
       const norm = (s) => s.replace(lang === "zh" ? "和少数相关段落" : " and a few related paragraphs", "");
       assert.deepEqual(g.map(norm), base.map(norm), `${c.slug} 通用条目和第一份卡不同`);
       assert.equal(g.some((s) => s.includes(lang === "zh" ? "和少数相关段落" : "and a few related paragraphs")), f.scattered > 0, `${c.slug} 零散段落`);
-      const own = text(n.match(lang === "zh" ? /<li><strong>本卡另行翻译的部分[\s\S]*?<\/li>/ : /<li><strong>Translated separately in this card[\s\S]*?<\/li>/)[0]);
+      const own = text(n.match(lang === "zh" ? /<li><strong>本卡另行翻译的部分[\s\S]*?<\/li>/ : /<(?:li|p)><strong>Translated separately in this card[\s\S]*?<\/(?:li|p)>/)[0]);
       const want = [lang === "zh" ? `原文第 ${f.s22[0]}–${f.s22[1]} 页` : `original pages ${f.s22[0]}–${f.s22[1]}`];
       if (f.scattered) want.push(lang === "zh" ? `${f.scattered} 个零散段落（原文第 ${f.scatteredPages} 页）` : `${f.scattered} scattered paragraphs`);
       if (f.s22Model) want.push(f.s22Model);
@@ -348,8 +355,10 @@ for (const engine of ENGINES) {
       await s.go(p);
       await s.page.waitForLoadState("networkidle");
       assert.equal(await s.page.locator(".__cf_email__").count(), 0);
-      assert.equal(await s.page.locator(".s1-rights a").textContent(), "leoycwan@gmail.com");
-      assert.equal(await s.page.locator(".s1-rights a").getAttribute("href"), "mailto:leoycwan@gmail.com");
+      // 英文卡片首页同 S-1 英文页没有权利行，下架邮箱在声明段落里
+      const mail = s.page.locator(p === home(cards[0], "en") ? "#notice a[href^=mailto]" : ".s1-rights a");
+      assert.equal(await mail.textContent(), "leoycwan@gmail.com");
+      assert.equal(await mail.getAttribute("href"), "mailto:leoycwan@gmail.com");
     }
     await s.done();
   });

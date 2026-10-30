@@ -1,7 +1,8 @@
 {{- /*
   Anthropic 系统卡中文译本的栏目页、每份卡的首页和版本页（tools/syscard-import/import.py 生成），和 S-1 译本同一套结构和样式：
   - 栏目页（content/translations/system-cards/_index.md）：简短声明，每份卡一条 PaperMod 文章条目，顺序同 Anthropic 官网系统卡列表（weight）
-  - 卡片首页（<卡>/_index.md）：和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版和英文原版、下载卡片、最新版目录、全部版本
+  - 卡片首页（<卡>/_index.md）：和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版和英文原版、下载卡片、最新版目录、全部版本；
+    英文页同 S-1 英文页：标题、说明（声明各条写成段落）和中文译本的链接
   - 版本页（<卡>/<版本>/_index.md）：该版本的目录（同 S-1 版本页）
   章节页见 single.html。版本只增不改，每个版本有固定网址
 */ -}}
@@ -26,30 +27,39 @@
     <h1>{{ .Title }}</h1>
     {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
   </header>
+  {{- if $en }}
+  {{- /* 英文页同 S-1 英文页：只有一段段说明和中文译本的链接，没有下载和版本表 */}}
+  <div class="post-content" id="notice">
+    {{- range findRE `<li>[\s\S]*?</li>` (partial "syscards/notice.html" (dict "page" . "card" true)) }}
+    {{ replaceRE `^<li>([\s\S]*)</li>$` "<p>$1</p>" . | safeHTML }}
+    {{- end }}
+    {{- with .Translations }}{{ range first 1 . }}
+    <p>The Chinese translation: <a href="{{ .RelPermalink }}">{{ .RelPermalink }}</a></p>
+    {{- end }}{{ end }}
+  </div>
+  {{- else }}
   {{- partial "syscards/notice.html" (dict "page" . "card" true) }}
   <div class="s1-cta">
-    <a class="s1-btn" href="{{ $l.RelPermalink }}{{ (index $l.Params.chapters 0).slug }}/">{{ if $en }}Start reading the latest version {{ $l.Params.version }} (Chinese){{ else }}开始阅读最新版 {{ $l.Params.version }}{{ end }}</a>
-    <a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original (Anthropic){{ else }}英文原版（Anthropic）{{ end }}</a>
+    <a class="s1-btn" href="{{ $l.RelPermalink }}{{ (index $l.Params.chapters 0).slug }}/">开始阅读最新版 {{ $l.Params.version }}</a>
+    <a href="{{ .Params.official }}" rel="noopener">英文原版（Anthropic）</a>
   </div>
-  {{- partial "syscards/downloads.html" (dict "v" $l "style" "cards" "en" $en) }}
-  {{- /* 英文页和 S-1 英文页一样不列中文目录 */}}
-  {{- if not $en }}
+  {{- partial "syscards/downloads.html" (dict "v" $l "style" "cards") }}
   <h2>目录（{{ $l.Params.version }}）</h2>
   {{- partial "syscards/toc.html" $l }}
-  {{- end }}
-  <h2 id="versions">{{ if $en }}All versions{{ else }}全部版本{{ end }}</h2>
+  <h2 id="versions">全部版本</h2>
   <table class="s1-versions">
-    <thead><tr><th>{{ if $en }}Version{{ else }}译本版本{{ end }}</th><th>{{ if $en }}Finalized{{ else }}定稿{{ end }}</th><th class="s1-dl-col">{{ if $en }}Downloads{{ else }}全文下载{{ end }}</th></tr></thead>
+    <thead><tr><th>译本版本</th><th>定稿</th><th class="s1-dl-col">全文下载</th></tr></thead>
     <tbody>
     {{- range $m.versions }}
-      <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $l }} <span class="s1-vtag s1-latest">{{ if $en }}latest{{ else }}最新{{ end }}</span>{{ end }}</td>
+      <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $l }} <span class="s1-vtag s1-latest">最新</span>{{ end }}</td>
         <td><span class="sc-nobr">{{ .Params.versionDate }}</span></td>
         <td class="s1-dl-col">{{ partial "syscards/downloads.html" (dict "v" . "style" "line") }}</td></tr>
     {{- end }}
     </tbody>
   </table>
-  <p class="s1-small">{{ if $en }}Versions are only added, never changed: each has its own fixed URL.{{ else }}历史版本只增不改：每个版本有自己的固定网址，发布后内容不再变动。{{ end }}</p>
+  <p class="s1-small">历史版本只增不改：每个版本有自己的固定网址，发布后内容不再变动。</p>
   {{- partial "syscards/rights.html" . }}
+  {{- end }}
 {{- else }}
   <header class="page-header s1-header">
     <h1>{{ .Title }}</h1>
