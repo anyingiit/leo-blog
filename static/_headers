@@ -5,3 +5,7 @@
   X-Robots-Tag: noindex
 /:section/:root/:version/files/*
   X-Robots-Tag: noindex
+# Mermaid 放在带版本号的目录里，文件内容永远不变（tools/vendor-mermaid.sh）。画一张图要加载约 27 个文件，
+# 不写这条时 Cloudflare 默认每次都要回源确认，每个文件多一次往返
+/vendor/mermaid/*
+  Cache-Control: public, max-age=31536000, immutable

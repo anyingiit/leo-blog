@@ -3,7 +3,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import { sites } from "./helpers.mjs";
+import { here, root, sites } from "./helpers.mjs";
 
 const walk = (d) => readdirSync(d).flatMap((n) => statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]);
 const read = (site, p) => readFileSync(join(sites[site].dir, p), "utf8");
@@ -40,3 +40,18 @@ for (const site of Object.keys(sites)) {
     });
   }
 }
+
+// 本站提供的 Mermaid 必须和 package-lock.json 锁定（npm ci 校验过 sha512）的包逐字节相同，一个文件都不多不少
+test("static/vendor/mermaid 和锁定的 npm 包逐字节相同", () => {
+  const pkg = join(here, "node_modules/mermaid");
+  const { version } = JSON.parse(readFileSync(join(pkg, "package.json"), "utf8"));
+  const vendored = join(root, "static/vendor/mermaid", version);
+  const expected = { LICENSE: join(pkg, "LICENSE"), "mermaid.esm.min.mjs": join(pkg, "dist/mermaid.esm.min.mjs") };
+  const chunks = join(pkg, "dist/chunks/mermaid.esm.min");
+  for (const f of walk(chunks).filter((f) => !f.endsWith(".map"))) expected[join("chunks/mermaid.esm.min", relative(chunks, f))] = f;
+  const actual = walk(vendored).map((f) => relative(vendored, f)).sort();
+  expect(actual).toEqual(Object.keys(expected).sort());
+  for (const [name, source] of Object.entries(expected)) {
+    expect(readFileSync(join(vendored, name)).equals(readFileSync(source)), `${name} 和 npm 包不同`).toBe(true);
+  }
+});

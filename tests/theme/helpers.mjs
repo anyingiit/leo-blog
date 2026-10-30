@@ -31,11 +31,11 @@ export function buildAll() {
   }
 }
 
-// 页面里用到的 CDN 资源由 package.json 锁定的本地副本提供，版本与线上一致（layouts/_partials/extend_head.html）
+// 页面里用到的 CDN 资源由 package.json 锁定的本地副本提供，版本与线上一致（layouts/_partials/extend_head.html）。
+// Mermaid 由本站自己提供（static/vendor/mermaid/），不在这里
 const pkg = JSON.parse(readFileSync(join(here, "package.json"), "utf8")).devDependencies;
 export const cdn = {
   [`https://cdn.jsdelivr.net/npm/katex@${pkg.katex}/dist/`]: join(here, "node_modules/katex/dist/"),
-  [`https://cdn.jsdelivr.net/npm/mermaid@${pkg.mermaid}/dist/`]: join(here, "node_modules/mermaid/dist/"),
 };
 
 const types = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".mjs": "text/javascript",
@@ -50,7 +50,8 @@ function file(path) {
 
 // network：
 //   "online"（默认）— 站点和 CDN 都可用；其他外部地址一律断开
-//   "cdn-down"      — CDN 不可用（KaTeX 样式、Mermaid 加载失败）
+//   "cdn-down"      — CDN 不可用（KaTeX 样式加载失败）；Mermaid 在本站，不受影响
+//   "mermaid-down"  — 本站的 Mermaid 文件加载失败，图表保持源码
 //   "images-pending"— 图片请求一直没有响应，相当于图片还在路上
 //   "slow-3g"       — 每个响应按 Chrome DevTools "Slow 3G" 的参数延迟（400ms + 约 50KB/s）。
 //                     请求都由 route 直接返回，浏览器自带的限速对它不起作用，所以在这里模拟；Chromium、WebKit 都适用
@@ -62,6 +63,7 @@ export async function connect(context, network = "online") {
     const url = new URL(route.request().url());
     const site = Object.values(sites).find((s) => s.host === url.host);
     if (site) {
+      if (network === "mermaid-down" && url.pathname.startsWith("/vendor/mermaid/")) return route.abort("failed");
       const f = file(join(site.dir, decodeURIComponent(url.pathname)));
       if (network === "images-pending" && f && /\.(png|jpe?g|webp|gif)$/i.test(f)) return; // 不响应
       if (!f) return route.fulfill({ status: 404, body: "" });
@@ -97,7 +99,7 @@ export async function settle(page, { images = true, mermaid = true } = {}) {
     await Promise.all([...document.fonts].filter((f) => f.status === "loading").map((f) => f.loaded.catch(() => {})));
     if (images) await document.fonts.ready;
   }, images);
-  // CDN 不可用时 Mermaid 不会加载，图表保持源码；否则必须画完，画不出来就让测试失败
+  // Mermaid 加载失败时图表保持源码；否则必须画完，画不出来就让测试失败
   if (mermaid && await page.locator("pre.mermaid").count()) {
     await page.waitForFunction(() => [...document.querySelectorAll("pre.mermaid")].every((p) => p.dataset.processed === "true" && p.querySelector("svg .node, svg .label, svg text")), null, { timeout: 15000 });
   }
