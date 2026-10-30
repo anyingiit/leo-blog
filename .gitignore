@@ -3,3 +3,4 @@ resources/_gen/
 .hugo_build.lock
 tests/node_modules
 __pycache__/
+tools/deploy/node_modules

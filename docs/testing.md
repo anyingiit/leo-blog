@@ -6,31 +6,35 @@
 
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
-| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、访问统计只在正式站加载、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 用量」） | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：站点生成的每个自带 `<html>` 的页面（含短片等独立页面；内容目录里原样提供的 `.html.raw` 下载文件不查，保留原始 HTML 的一切特征）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/favicon.test.mjs` | 网站图标（[favicon.md](favicon.md)）：`favicon.ico` 含 16/32/48 三档且与单独的 PNG 相同；16px 图标逐像素符合设计（整像素的白色 L、主题色底、灰色内圈、透明圆角），32px 的 L 也落在整像素上；`apple-touch-icon.png` 180×180 不透明；Safari 固定标签图是单色剪影；提交的文件就是 `tools/favicon/build.mjs` 的输出 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Lint and build → Test image-i18n |
-| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；完整 HTML 和 SEC 原页一样不设 viewport、不用脚本缩放（原样提供，手机由浏览器整页缩小）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/s1-links.test.mjs` | S-1 译本和译文栏目的每个链接：站内地址存在、`#片段` 有对应 id、不意外指回本页、中英文页只在该跨的地方跨、外链格式、原版 444 个跨章交叉引用、封面目录章节名落在同名章节、冻结 HTML 离线可跳；冻结 PDF 的书签和 477 个页内链接指向正确页（pypdf）；Chromium 和 WebKit 实点菜单、语言切换、翻章、全屏阅读目录/跳页/页码、下载、版本菜单 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/s1-behavior.test.mjs` | S-1 译本的用户行为清单（116 条，见各测试名）：栏目与导航、译本首页/版本页/章节页、重排与原版的默认/记忆/切换时停在同一页、缩放、沉浸阅读的进入退出（按钮、Esc、后退）、页码与跳页（含跳到下一章）、翻章、目录面板、缩放记忆、本机存储被禁用时照常可用、手机上原版页里表格细线和双线画得出来（完整 HTML 由浏览器整页缩小；站内原版视图用 zoom 缩小时 iPhone 的 WebKit 曾把 1pt 细线画成 0 宽；按像素检查）、原版页在灰框里居中（竖版和横版页、手机/电脑/宽屏、全屏阅读，按布局和截图像素检查）、正式站开着的 Cloudflare 邮件地址混淆下没有脚本错误、下架邮箱照常解开（`helpers.mjs` 的 `cfEmailObfuscation` 按线上实测改写页面并插入解码脚本；原版模板里不放脚本，万一有也不执行）、短文里链到原版某处（`#id:~:text=`）的链接在加载前后被浏览器设回顶部时仍回到原处（iOS Safari 在标签页里第一次用手指点进来时偶尔出现，iOS 模拟器真实点击复现；CI 的浏览器复现不了，用拖住 load、加载前后滚回顶部来模拟；有高亮句子时回到句子处而不是 id 处；读者动过页面就不再管）；Chromium 和 WebKit | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/s1-overlap.test.mjs` | S-1 译本最新版本冻结 HTML 的原版版式：421 页里不同文字块的行不互相压住；给译文文字块加 0.02em 字距模拟比测量时略宽的字体（Mac 的 Georgia 等），也不能压住（v1.1 封面「抄送」栏和第 2 页标题曾在 Mac 上重叠）。结果取决于字宽，测试不用机器上的字体，页面用到的字体名都换成 `tests/fixtures/fonts` 里的文件（Georgia → 字宽相同的 Gelasio，Times New Roman/Helvetica → Liberation，中文 → Noto CJK 子集，均为 OFL），并检查字体子集包含最新版本的全部字符；反向验证：同样的检查在 v1.1 上找出那 3 处 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Lint and build → Test s1-import |
-| `tools/s1-import/test_import.py` | 导入脚本 `import.py` 把译文 Markdown 转成 Hugo 正文：脚注标记保留为上标，被误包进 `<sup>` 的整句、中文、点线引导符去掉上标；章首前只有图片的整页分隔图归入后一章；导入新版本时内容变了的同名配图加内容哈希另存，旧版本仍用原图 | Lint and build → Test s1-import |
-| `tests/bilingual.test.mjs` | 双语对照译文（[bilingual-translations.md](bilingual-translations.md)）：全文下载是冻结文件原样发布（大小、sha256）、直链无门槛、小文件按 KB 显示；站内显示原版版式的页面都关掉了 iOS 文字自动放大；导入用的源文件不发布；版本条、声明、版权行；重排版段落齐全；英文页只放说明不放原文全文、中英互链；Chromium 和 WebKit 上的首次默认版式（电脑原版、手机重排）、版式和「中文/对照/English」记住选择、全屏阅读进出（按钮、Esc、后退）、缩放、无横向滚动、深色模式纸面不反色且纸面里每个元素的文字颜色和浅色模式一致、原版版式的纸在灰框里居中（手机/平板/电脑/宽屏、全屏阅读含缩小、深色，布局差 ≤ 0.5px、截图差 ≤ 1 个设备像素）、本机存储被禁用、不开脚本、段落锚点、Cloudflare 邮件地址混淆下没有脚本错误 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tools/bilingual-import/test_import.py` | 导入脚本 `import.py`：沉浸式翻译网页拆成段落对（标题/作者进 header、行内 Markdown、特殊字符转义、插件注入的脚本/弹窗去掉）、原版片段（作者样式加 `.bl-sheet` 前缀、译文换成统一的 span）；仓库里每篇用 `source.html.raw` 重新导入，结果逐字节不变 | Lint and build → Test bilingual-import |
-| `tools/bilingual-import/test_release.py` | 发布脚本 `release.py`（不覆盖已发布版本；下载的 HTML 是保存的原网页原样，去掉加的声明和 noindex 后与原网页逐字节相同；和 S-1 共用文字层修正），以及每篇已发布的冻结 HTML/PDF：大小和 sha256、和 `source.html.raw` 对得上、首末有声明、没有加原网页没有的样式、PDF 每页「非官方」标记、无部首字符、尺寸、元数据、标签结构 | Lint and build → Test bilingual-import |
-| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
-| `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
-| `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
-| `tests/theme/behavior.spec.mjs` | 主题交互：KaTeX 样式表的 SRI 与本地副本一致且浏览器校验通过、深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染、能横滑的表格和代码块有边缘阴影（放得下时除圆角外逐像素不变） | Browser tests（chromium、webkit 两个任务，各跑三种设备） |
-| `tests/seo.test.mjs` | 搜索引擎相关输出（正式构建，见 [seo.md](seo.md)）：站点地图和页面的 robots/canonical 一致（要求收录的都在站点地图里，站点地图里的都要求收录）；S-1 最新版本进站点地图、历史版本 noindex；每个要求收录的页面都有像样的摘要（不是兜底文字、不含 Markdown、不从图注开始）；文章作者进 meta 和结构化数据但不显示在日期那一行，译文原作者照常显示；带配图的文章用自己的配图作分享图，英文页用英文图；其他页面用 1200×630 的站点默认分享图 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/taxonomy-case.test.mjs` | 构建可复现：同一个标签在不同文章里大小写不同（如 `html` 和 `HTML`）时必须用 `_index.md` 固定标题，否则 Hugo 每次构建随机取一种（见「构建必须可复现」）；查正式站点（含预览用测试短文）、主题测试站、PaperMod 示例站，并确认去掉固定标题后能查出示例站的问题 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/security.test.mjs` | 安全（[security.md](security.md)）：模板和文章里从外站加载的脚本、样式表都带 SRI，没法带的逐条登记；GitHub Actions 工作流有顶层只读权限、不用 `pull_request_target`/`workflow_run`、`run` 里不直接拼接 PR 标题等外部文字、检出不留凭据；仓库跟踪的文件不含常见格式的密钥 | Browser tests (chromium) 里的 Run regression tests 步骤 |
-| `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium) |
+| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、访问统计只在正式站加载、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/ci-shards.test.mjs` | 回归测试分组 `tests/ci-shards.mjs`：每个测试文件在且只在一组里跑、拆开的文件两半互补、新文件自动分组、组数和 ci.yml 的 matrix 一致、按名字筛选落空时算失败（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：站点生成的每个自带 `<html>` 的页面（含短片等独立页面；内容目录里原样提供的 `.html.raw` 下载文件不查，保留原始 HTML 的一切特征）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/favicon.test.mjs` | 网站图标（[favicon.md](favicon.md)）：`favicon.ico` 含 16/32/48 三档且与单独的 PNG 相同；16px 图标逐像素符合设计（整像素的白色 L、主题色底、灰色内圈、透明圆角），32px 的 L 也落在整像素上；`apple-touch-icon.png` 180×180 不透明；Safari 固定标签图是单色剪影；提交的文件就是 `tools/favicon/build.mjs` 的输出 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tools/image-i18n/test_render.py` | 英文配图脚本 `render.py`，并核对 `content/` 里提交的英文图和 `.i18n.yaml` 一致（见 [image-translation.md](image-translation.md)） | Python tests (tools/image-i18n) |
+| `tests/s1.test.mjs` | S-1 译本的全文下载：入口位置（卡片、版本条、版本表、全屏阅读目录面板）、直链无门槛、冻结文件原样发布且与 sha256 一致、打印成 PDF 时原文页不被缩小（横版页单独用横版纸）、原版视图图片不被压成 0 宽、未发布版本的单文件 `full.html`、章节 `original.html` 不单独发布、下载文件 noindex、手机和电脑无横向滚动、显示原版页的页面（含完整 HTML 和每个版本的冻结文件）都关掉了 iOS 文字自动放大（`text-size-adjust: 100%`，否则 iPhone 上原版页文字重叠；CI 的浏览器没有这个功能，截图测不出来）；完整 HTML 和 SEC 原页一样不设 viewport、不用脚本缩放（原样提供，手机由浏览器整页缩小）；以及和 PaperMod 的契约（译本样式依赖的 9 个 CSS 变量、页头/正文/页脚/返回顶部结构，宽版和全屏阅读仍然生效），升级主题时由它发现样式要跟着改 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/s1-links.test.mjs` | S-1 译本和译文栏目的每个链接：站内地址存在、`#片段` 有对应 id、不意外指回本页、中英文页只在该跨的地方跨、外链格式、原版 444 个跨章交叉引用、封面目录章节名落在同名章节、冻结 HTML 离线可跳；冻结 PDF 的书签和 477 个页内链接指向正确页（pypdf）；Chromium 和 WebKit 实点菜单、语言切换、翻章、全屏阅读目录/跳页/页码、下载、版本菜单 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/s1-behavior.test.mjs` | S-1 译本的用户行为清单（116 条，见各测试名）：栏目与导航、译本首页/版本页/章节页、重排与原版的默认/记忆/切换时停在同一页、缩放、沉浸阅读的进入退出（按钮、Esc、后退）、页码与跳页（含跳到下一章）、翻章、目录面板、缩放记忆、本机存储被禁用时照常可用、手机上原版页里表格细线和双线画得出来（完整 HTML 由浏览器整页缩小；站内原版视图用 zoom 缩小时 iPhone 的 WebKit 曾把 1pt 细线画成 0 宽；按像素检查）、原版页在灰框里居中（竖版和横版页、手机/电脑/宽屏、全屏阅读，按布局和截图像素检查）、正式站开着的 Cloudflare 邮件地址混淆下没有脚本错误、下架邮箱照常解开（`helpers.mjs` 的 `cfEmailObfuscation` 按线上实测改写页面并插入解码脚本；原版模板里不放脚本，万一有也不执行）、短文里链到原版某处（`#id:~:text=`）的链接在加载前后被浏览器设回顶部时仍回到原处（iOS Safari 在标签页里第一次用手指点进来时偶尔出现，iOS 模拟器真实点击复现；CI 的浏览器复现不了，用拖住 load、加载前后滚回顶部来模拟；有高亮句子时回到句子处而不是 id 处；读者动过页面就不再管）；Chromium 和 WebKit | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/s1-overlap.test.mjs` | S-1 译本最新版本冻结 HTML 的原版版式：421 页里不同文字块的行不互相压住；给译文文字块加 0.02em 字距模拟比测量时略宽的字体（Mac 的 Georgia 等），也不能压住（v1.1 封面「抄送」栏和第 2 页标题曾在 Mac 上重叠）。结果取决于字宽，测试不用机器上的字体，页面用到的字体名都换成 `tests/fixtures/fonts` 里的文件（Georgia → 字宽相同的 Gelasio，Times New Roman/Helvetica → Liberation，中文 → Noto CJK 子集，均为 OFL），并检查字体子集包含最新版本的全部字符；反向验证：同样的检查在 v1.1 上找出那 3 处 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/short-labels.test.mjs` | 界面上的短标签不从中间断行：版本号和「最新」、文件大小、「HTML ↗」「PDF ↓」、页码「第 345 页」、日期等（S-1 版本表的「HTML ↗ / 18.3 MB」「v1.1 / 最新」「2026- / 10-26」、目录的「第 345 / 页」曾被挤成两行）。扫全站带页头的页面（译本每个版本只取版本页和第一章），320/390/768/1024/1280/1920 六种宽度；正文、列表摘要、重排译文和原版版式不查（长句折行是正常排版，原版保持原样）；版本表说明加长 6 倍并加 0.03em 字距（模拟 Mac 上略宽的字体）后也不断行；反向验证：去掉不换行样式后能找出版本表和目录的断行；Chromium 和 WebKit | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tools/s1-import/test_release.py` | 发布脚本 `release.py`（PDF 文字层的部首修正、不覆盖已发布版本），以及仓库里每个已发布版本的冻结 HTML/PDF：大小和 sha256、PDF 页数和尺寸、每页「非官方」标记、书签、元数据、HTML 单文件且首末都有译者声明 | Python tests (tools/s1-import) |
+| `tools/s1-import/test_import.py` | 导入脚本 `import.py` 把译文 Markdown 转成 Hugo 正文：脚注标记保留为上标，被误包进 `<sup>` 的整句、中文、点线引导符去掉上标；章首前只有图片的整页分隔图归入后一章；导入新版本时内容变了的同名配图加内容哈希另存，旧版本仍用原图 | Python tests (tools/s1-import) |
+| `tests/bilingual.test.mjs` | 双语对照译文（[bilingual-translations.md](bilingual-translations.md)）：全文下载是冻结文件原样发布（大小、sha256）、直链无门槛、小文件按 KB 显示；站内显示原版版式的页面都关掉了 iOS 文字自动放大；导入用的源文件不发布；版本条、声明、版权行；重排版段落齐全；英文页只放说明不放原文全文、中英互链；Chromium 和 WebKit 上的首次默认版式（电脑原版、手机重排）、版式和「中文/对照/English」记住选择、全屏阅读进出（按钮、Esc、后退）、缩放、无横向滚动、深色模式纸面不反色且纸面里每个元素的文字颜色和浅色模式一致、原版版式的纸在灰框里居中（手机/平板/电脑/宽屏、全屏阅读含缩小、深色，布局差 ≤ 0.5px、截图差 ≤ 1 个设备像素）、本机存储被禁用、不开脚本、段落锚点、Cloudflare 邮件地址混淆下没有脚本错误 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tools/bilingual-import/test_import.py` | 导入脚本 `import.py`：沉浸式翻译网页拆成段落对（标题/作者进 header、行内 Markdown、特殊字符转义、插件注入的脚本/弹窗去掉）、原版片段（作者样式加 `.bl-sheet` 前缀、译文换成统一的 span）；仓库里每篇用 `source.html.raw` 重新导入，结果逐字节不变 | Python tests (tools/bilingual-import) |
+| `tools/bilingual-import/test_release.py` | 发布脚本 `release.py`（不覆盖已发布版本；下载的 HTML 是保存的原网页原样，去掉加的声明和 noindex 后与原网页逐字节相同；和 S-1 共用文字层修正），以及每篇已发布的冻结 HTML/PDF：大小和 sha256、和 `source.html.raw` 对得上、首末有声明、没有加原网页没有的样式、PDF 每页「非官方」标记、无部首字符、尺寸、元数据、标签结构 | Python tests (tools/bilingual-import) |
+| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
+| `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
+| `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
+| `tests/theme/behavior.spec.mjs` | 主题交互：KaTeX 样式表的 SRI 与本地副本一致且浏览器校验通过、深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染、能横滑的表格和代码块有边缘阴影（放得下时除圆角外逐像素不变） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
+| `tests/seo.test.mjs` | 搜索引擎相关输出（正式构建，见 [seo.md](seo.md)）：站点地图和页面的 robots/canonical 一致（要求收录的都在站点地图里，站点地图里的都要求收录）；S-1 最新版本进站点地图、历史版本 noindex；每个要求收录的页面都有像样的摘要（不是兜底文字、不含 Markdown、不从图注开始）；文章作者进 meta 和结构化数据但不显示在日期那一行，译文原作者照常显示；带配图的文章用自己的配图作分享图，英文页用英文图；其他页面用 1200×630 的站点默认分享图 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/perf.test.mjs` | 网页性能（[performance.md](performance.md)）：正式构建的每个页面在手机和电脑上首屏下载的字节数（HTML、样式表、脚本、单张图片、合计）和请求数在预算内；没有预算外的第三方请求和 404；`<head>` 里阻塞渲染的只有站点样式表（有公式时加 KaTeX），外部脚本不阻塞；加载时 CLS ≤ 0.1。只查每次结果相同的量，不量耗时 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/deploy.test.mjs` | 部署工作流 `.github/workflows/deploy.yml` 的约定（[deploy.md](deploy.md)）：正式站用 `CF_PAGES_BRANCH=main` 构建并部署到 `main`；预览的站点地址和上传分支名是同一个 `pr-<编号>`；外部 PR 不部署、令牌只给上传步骤；Hugo 缓存键和 CI 相同；wrangler 锁定版本并按锁文件安装 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/taxonomy-case.test.mjs` | 构建可复现：同一个标签在不同文章里大小写不同（如 `html` 和 `HTML`）时必须用 `_index.md` 固定标题，否则 Hugo 每次构建随机取一种（见「构建必须可复现」）；查正式站点（含预览用测试短文）、主题测试站、PaperMod 示例站，并确认去掉固定标题后能查出示例站的问题 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/security.test.mjs` | 安全（[security.md](security.md)）：模板和文章里从外站加载的脚本、样式表都带 SRI，没法带的逐条登记；GitHub Actions 工作流有顶层只读权限、不用 `pull_request_target`/`workflow_run`、`run` 里不直接拼接 PR 标题等外部文字、检出不留凭据；仓库跟踪的文件不含常见格式的密钥 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/theme/output.spec.mjs` | 非视觉输出快照：文件清单、页面 `<head>`（SEO、Open Graph、hreflang）、RSS、搜索索引、站点地图 | Browser tests (chromium-desktop) |
 | `.github/workflows/ci.yml` 里的检查 | 所有 action 都锁定到完整 commit SHA；每个测试文件都被 CI 执行 | Lint and build |
 
 ## `tests/site.test.mjs` 检查的内容
@@ -88,17 +92,19 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 
 **验证截图稳定**：零容差要求同一提交每次渲染都逐像素相同。在 Actions 页手动运行 CI（Run workflow），选要测的分支，把 `repeat_each` 设为 3 或更大，每个用例会重复执行这么多次，有任何一次不同都会失败。注意它只重复截图，不重新构建（两个站点在 `global-setup.mjs` 里每个任务只构建一次），所以查不出构建结果随机的问题；这类问题由上面的「构建必须可复现」检查负责，怀疑时也可以本机连续构建几十次比较输出。任务日志开头会打印运行机器的 CPU 型号，便于排查不同机器之间的差异。
 
-**CI 用量**：私有仓库的 GitHub 托管运行机按分钟计费，每个任务单独向上取整到整分钟，免费额度用完后任务分不到运行机、两秒就失败（2026-10-27 遇到过）。所以 CI 按两条原则安排：
+**CI 并行**：仓库公开后 GitHub 托管的标准运行机不计分钟（2026-10-30 起），CI 按"墙钟时间最短、测试内容不变"安排。私有时期为了省计费分钟把检查合并成 3 个任务（PR #30），全跑约 12 分钟，其中 7.5 分钟是回归测试在一个任务里串行跑，浏览器任务还要先等 Lint 跑完 2 分钟。现在：
 
-1. 任务按"计费分钟"而不是按"并行度"拆。几十秒的检查（action 锁定、测试覆盖、构建、image-i18n）合在 Lint and build 一个任务里；浏览器测试每个浏览器一个任务，拉 Playwright 镜像（约 50 秒）和取整各只算两次。
-2. 只跳过输入没有变、已经在完全相同的文件上通过过的测试，拿不准就全跑（`tests/ci-plan.mjs`，单元测试 `tests/ci-plan.test.mjs`）：
-   - 只改 `content/`、`docs/`、根目录 `.md` 时，跳过 WebKit 任务和视觉测试，站点回归测试照跑。主题测试的本站只用 `tests/theme/site-fixture` 里的固定文章构建，不读 `content/`，文档也不进入任何构建，所以视觉测试的输入和 main 完全相同。发文章是最常见的改动，这类运行只要约 3 分钟。
+1. 互不依赖的检查各自一个任务、同时开始：Plan（十几秒，决定跑哪些浏览器测试）、Lint and build（action 锁定、测试覆盖检查；任务名是 main 保护规则要求的检查，不要改）、三个 Python 工具各一个任务。浏览器任务只等 Plan，不等 Lint。
+2. 站点回归测试（`tests/*.test.mjs`）分 5 组同时跑，由 `tests/ci-shards.mjs` 按实测耗时分组（最长的先放进当前最短的组）。每个测试文件在且只在一组里跑，新加的文件不用登记，按默认耗时自动分进去；`s1-behavior.test.mjs` 一个文件就要近 3 分钟，按测试名拆成 WebKit 和其余两半（`--test-name-pattern` 和 `--test-skip-pattern` 用同一个正则，合起来正好是整个文件），任何一半一个测试都没跑也算失败。单元测试 `tests/ci-shards.test.mjs` 核对分组完整、组数和 ci.yml 的 matrix 一致。
+3. 主题视觉测试按浏览器 × 设备拆成 6 个任务；非视觉输出快照只在 chromium-desktop 里跑一次。失败时各自上传 `visual-<浏览器>-<设备>` 产物，Publish regenerated baselines 合并推到 `ci-baselines/pr-<编号>`。
+4. 汇总任务 All tests passed：任何任务失败或被取消就失败（被计划跳过的不算），保护规则只要求它一个检查就能覆盖全部测试。
+5. 只跳过输入没有变、已经在完全相同的文件上通过过的测试，拿不准就全跑（`tests/ci-plan.mjs`，单元测试 `tests/ci-plan.test.mjs`）：
+   - 只改 `content/`、`docs/`、根目录 `.md` 时跳过视觉测试，站点回归测试照跑。主题测试的本站只用 `tests/theme/site-fixture` 里的固定文章构建，不读 `content/`，文档也不进入任何构建，所以视觉测试的输入和 main 完全相同。
    - 合并 PR 产生的 main 提交，文件树和 PR 分支最后一个提交完全相同（PR 合并前已包含最新 main，几乎总是如此），而那个提交的 PR CI 已经通过时，main 上不再重复跑。
    - 手动运行（Run workflow）、拿不到改动列表、或者改到上面以外的任何文件，都全跑。
+6. Hugo 处理过的图片（`resources/_gen`）用 `actions/cache` 跨运行复用，整站冷构建约 55 秒，有缓存约 2 秒；每组回归测试都恢复缓存，由第 1 组保存。Hugo 按源文件和处理参数给缓存文件命名，内容变了就会重新生成；Hugo 版本（`build.sh`）或图片渲染钩子（`layouts/_markup/`）变了，整份缓存作废。
 
-3. 同一件事只做一次。整站构建由站点回归测试（`site.test.mjs` 用 `build.sh` 构建正式站）完成，Lint and build 不再单独构建；Hugo 处理过的图片（`resources/_gen`）用 `actions/cache` 跨运行复用，整站冷构建约 55 秒，有缓存约 2 秒。Hugo 按源文件和处理参数给缓存文件命名，内容变了就会重新生成；Hugo 版本（`build.sh`）或图片渲染钩子（`layouts/_markup/`）变了，整份缓存作废。
-
-一次全量运行约 13 计费分钟（原来 10 个任务约 20 分钟），测试内容不变。新增任务或让主题测试读取新目录前，先对照这两条。
+如果仓库改回私有，这样拆会让计费分钟大约翻倍（每个任务都要拉一次 Playwright 镜像、各自向上取整），到时候要重新权衡。
 
 ## 手机端
 

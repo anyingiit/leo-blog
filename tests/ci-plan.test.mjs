@@ -8,8 +8,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { plan, notThemeInput } from "./ci-plan.mjs";
 
-const full = { regression: true, visual: true, browsers: ["chromium", "webkit"] };
-const contentOnly = { regression: true, visual: false, browsers: ["chromium"] };
+const full = { regression: true, visual: true };
+const contentOnly = { regression: true, visual: false };
 
 test("只改文章、文档时跳过视觉测试，回归测试照跑", () => {
   for (const event of ["pull_request", "push"]) {
@@ -34,7 +34,7 @@ test("拿不到改动列表、手动运行时全跑", () => {
 });
 
 test("main 上的合并提交与已通过的 PR 提交文件树相同时整次跳过；只对 push 生效", () => {
-  assert.deepEqual(plan({ event: "push", files: ["layouts/a.html"], tested: true }), { regression: false, visual: false, browsers: [] });
+  assert.deepEqual(plan({ event: "push", files: ["layouts/a.html"], tested: true }), { regression: false, visual: false });
   assert.deepEqual(plan({ event: "pull_request", files: ["layouts/a.html"], tested: true }), full);
   assert.deepEqual(plan({ event: "workflow_dispatch", files: null, tested: true }), full);
 });
@@ -44,11 +44,11 @@ test("命令行：从标准输入读文件列表，写 GITHUB_OUTPUT", () => {
   const out = join(mkdtempSync(join(tmpdir(), "ci-plan-")), "out");
   const run = (input, event, args = []) => {
     execFileSync("node", [script, ...args], { input, env: { ...process.env, GITHUB_EVENT_NAME: event, GITHUB_OUTPUT: out } });
-    return Object.fromEntries(readFileSync(out, "utf8").trim().split("\n").slice(-3).map((l) => l.split(/=(.*)/s).slice(0, 2)));
+    return Object.fromEntries(readFileSync(out, "utf8").trim().split("\n").slice(-2).map((l) => l.split(/=(.*)/s).slice(0, 2)));
   };
-  assert.deepEqual(run("content/a.md\ndocs/b.md\n", "pull_request"), { regression: "true", visual: "false", browsers: '["chromium"]' });
-  assert.deepEqual(run("", "pull_request"), { regression: "true", visual: "true", browsers: '["chromium","webkit"]' });
-  assert.deepEqual(run("layouts/a.html\n", "push", ["--tested"]), { regression: "false", visual: "false", browsers: "[]" });
+  assert.deepEqual(run("content/a.md\ndocs/b.md\n", "pull_request"), { regression: "true", visual: "false" });
+  assert.deepEqual(run("", "pull_request"), { regression: "true", visual: "true" });
+  assert.deepEqual(run("layouts/a.html\n", "push", ["--tested"]), { regression: "false", visual: "false" });
 });
 
 // 主题测试的站点只从固定文章构建：content/ 不是它的输入，这是跳过视觉测试的前提

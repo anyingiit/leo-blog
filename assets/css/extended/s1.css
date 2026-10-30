@@ -28,11 +28,14 @@
 .s1-cta { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin: 20px 0; }
 .s1-btn { display: inline-block; padding: 8px 18px; border-radius: var(--radius); background: var(--primary); color: var(--theme) !important; }
 .s1-toc { padding-inline-start: 24px; line-height: 1.9; }
-.s1-toc small { color: var(--secondary); margin-inline-start: 8px; }
+.s1-toc small { color: var(--secondary); margin-inline-start: 8px; white-space: nowrap; } /* 「第 345 页」整体换行，不拆成「第 345」「页」 */
 .s1-missing { color: var(--secondary); opacity: .7; }
 .s1-small { font-size: 14px; color: var(--secondary); }
 .s1-versions { width: 100%; font-size: 15px; border-collapse: collapse; }
 .s1-versions th, .s1-versions td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: start; }
+/* 版本号和「最新」标签、日期都是不可拆的短标签：说明一长，前几栏变窄时曾拆成「v1.1 / 最新」「2026- / 10-26」 */
+.s1-versions td:first-child, .s1-nobr { white-space: nowrap; }
+.s1-versions td:nth-child(3) { min-width: calc(11ch + 16px); } /* 栏宽至少放得下「2026-10-26」（10 个字符，留一个字符余量给略宽的字体；16px 是左右内边距），只在日期和时间之间换行 */
 .s1-chtoc { margin: 8px 0 16px; font-size: 15px; }
 .s1-chtoc summary { cursor: pointer; color: var(--secondary); }
 .s1-switchbar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px; margin: 4px auto 16px; }
