@@ -7,3 +7,6 @@
 .sc-acts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; }
 .sc-acts a { text-decoration: underline; text-underline-offset: 3px; }
 .sc-acts small { color: var(--secondary); }
+.sc-more { margin-top: 8px; font-size: 14px; }
+.sc-more summary { cursor: pointer; color: var(--secondary); }
+.sc-more .s1-notice { margin: 8px 0 0; font-size: 14px; background: var(--theme); }
