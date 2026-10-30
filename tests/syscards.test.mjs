@@ -4,8 +4,8 @@
 //     下载文件发布在版本目录的 files/ 下，大小和 sha256 与 front matter 一致、HTML 与 .html.raw 逐字节相同（原样提供）、
 //     不超过 Cloudflare Pages 的 25 MiB、只发布一份、.raw 本身不发布；译文仓库不公开（页面上没有仓库链接）；
 //     栏目页：每份卡一条 PaperMod 条目（官网顺序、版本号、在线阅读/HTML/PDF 直链）；
-//     卡片首页（同 S-1 译本首页，首屏是版本条、简短声明、开始阅读和目录）：目录列出每章和页码、标出含另行翻译的章、
-//     完整声明（页内锚点 #notice）、下载卡片、全部版本；英文页和 S-1 英文页一样不列中文目录；
+//     卡片首页（和 S-1 译本首页同样的顺序）：完整声明、开始阅读最新版和英文原版、下载卡片、目录（列出每章和页码、
+//     标出含另行翻译的章）、全部版本；英文页和 S-1 英文页一样不列中文目录；版本页的简短声明里有本卡的特殊情况；
 //     译者声明：所有卡的条目和措辞相同，只换卡名、日期、页数、版本，和「本卡另行翻译的部分」那一条（facts）；
 //     版本页：目录链到每一章；章节页：每章都有、重排版里没有漏掉的 Markdown（星号、脚注记号）、
 //     原文页码分隔和原版版式的页数与本章页码一致、底图都发布了、脚注引用链到「脚注」一章里存在的条目、上下章链接
@@ -123,15 +123,16 @@ for (const lang of ["zh", "en"]) {
     assert.equal(html.match(/mailto:leoycwan@gmail\.com/g)?.length, 2, "声明和权利行各一次");
   });
 
-  test(`${lang} 卡片首页：首屏是版本条、简短声明、开始阅读和目录；下载卡片、完整声明、全部版本`, () => {
+  test(`${lang} 卡片首页：和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版、下载卡片、目录、全部版本`, () => {
     for (const c of cards) {
       const m = main(read(home(c, lang)));
       assert.ok(m.includes(`class=s1-crumb><a href=${list}>`), `${c.slug} 面包屑`);
-      const order = ["s1-vbar", "s1-notice-short", "s1-cta", ...(lang === "zh" ? ["sc-toc"] : []), "s1-dl-cards", "id=notice", "s1-versions"]
+      const order = ["id=notice", "s1-cta", "s1-dl-cards", ...(lang === "zh" ? ["sc-toc"] : []), "s1-versions"]
         .map((k) => m.indexOf(k));
       assert.ok(order.every((x, i) => x > 0 && (i === 0 || x > order[i - 1])), `${c.slug} 各部分的顺序 ${order}`);
-      assert.ok(text(m).includes(`${c.v.version} · ${lang === "zh" ? "最新" : "latest"}`), `${c.slug} 版本条`);
-      assert.ok(attr(m, "href", "#notice"), `${c.slug} 简短声明链到完整声明`);
+      assert.ok(!m.includes("s1-notice-short") && !m.includes("s1-vbar"), `${c.slug} 首页同 S-1：只有完整声明，没有版本条`);
+      assert.ok(text(m).includes(lang === "zh" ? `开始阅读最新版 ${c.v.version}` : `latest version ${c.v.version}`), `${c.slug} 开始阅读最新版`);
+      if (lang === "zh") assert.ok(m.includes(`<h2>目录（${c.v.version}）</h2>`), `${c.slug} 目录标题带版本`);
       assert.match(m, new RegExp(`class=s1-btn href=${chap(c, c.v.chapters[0])}>`), `${c.slug} 开始阅读进第一章`);
       assert.ok(attr(m, "href", c.zh.official), `${c.slug} 英文原版`);
       assert.ok(attr(m, "download", c.v.downloads.html.name) && attr(m, "download", c.v.downloads.pdf.name), `${c.slug} 下载用原文件名`);
@@ -182,10 +183,12 @@ for (const lang of ["zh", "en"]) {
       if (f.unverifiedNumbers) want.push(lang === "zh" ? `${f.unverifiedNumbers} 处原文数字` : `${f.unverifiedNumbers} numbers`);
       for (const s of want) assert.ok(own.includes(s), `${c.slug}：${s}`);
       if (!f.s22Model) assert.ok(!/GPT|使用/.test(own), `${c.slug} 没用别的工具就不提`);
-      // 首屏的简短声明里就有本卡的特殊情况
-      const short = text(html.match(/<aside class="?s1-notice s1-notice-short"?[\s\S]*?<\/aside>/)[0]);
-      if (f.s22Model) assert.ok(short.includes(f.s22Model), `${c.slug} 简短声明里的 ${f.s22Model}`);
-      if (f.unverifiedNumbers) assert.ok(short.includes(`${f.unverifiedNumbers}`), `${c.slug} 简短声明里的未核实数字`);
+      // 版本页（只有中文）首屏的简短声明里就有本卡的特殊情况
+      if (lang === "zh") {
+        const short = text(read(ver(c)).match(/<aside class="?s1-notice s1-notice-short"?[\s\S]*?<\/aside>/)[0]);
+        if (f.s22Model) assert.ok(short.includes(f.s22Model), `${c.slug} 简短声明里的 ${f.s22Model}`);
+        if (f.unverifiedNumbers) assert.ok(short.includes(`${f.unverifiedNumbers}`), `${c.slug} 简短声明里的未核实数字`);
+      }
       assert.ok(n.includes(c.zh.titleEn) && text(n).includes(`${c.zh.pages}`), `${c.slug} 卡名和页数`);
       assert.ok(attr(n, "href", c.zh.official), `${c.slug} 声明里的原文链接`);
     }

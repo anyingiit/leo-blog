@@ -1,5 +1,5 @@
 {{- /* 简短声明（同 S-1 版本页的 s1-notice-short）：一行要点，展开是完整声明（notice.html）。要点的措辞每份卡相同，只多出本卡的事实（另行翻译用的工具、未核实的数字）。
-  dict "page" 页面 "card"（同 notice.html）"brief"：true 时要点只留一句（章节页，让手机首屏露出正文），展开仍是完整声明；"link"：true 时不折叠，「完整声明」链到同页下方的完整声明（#notice，卡片首页用）。要点里不放链接（链接在可点的 summary 里会和展开冲突） */ -}}
+  dict "page" 页面 "card"（同 notice.html）"brief"：true 时要点只留一句（章节页，让手机首屏露出正文），展开仍是完整声明。要点里不放链接（链接在可点的 summary 里会和展开冲突） */ -}}
 {{- $f := dict }}
 {{- if .card }}{{ $m := partial "syscards/meta.html" .page }}{{ $f = $m.version.Params.facts | default $m.root.Params.facts }}{{ end }}
 {{- $zh := eq .page.Lang "zh" }}
@@ -14,12 +14,8 @@
 {{- end }}
 {{- if .brief }}{{ $text = cond $zh "<strong>非官方 AI 译本</strong>，人工未对照原文核对，以 Anthropic 官网的英文原版为准。" "<strong>Unofficial AI translation</strong>, not checked against the original by any person; the English original is authoritative." }}{{ end }}
 <aside class="s1-notice s1-notice-short" role="note">
-  {{- if .link }}
-  <p>{{ $text | safeHTML }} <a class="s1-more" href="#notice">{{ $more }}</a></p>
-  {{- else }}
   <details>
     <summary>{{ $text | safeHTML }} <span class="s1-more">{{ $more }}</span></summary>
     {{- partial "syscards/notice.html" (dict "page" .page "card" .card) }}
   </details>
-  {{- end }}
 </aside>

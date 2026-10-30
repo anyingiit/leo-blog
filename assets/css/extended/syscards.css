@@ -19,7 +19,6 @@
 /* S-1 的重排版把小标题居中（招股书的版式）；系统卡原版的小标题左对齐 */
 .sc-chapter .s1-reflow :is(h2, h3, h4, h5, h6) { text-align: start; }
 /* 卡片首页的简短声明不折叠，「完整声明」链到页内 */
-.s1-notice-short > p { margin: 0; }
 /* 手机上章节页首屏要露出正文：日期在卡片首页和版本页都有，章节页的版本条只留版本号和全文下载 */
 @media (max-width: 600px) {
   .sc-chapter .s1-vbar > span:not([class]) { display: none; }
