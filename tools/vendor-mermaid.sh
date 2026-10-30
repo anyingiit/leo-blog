@@ -7,6 +7,8 @@ cd "$(dirname "$0")/.."
 pkg=tests/theme/node_modules/mermaid
 [ -d "$pkg" ] || { echo "vendor-mermaid: 先在 tests/theme 下运行 npm ci" >&2; exit 1; }
 version="$(node -p "require('./$pkg/package.json').version")"
+wanted="$(node -p "require('./tests/theme/package.json').devDependencies.mermaid")"
+[ "$version" = "$wanted" ] || { echo "vendor-mermaid: 装的是 $version，package.json 要 $wanted，先运行 npm install" >&2; exit 1; }
 dest="static/vendor/mermaid/$version"
 
 rm -rf static/vendor/mermaid

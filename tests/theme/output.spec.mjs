@@ -45,6 +45,9 @@ for (const site of Object.keys(sites)) {
 test("static/vendor/mermaid 和锁定的 npm 包逐字节相同", () => {
   const pkg = join(here, "node_modules/mermaid");
   const { version } = JSON.parse(readFileSync(join(pkg, "package.json"), "utf8"));
+  // 逐字节比对的参照来自 npm ci，所以锁文件必须指向官方源
+  const lock = JSON.parse(readFileSync(join(here, "package-lock.json"), "utf8")).packages["node_modules/mermaid"];
+  expect(lock.resolved).toBe(`https://registry.npmjs.org/mermaid/-/mermaid-${version}.tgz`);
   const vendored = join(root, "static/vendor/mermaid", version);
   const expected = { LICENSE: join(pkg, "LICENSE"), "mermaid.esm.min.mjs": join(pkg, "dist/mermaid.esm.min.mjs") };
   const chunks = join(pkg, "dist/chunks/mermaid.esm.min");

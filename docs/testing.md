@@ -41,7 +41,7 @@
 - **中英文副本**（项目规则）：每篇已发布的文章都有对应的 `.en.md`，反之亦然；slug、date 一致，页面互相链接；标签数量相同，「随笔」译为「Notes」。
 - **英文配图**：有 `.i18n.yaml` 的图，英文页引用 `.en` 版，中文页用原图，构建结果里也是如此。
 - **公式、Mermaid、提示框**（`layouts/_markup/`、`layouts/_partials/extend_head.html`）：用草稿 `content/posts/markdown-test/` 检查 `$…$`/`$$…$$` 渲染成 KaTeX、` ```mermaid ` 输出 `<pre class=mermaid>`、`> [!NOTE]` 等提示框带中文标题；KaTeX 样式和 Mermaid 脚本只在需要的页面加载；正文不会被误当成公式（例如英文里成对出现的美元金额）。
-- **本站提供的 Mermaid**（`static/vendor/mermaid/`）：页面从 `/vendor/mermaid/<版本>/` 引入，版本和 `tests/theme/package.json` 一致；从入口沿 `import` 走一遍，每个分块都在构建结果里；`_headers` 给这个目录设了长期缓存。文件和锁定的 npm 包逐字节相同由 `tests/theme/output.spec.mjs` 检查，读者打开页面时不访问外站由 `behavior.spec.mjs` 检查。
+- **本站提供的 Mermaid**（`static/vendor/mermaid/`）：页面从 `/vendor/mermaid/<版本>/` 引入，版本和 `tests/theme/package.json` 一致；从入口沿 `import` 走一遍，每个分块都在构建结果里；`_headers` 给这个目录设了长期缓存。文件和锁定的 npm 包逐字节相同由 `tests/theme/output.spec.mjs` 检查，读者打开页面时不向外站要 Mermaid 文件由 `behavior.spec.mjs` 检查（KaTeX 样式表仍来自 jsDelivr）。
 - **网站图标**：除跳转页外的每个页面（中英文页、404、S-1、双语译文）都有 PaperMod 的 5 个图标链接，指向的文件都存在；可下载的完整 HTML 不带图标链接。
 - **访问统计**（[analytics.md](analytics.md)）：Cloudflare Web Analytics 的脚本只在 `main` 分支构建时加载，每个站点页面正好一次，原样提供的下载文件、预览站、本地构建里都没有。
 - **`build.sh`**：预览构建（`CF_PAGES_BRANCH` 不是 `main`）的链接和 RSS 指向 `CF_PAGES_URL`，`main` 用正式域名。
@@ -109,7 +109,7 @@ Mermaid 放在本站（`static/vendor/mermaid/<版本>/`），不经过第三方
 2. 运行 `tools/vendor-mermaid.sh`，它会替换整个目录。
 3. 改 `layouts/_partials/extend_head.html` 里的版本号。
 
-少做哪一步，`site.test.mjs` 或 `output.spec.mjs` 都会失败。图表画法可能变化，按上面的办法核对并更新基准图。
+少做哪一步，`site.test.mjs` 或 `output.spec.mjs` 都会失败。文件清单和 `<head>` 快照一定会变（`npx playwright test --project=output --update-snapshots=changed`）；图表画法也可能变化，按上面的办法核对并更新基准图。
 
 ## 手机端
 
