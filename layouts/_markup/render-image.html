@@ -15,7 +15,12 @@
   {{- with $u.RawQuery }}{{ $suffix = printf "?%s" . }}{{ end -}}
   {{- with $u.Fragment }}{{ $suffix = printf "%s#%s" $suffix . }}{{ end -}}
   {{- with or (.PageInner.Resources.Get $path) (resources.Get $path) -}}
-    {{- if and (eq .ResourceType "image") (in (slice "jpeg" "png" "webp") .MediaType.SubType) -}}
+    {{- if eq $.PageInner.Type "syscards" -}}
+      {{- /* 系统卡译本的配图：导入工具已转成最宽 1600px 的 WebP，原样用（上千张图每次构建都缩放太慢） */ -}}
+      {{- $src = printf "%s%s" .RelPermalink $suffix -}}
+      {{- $attrs = merge $attrs (dict "width" (string .Width) "height" (string .Height) "data-zoom" .RelPermalink "class" "shot"
+        "style" (printf "--ar:%.4f" (div (float .Width) .Height))) -}}
+    {{- else if and (eq .ResourceType "image") (in (slice "jpeg" "png" "webp") .MediaType.SubType) -}}
       {{- $img := .Filter images.AutoOrient -}}
       {{- $max := cond (gt $img.Width 1600) 1600 $img.Width -}}
       {{- $full := $img.Process (printf "resize %dx webp q85" $max) -}}

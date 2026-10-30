@@ -18,6 +18,10 @@ facts 取自该卡 README，标题取自 HTML 的 <title>；声明的措辞统�
 import argparse, hashlib, json, os, re, shutil, subprocess, sys, urllib.parse, urllib.request
 
 import pikepdf
+from PIL import Image
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import chapters  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
@@ -195,13 +199,17 @@ def main():
     ap.add_argument("src")
     ap.add_argument("--date", required=True, help="本次导入（发布）日期 YYYY-MM-DD")
     ap.add_argument("--check-links", action="store_true", help="联网确认每份卡的英文原版地址能打开")
+    ap.add_argument("--only", help="只导入这些卡（逗号分隔的目录名；预览用）")
     a = ap.parse_args()
     git = lambda *args: subprocess.run(["git", "-C", a.src, *args], capture_output=True, text=True, check=True).stdout.strip()
     if git("status", "--porcelain"):
         sys.exit("译文仓库有未提交的改动：只从已提交的版本导入，网站上的文件才能和译文仓库的版本对应")
     commit = git("rev-parse", "HEAD")
     commit_date = git("show", "-s", "--format=%cs", "HEAD")
+    versions = json.load(open(os.path.join(a.src, "versions.json"), encoding="utf-8"))["cards"]
     dirs = sorted(d for d in os.listdir(a.src) if os.path.isfile(os.path.join(a.src, d, "README.md")) and d != "shared-pipeline")
+    if a.only:
+        dirs = [d for d in dirs if d in a.only.split(",")]
     cards = [card_info(a.src, d) for d in dirs]
 
     # 顺序和 Anthropic 官网的系统卡列表相同（用户 2026-10-30）
@@ -217,13 +225,19 @@ def main():
         if os.path.isdir(os.path.join(OUT, d)):
             shutil.rmtree(os.path.join(OUT, d))
     os.makedirs(OUT, exist_ok=True)
+    fonts = chapters.Fonts(a.src)
     for weight, c in enumerate(cards, 1):
         d = c["slug"]
+        v = versions[d]
+        ver = "v" + re.sub(r"\.0$", "", v["version"])  # 网站上的版本号同 S-1：1.0.0 → v1.0，1.1.1 → v1.1.1
+        for kind in ("pdf", "html"):
+            if sha256(os.path.join(a.src, v["files"][kind]["path"])) != v["files"][kind]["sha256"]:
+                sys.exit(f"{d}: {kind} 和 versions.json 里 {v['version']} 的校验和不同：译文改了却没有发新版本")
         base = f"claude-{names[d]}-system-card-zh"  # 网址里的文件名；下载时用译文仓库的原文件名
-        page = os.path.join(OUT, d)
-        os.makedirs(os.path.join(page, "files"))
+        root, vdir = os.path.join(OUT, d), os.path.join(OUT, d, ver)
+        os.makedirs(os.path.join(vdir, "files"))
         h_src, p_src = os.path.join(a.src, d, c["html"]), os.path.join(a.src, d, c["pdf"])
-        h_dst, p_dst = os.path.join(page, "files", base + ".html.raw"), os.path.join(page, "files", base + ".pdf")
+        h_dst, p_dst = os.path.join(vdir, "files", base + ".html.raw"), os.path.join(vdir, "files", base + ".pdf")
         shutil.copyfile(h_src, h_dst)
         pdf = dict(file=f"files/{base}.pdf", name=c["pdf"])
         if os.path.getsize(p_src) > LIMIT:
@@ -240,16 +254,56 @@ def main():
             r = urllib.request.Request(c["official"], headers={"User-Agent": "Mozilla/5.0"})
             if urllib.request.urlopen(r).status != 200:
                 sys.exit(f"英文原版打不开：{c['official']}")
-        fm = dict(titleEn=c["titleEn"], released=c["released"], pages=c["pages"], official=c["official"], date=a.date, weight=weight, sourceCommit=commit, sourceDate=commit_date,
-                  facts=c["facts"], downloads=dict(html=html, pdf=pdf))
-        write_page(os.path.join(page, "index.md"), dict(
+
+        # 网页版：按章拆分的重排版和原版版式（chapters.py）
+        md_path = next(os.path.join(a.src, d, "md", f) for f in os.listdir(os.path.join(a.src, d, "md")) if f.endswith(".md"))
+        chs = chapters.split_md(open(md_path, encoding="utf-8").read(), c["pages"])
+        f22 = c["facts"]
+        for k, ch in enumerate(chs, 1):
+            cdir = os.path.join(vdir, ch["slug"])
+            os.makedirs(cdir)
+            for img in chapters.images_in(ch["lines"]):
+                # 重排版的配图存成 WebP（q90，比 PNG 小得多）
+                os.makedirs(os.path.join(cdir, "images"), exist_ok=True)
+                webp = re.sub(r"\.\w+$", ".webp", img)
+                im = Image.open(os.path.join(a.src, d, "md", img))
+                im = im.convert("RGBA" if im.mode in ("RGBA", "LA", "P") else "RGB")  # 透明的部分保持透明（WebP 支持），不变成黑底
+                if im.width > 1600:  # 最宽 1600px（同站内其他文章配图的最大一档）；网页上原样用，不再由 Hugo 处理（上千张图每次构建都处理太慢）
+                    im = im.resize((1600, round(im.height * 1600 / im.width)), Image.LANCZOS)
+                im.save(os.path.join(cdir, webp), quality=90, method=6)
+                ch["lines"] = [l.replace(f"]({img})", f"]({webp})") for l in ch["lines"]]
+            sheets = chapters.original_pages(p_src, range(ch["pages"][0], ch["pages"][1] + 1), fonts, os.path.join(cdir, "bg"))
+            open(os.path.join(cdir, "original.html"), "w", encoding="utf-8").write("\n".join(sheets) + "\n")
+            # 这一章里有没有译者另行翻译的部分（2.2 节、零散段落）：目录里标出来
+            sep = ch["pages"][0] <= f22["s22"][1] and f22["s22"][0] <= ch["pages"][1]
+            sep = sep or any(ch["pages"][0] <= int(p) <= ch["pages"][1] for p in re.findall(r"\d+", f22["scatteredPages"]))
+            ch.update(separate=sep)
+            write_page(os.path.join(cdir, "index.md"), dict(
+                title=ch["title"], weight=k, pages=ch["pages"],
+                description=f"{c['title']}中文译本 {ver} · {ch['title']}（非官方，AI 翻译）"), chapters.to_hugo(ch))
+        toc = [dict(slug=ch["slug"], title=ch["title"], pages=ch["pages"], included=True, separate=ch["separate"]) for ch in chs]
+        cascade = dict(build=dict(list="local", publishResources=False))
+        write_page(os.path.join(vdir, "_index.md"), dict(
+            title=f"{c['title']}中文译本 {ver}", version=ver, repoVersion=v["version"], tag=v["tag"], versionDate=v["date"],
+            sourceCommit=commit, date=a.date, weight=1, titleEn=c["titleEn"], released=c["released"], pages=c["pages"], official=c["official"],
+            facts=c["facts"], chapters=toc, downloads=dict(html=html, pdf=pdf), build=cascade["build"], cascade=cascade))
+        fm = dict(titleEn=c["titleEn"], released=c["released"], pages=c["pages"], official=c["official"], date=a.date, weight=weight,
+                  latest=ver, sourceCommit=commit, sourceDate=commit_date, facts=c["facts"])
+        write_page(os.path.join(root, "_index.md"), dict(
             title=c["title"] + "中文译本",
             description=f"Anthropic《{c['titleEn']}》（{c['pages']}\u00a0页）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
             **fm))
-        write_page(os.path.join(page, "index.en.md"), dict(
+        write_page(os.path.join(root, "_index.en.md"), dict(
             title=f"{c['titleEn']} — Unofficial Chinese Translation",
             description=f"An unofficial, AI-produced Chinese translation of Anthropic's {c['titleEn']} ({c['pages']} pages).",
             **fm))
+        print(f"{d}: {ver}，{len(chs)} 章，{c['pages']} 页")
+
+    fdir = os.path.join(REPO, "static/translations/system-cards/fonts")
+    shutil.rmtree(fdir, ignore_errors=True)
+    css = fonts.write(fdir).replace("url(fonts/", "url(/translations/system-cards/fonts/")
+    open(os.path.join(REPO, "assets/css/extended/syscards-fonts.css"), "w", encoding="utf-8").write(
+        "/* 系统卡原版版式文字层用的字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载 */\n" + css)
 
     common = dict(type="syscards", date=a.date, sourceCommit=commit, sourceDate=commit_date,
                   cascade=dict(type="syscards"), ShowReadingTime=False, ShowWordCount=False, hideAuthor=True)

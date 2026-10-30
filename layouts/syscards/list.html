@@ -1,24 +1,70 @@
 {{- /*
-  Anthropic 系统卡中文译本的栏目页（content/translations/system-cards/_index.md，tools/syscard-import/import.py 生成）。
-  简短声明（展开是完整声明），再是每份卡一条，用 PaperMod 文章条目的样式（post-entry）：卡名进这份卡的页面，
-  一句这份卡由译者另行翻译的范围，最后一行原版日期、页数和直链（在线阅读、PDF 下载）。
-  顺序和 Anthropic 官网系统卡列表相同（导入时写进 weight）。每份卡自己的页面见 single.html。
+  Anthropic 系统卡中文译本的栏目页、每份卡的首页和版本页（tools/syscard-import/import.py 生成），和 S-1 译本同一套结构和样式：
+  - 栏目页（content/translations/system-cards/_index.md）：简短声明，每份卡一条 PaperMod 文章条目，顺序同 Anthropic 官网系统卡列表（weight）
+  - 卡片首页（<卡>/_index.md）：完整声明、开始阅读、最新版全文下载、最新版目录、全部版本（同 S-1 译本首页）
+  - 版本页（<卡>/<版本>/_index.md）：该版本的目录（同 S-1 版本页）
+  章节页见 single.html。版本只增不改，每个版本有固定网址
 */ -}}
 {{- define "main" }}
 {{- $en := ne .Lang "zh" }}
-<header class="page-header s1-header">
-  <h1>{{ .Title }}</h1>
-  {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
-</header>
-{{- partial "syscards/notice-short.html" (dict "page" . "card" false) }}
-{{- range .Pages.ByWeight }}
-{{- $d := partial "syscards/files.html" . }}
-<article class="post-entry sc-entry" id="{{ path.Base .RelPermalink }}">
-  <header class="entry-header"><h2><a href="{{ .RelPermalink }}">{{ if $en }}{{ .Params.titleEn }}{{ else }}{{ strings.TrimSuffix "中文译本" .Title }}{{ end }}</a></h2></header>
-  <div class="entry-content"><p>{{ partial "syscards/scope.html" . }}</p></div>
-  <footer class="entry-footer">{{ if $en }}Published <span class="sc-nobr">{{ .Params.released }}</span> · {{ .Params.pages }} pages{{ else }}原版 <span class="sc-nobr">{{ .Params.released }}</span> 发布 · {{ .Params.pages }} 页{{ end }}
-    <span class="sc-links">{{ $name := cond $en .Params.titleEn (strings.TrimSuffix "中文译本" .Title) }}<a href="{{ $d.html.url }}" target="_blank" rel="noopener" aria-label="{{ if $en }}Read the translation: {{ else }}在线阅读：{{ end }}{{ $name }}">{{ if $en }}Read the translation ↗{{ else }}在线阅读 ↗{{ end }}</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" aria-label="{{ if $en }}Download PDF: {{ else }}下载 PDF：{{ end }}{{ $name }}">PDF ↓ {{ $d.pdf.size }}</a></span></footer>
-</article>
+{{- if .Params.version }}
+  {{- $m := partial "syscards/meta.html" . }}
+  <header class="page-header s1-header">
+    <div class="s1-crumb"><a href="{{ $m.column.RelPermalink }}">{{ $m.column.Title }}</a> › <a href="{{ $m.root.RelPermalink }}">{{ strings.TrimSuffix "中文译本" $m.root.Title }}</a></div>
+    <h1>{{ .Params.version }} 目录</h1>
+  </header>
+  {{- partial "syscards/versionbar.html" (dict "page" .) }}
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" true) }}
+  {{- partial "syscards/downloads.html" (dict "v" . "style" "cards") }}
+  {{- partial "syscards/toc.html" . }}
+  {{- partial "syscards/rights.html" . }}
+{{- else if .Params.latest }}
+  {{- $m := partial "syscards/meta.html" . }}
+  {{- $l := $m.latest }}
+  <header class="page-header s1-header">
+    {{- with .Parent }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
+    <h1>{{ .Title }}</h1>
+    {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+  </header>
+  {{- partial "syscards/notice.html" (dict "page" . "card" true) }}
+  <div class="s1-cta">
+    <a class="s1-btn" href="{{ $l.RelPermalink }}{{ (index $l.Params.chapters 0).slug }}/">{{ if $en }}Start reading {{ $l.Params.version }} (Chinese){{ else }}开始阅读最新版 {{ $l.Params.version }}{{ end }}</a>
+    <a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original (Anthropic){{ else }}英文原版（Anthropic）{{ end }}</a>
+  </div>
+  {{- partial "syscards/downloads.html" (dict "v" $l "style" "cards" "en" $en) }}
+  <h2>{{ if $en }}Contents{{ else }}目录{{ end }}（{{ $l.Params.version }}）</h2>
+  {{- partial "syscards/toc.html" $l }}
+  <h2 id="versions">{{ if $en }}All versions{{ else }}全部版本{{ end }}</h2>
+  <table class="s1-versions">
+    <thead><tr><th>{{ if $en }}Version{{ else }}译本版本{{ end }}</th><th>{{ if $en }}Finalized{{ else }}定稿{{ end }}</th><th class="s1-dl-col">{{ if $en }}Downloads{{ else }}全文下载{{ end }}</th></tr></thead>
+    <tbody>
+    {{- range $m.versions }}
+      <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $l }} <span class="s1-vtag s1-latest">{{ if $en }}latest{{ else }}最新{{ end }}</span>{{ end }}</td>
+        <td><span class="sc-nobr">{{ .Params.versionDate }}</span></td>
+        <td class="s1-dl-col">{{ partial "syscards/downloads.html" (dict "v" . "style" "line") }}</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+  <p class="s1-small">{{ if $en }}Versions are only added, never changed: each has its own fixed URL.{{ else }}历史版本只增不改：每个版本有自己的固定网址，发布后内容不再变动。{{ end }}</p>
+  {{- partial "syscards/rights.html" . }}
+{{- else }}
+  <header class="page-header s1-header">
+    <h1>{{ .Title }}</h1>
+    {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+  </header>
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" false) }}
+  {{- range .Sections.ByWeight }}
+  {{- $m := partial "syscards/meta.html" . }}
+  {{- $l := $m.latest }}
+  {{- $d := partial "syscards/files.html" $l }}
+  {{- $name := cond $en .Params.titleEn (strings.TrimSuffix "中文译本" .Title) }}
+  <article class="post-entry sc-entry" id="{{ path.Base .RelPermalink }}">
+    <header class="entry-header"><h2><a href="{{ .RelPermalink }}">{{ $name }}</a></h2></header>
+    <footer class="entry-footer"><span class="s1-vtag">{{ $l.Params.version }}</span><span>{{ if $en }}Published <span class="sc-nobr">{{ .Params.released }}</span> · {{ .Params.pages }} pages{{ else }}原版 <span class="sc-nobr">{{ .Params.released }}</span> 发布 · {{ .Params.pages }}&nbsp;页{{ end }}</span>
+      <span class="sc-links"><a href="{{ $l.RelPermalink }}{{ (index $l.Params.chapters 0).slug }}/" aria-label="{{ if $en }}Read online: {{ else }}在线阅读：{{ end }}{{ $name }}">{{ if $en }}Read online{{ else }}在线阅读{{ end }}</a><a href="{{ $d.html.url }}" target="_blank" rel="noopener" aria-label="HTML：{{ $name }}">HTML ↗</a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" aria-label="{{ if $en }}Download PDF: {{ else }}下载 PDF：{{ end }}{{ $name }}">PDF ↓ {{ $d.pdf.size }}</a></span></footer>
+  </article>
+  {{- end }}
+  {{- partial "syscards/rights.html" . }}
 {{- end }}
-{{- partial "syscards/rights.html" . }}
+{{- partial "s1/script.html" . }}
 {{- end }}

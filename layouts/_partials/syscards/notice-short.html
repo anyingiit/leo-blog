@@ -1,12 +1,11 @@
-{{- /* 简短声明（同 S-1 版本页的 s1-notice-short）：一行要点，展开是完整声明（notice.html）。
-  dict "page" 页面 "card"：true 卡片页（要点里写这份卡的范围），false 栏目页。要点里不放链接（链接在可点的 summary 里会和展开冲突） */ -}}
-{{- $zh := eq .page.Lang "zh" }}
+{{- /* 简短声明（同 S-1 版本页的 s1-notice-short）：一行要点，展开是完整声明（notice.html）。每份卡同一句话。
+  dict "page" 页面 "card"（同 notice.html）。要点里不放链接（链接在可点的 summary 里会和展开冲突） */ -}}
 <aside class="s1-notice s1-notice-short" role="note">
   <details>
-  {{- if $zh }}
-    <summary><strong>非官方 AI 译本</strong>，与 Anthropic 无关，人工未对照原文核对。{{ if .card }}{{ partial "syscards/scope.html" .page }}{{ else }}每份卡的 2.2 节等少量段落由译者另行翻译，未经 Claude 审校。{{ end }}以 Anthropic 官网的英文原版为准，版权归 Anthropic。<span class="s1-more">完整声明</span></summary>
+  {{- if eq .page.Lang "zh" }}
+    <summary><strong>非官方 AI 译本</strong>，与 Anthropic 无关，人工未对照原文核对；2.2 节等少量段落由译者另行翻译，未经 Claude 审校。以 Anthropic 官网的英文原版为准，版权归 Anthropic。<span class="s1-more">完整声明</span></summary>
   {{- else }}
-    <summary><strong>Unofficial AI translation{{ if not .card }}s{{ end }}</strong>, not affiliated with Anthropic; no person has checked {{ if .card }}it{{ else }}them{{ end }} against the original. {{ if .card }}{{ partial "syscards/scope.html" .page }}{{ else }}Section 2.2 and a few other paragraphs of each card were translated separately by the translator and not reviewed by Claude.{{ end }} The English original on Anthropic's website is authoritative; rights belong to Anthropic. <span class="s1-more">Full notice</span></summary>
+    <summary><strong>Unofficial AI translation{{ if not .card }}s{{ end }}</strong>, not affiliated with Anthropic; no person has checked {{ if .card }}it{{ else }}them{{ end }} against the original. Section 2.2 and a few related paragraphs were translated separately by the translator and not reviewed by Claude. The English original on Anthropic's website is authoritative; rights belong to Anthropic. <span class="s1-more">Full notice</span></summary>
   {{- end }}
     {{- partial "syscards/notice.html" (dict "page" .page "card" .card) }}
   </details>

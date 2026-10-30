@@ -1,7 +1,6 @@
-{{- /* 一份卡的两个下载文件：返回 dict html/pdf，各有 url、name（下载用的原文件名）、size、sha、bookmarks。
-  文件是这份卡页面（中文页）的资源；HTML 在内容目录里存成 .html.raw（.html 会被 Hugo 当成文章），以 .html 的名字发布到 files/ 下。
-  英文页用中文页的文件，不另发一份 */ -}}
-{{- $p := . }}{{ range .AllTranslations }}{{ if eq .Lang "zh" }}{{ $p = . }}{{ end }}{{ end }}
+{{- /* 一个版本的两个下载文件：返回 dict html/pdf，各有 url、name（下载用的原文件名）、size、sha、bookmarks。参数是版本页。
+  文件是版本页的资源；HTML 在内容目录里存成 .html.raw（.html 会被 Hugo 当成文章），以 .html 的名字发布到版本目录的 files/ 下 */ -}}
+{{- $p := . }}
 {{- $out := dict }}
 {{- range $kind, $f := $p.Params.downloads }}
   {{- with $p.Resources.Get $f.file }}

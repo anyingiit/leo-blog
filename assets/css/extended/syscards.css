@@ -1,13 +1,20 @@
-/* Anthropic 系统卡中文译本（layouts/syscards/）：声明框、按钮、下载卡片、权利行沿用 S-1 译本（s1.css），条目用 PaperMod 的 post-entry */
+/* Anthropic 系统卡中文译本（layouts/syscards/）：结构、声明框、版本条、目录、下载、原版版式和全屏阅读都沿用 S-1 译本（s1.css、s1.js），
+   这里只有系统卡自己的部分；原版版式文字层的字体在 syscards-fonts.css（导入工具生成） */
 .sc-entry .entry-header h2 a { box-shadow: none; }
-/* 范围说明要整句显示：PaperMod 的条目摘要默认截成两行 */
-.sc-entry .entry-content { -webkit-line-clamp: unset; display: block; }
 .sc-entry .entry-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
 .sc-links { display: inline-flex; flex-wrap: wrap; gap: 0 16px; }
-.sc-links a { display: inline-flex; align-items: center; min-height: 32px; text-decoration: underline; text-underline-offset: 3px; }
+.sc-links a { display: inline-flex; align-items: center; min-height: 32px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 @media (max-width: 600px) { .sc-links a { min-height: 44px; } }
-/* 卡片页和 S-1 版本页一样用列表页的灰底（PaperMod 的 .list） */
-body:has(.sc-cardpage) { background: var(--code-bg); }
-[data-theme="dark"] body:has(.sc-cardpage) { background: var(--theme); }
 /* 页码范围「第 11–18 页」和日期整体换行，不在短横处拆开 */
 .sc-nobr { white-space: nowrap; }
+/* 目录里含译者另行翻译部分的章节 */
+.sc-sep { display: inline-block; margin-inline-start: 6px; padding: 0 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; color: var(--secondary); white-space: nowrap; vertical-align: 1px; }
+/* 原版版式：一页 = 底图（PDF 去掉文字后渲染）+ 同尺寸的 SVG 文字层（每个字按 PDF 坐标定位） */
+.sc-sheet { position: relative; margin: 10px auto; background: #fff; overflow: hidden; }
+.sc-sheet .sc-bg, .sc-sheet svg { position: absolute; inset: 0; width: 100% !important; height: 100% !important; margin: 0; }
+.sc-sheet svg text { white-space: pre; }
+.sc-sheet svg ::selection { fill: #fff; background: #3367d6; }
+/* 章节本身带编号（1 引言、2 RSP 评估），目录不再加列表序号 */
+.sc-toc { list-style: none; padding-inline-start: 0; }
+/* S-1 的重排版把小标题居中（招股书的版式）；系统卡原版的小标题左对齐 */
+.sc-chapter .s1-reflow :is(h2, h3, h4, h5, h6) { text-align: start; }

@@ -1,0 +1,10 @@
+{{- /* 系统卡页面的上下文：任一页（卡片首页 <卡>/_index、版本页 <卡>/<版本>/_index、章节页）→ 这份卡的首页、当前版本、最新版本、全部版本。
+  最新版由卡片首页的 params.latest 指定（导入工具写），没写就取 weight 最小的版本 */ -}}
+{{- $root := . }}{{ $v := false -}}
+{{- if .IsPage }}{{ $v = .Parent }}{{ $root = $v.Parent }}{{ else if .Params.version }}{{ $v = . }}{{ $root = .Parent }}{{ end -}}
+{{- /* 英文的卡片首页：版本和章节只有中文页，取中文的卡片首页 */ -}}
+{{- range $root.AllTranslations }}{{ if eq .Lang "zh" }}{{ $root = . }}{{ end }}{{ end -}}
+{{- $versions := $root.Sections.ByWeight -}}
+{{- $latest := index $versions 0 -}}
+{{- with $root.Params.latest }}{{ with $root.GetPage . }}{{ $latest = . }}{{ end }}{{ end -}}
+{{- return dict "root" $root "version" (or $v $latest) "latest" $latest "versions" $versions "column" $root.Parent -}}

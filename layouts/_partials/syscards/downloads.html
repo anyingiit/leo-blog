@@ -1,7 +1,7 @@
-{{- /* 全文下载（HTML 和 PDF），直链、无门槛，样式同 S-1（layouts/_partials/s1/downloads.html）。dict "page" 卡片页 "style"：
-  cards  两张卡片（卡片页）；line  一行文字链接（栏目页表格）。HTML 默认在浏览器里打开，PDF 直接下载（不内嵌预览） */ -}}
-{{- $d := partial "syscards/files.html" .page }}
-{{- $en := ne .page.Lang "zh" }}
+{{- /* 全文下载（HTML 和 PDF），直链、无门槛，样式同 S-1（layouts/_partials/s1/downloads.html）。dict "v" 版本页 "style" 样式 "label" 前缀 "en" 英文：
+  cards  两张卡片（卡片首页、版本页）；line  一行文字链接（栏目页、版本条、版本表）。HTML 默认在浏览器里打开，PDF 直接下载（不内嵌预览） */ -}}
+{{- $d := partial "syscards/files.html" .v }}
+{{- $en := .en }}
 {{- if eq .style "cards" }}
 <div class="s1-dl-cards" aria-label="{{ if $en }}Downloads{{ else }}全文下载{{ end }}">
   <div class="s1-dl-card">
@@ -17,5 +17,5 @@
   <p class="s1-dl-sha">SHA-256：HTML <code title="{{ $d.html.sha }}">{{ substr $d.html.sha 0 12 }}…</code> PDF <code title="{{ $d.pdf.sha }}">{{ substr $d.pdf.sha 0 12 }}…</code></p>
 </div>
 {{- else }}
-<span class="s1-dl-line"><a href="{{ $d.html.url }}" target="_blank" rel="noopener" title="HTML">HTML ↗ <small>{{ $d.html.size }}</small></a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" title="PDF">PDF ↓ <small>{{ $d.pdf.size }}</small></a></span>
+<span class="s1-dl-line">{{ with .label }}<span class="s1-dl-label">{{ . }}</span>{{ end }}<a href="{{ $d.html.url }}" target="_blank" rel="noopener" title="HTML">HTML ↗ <small>{{ $d.html.size }}</small></a><a href="{{ $d.pdf.url }}" download="{{ $d.pdf.name }}" title="PDF">PDF ↓ <small>{{ $d.pdf.size }}</small></a></span>
 {{- end }}

@@ -1,0 +1,13 @@
+{{- /* 一个版本的章节目录（同 S-1 的 s1/toc.html，全屏阅读的目录面板也用它）。参数是版本页，或 dict "v" 版本页 "current" 当前章节。
+  含译者另行翻译部分（2.2 节、零散段落）的章节标一个小标签，导入工具按页码判断（front matter chapters[].separate） */ -}}
+{{- $v := . }}{{ $cur := "" -}}
+{{- if reflect.IsMap . }}{{ $v = .v }}{{ $cur = .current }}{{ end -}}
+<ol class="s1-toc sc-toc">
+  {{- range $v.Params.chapters }}
+  <li data-from="{{ index .pages 0 }}" data-to="{{ index .pages 1 }}"{{ if eq .slug $cur }} aria-current="page"{{ end }}>
+    <a href="{{ $v.RelPermalink }}{{ .slug }}/">{{ .title }}</a>
+    {{- if .separate }} <span class="sc-sep" title="这一章里有译者另行翻译、未经 Claude 审校的部分（见译者声明）">含另行翻译</span>{{ end }}
+    <small>第&nbsp;{{ index .pages 0 }}{{ if ne (index .pages 0) (index .pages 1) }}–{{ index .pages 1 }}{{ end }}&nbsp;页</small>
+  </li>
+  {{- end }}
+</ol>

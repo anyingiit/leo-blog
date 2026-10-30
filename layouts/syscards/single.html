@@ -1,22 +1,70 @@
 {{- /*
-  一份系统卡的页面（content/translations/system-cards/<目录名>/index.md，导入工具生成），和 S-1 译本首页同一套样式：
-  返回栏目的面包屑、标题、这份卡的简短声明（一行要点，展开是完整声明；措辞统一在 notice-short.html / notice.html，具体数字来自 front matter 的 facts）、
-  「在线阅读」按钮和英文原版链接、HTML/PDF 下载卡片、权利行。
-  在线阅读打开的就是译文仓库的单文件 HTML，逐字节原样，不套本站版面。
+  系统卡译本的一章，和 S-1 译本的章节页（layouts/s1/single.html）同一套结构、样式和脚本（s1.js），只换了面包屑、版本条、声明和原版版式的来源。
+  原版版式（original.html，PDF 页面）和重排版（index.md）两者都有，读者切换
+  （选择记在本机；没选过时电脑默认原版、手机默认重排），原版放在 <template> 里，选了才插入页面，图片也才下载。
+  原版在宽屏上跳出正文栏加宽显示（data-wide）；?read=1 进入全屏阅读（data-immersive，隐藏站点外壳，只留一条顶栏）
 */ -}}
 {{- define "main" }}
-{{- $en := ne .Lang "zh" }}
-{{- $dl := partial "syscards/files.html" . }}
-<header class="page-header s1-header sc-cardpage">
-  {{- with .Parent }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
-  <h1>{{ .Title }}</h1>
-  {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
-</header>
-{{- partial "syscards/notice-short.html" (dict "page" . "card" true) }}
-<div class="s1-cta">
-  <a class="s1-btn" href="{{ $dl.html.url }}" target="_blank" rel="noopener">{{ if $en }}Read the Chinese translation{{ else }}在线阅读{{ end }}</a>
-  <a href="{{ .Params.official }}" rel="noopener">{{ if $en }}English original (Anthropic){{ else }}英文原版（Anthropic）{{ end }}</a>
-</div>
-{{- partial "syscards/downloads.html" (dict "page" . "style" "cards") }}
-{{- partial "syscards/rights.html" . }}
+{{- $m := partial "syscards/meta.html" . }}
+{{- $v := $m.version }}
+{{- $chs := where $v.Params.chapters "included" true }}
+{{- $slug := path.Base (strings.TrimSuffix "/" .RelPermalink) }}
+<article class="post-single s1-chapter sc-chapter s1-mode-both" data-vroot="{{ $v.RelPermalink }}" data-first-page="{{ index .Params.pages 0 }}" data-last-page="{{ index .Params.pages 1 }}" data-wide data-immersive>
+  {{- /* 带 ?read=1 打开时先进入沉浸样式，避免先显示普通页面再跳变 */}}
+  <script>if(/[?&]read=1/.test(location.search))document.body.classList.add("s1-immersive")</script>
+  {{- /* 沉浸阅读的顶栏：只在沉浸模式下显示，保留"非官方"标记和声明入口 */}}
+  {{- $total := index (index (last 1 $v.Params.chapters) 0).pages 1 }}
+  <div class="s1-ibar" role="toolbar" aria-label="全屏阅读" tabindex="-1" hidden>
+    <a class="s1-ibar-tag" href="{{ $m.root.RelPermalink }}" title="完整声明在这份卡的首页">非官方<span class="s1-ibar-long">&nbsp;AI 译本</span></a>
+    <details class="s1-ibar-toc">
+      <summary title="章节目录"><span class="s1-ibar-title">{{ .Title }}</span> ▾</summary>
+      <div class="s1-ibar-panel">
+        {{ partial "syscards/toc.html" (dict "v" $v "current" $slug) }}
+        <p class="s1-ibar-dl">{{ partial "syscards/downloads.html" (dict "v" $v "style" "line" "label" (printf "%s 全文：" $v.Params.version)) }}</p>
+      </div>
+    </details>
+    <button type="button" class="s1-ibar-page" data-total="{{ $total }}" title="原文页码，点击跳页（g）"></button>
+    <span class="s1-ibar-nav">
+      {{- range $i, $c := $chs }}{{ if eq $c.slug $slug }}
+        {{- if gt $i 0 }}{{ with index $chs (sub $i 1) }}<a href="../{{ .slug }}/?read=1" data-dir="prev" title="上一章：{{ .title }}（[）" aria-label="上一章">‹<span class="s1-ibar-lbl">&nbsp;上一章</span></a>{{ end }}{{ end }}
+        {{- if lt (add $i 1) (len $chs) }}{{ with index $chs (add $i 1) }}<a href="../{{ .slug }}/?read=1" data-dir="next" title="下一章：{{ .title }}（]）" aria-label="下一章"><span class="s1-ibar-lbl">下一章&nbsp;</span>›</a>{{ end }}{{ end }}
+      {{- end }}{{ end }}
+    </span>
+    <button type="button" data-toggle-view title="在原版版式和重排版之间切换"></button>
+    <span class="s1-ibar-zoom" role="group" aria-label="缩放">
+      <button type="button" data-zoom="out" aria-label="缩小" title="缩小">−</button>
+      <button type="button" data-zoom="fit" title="适应宽度">适应</button>
+      <button type="button" data-zoom="in" aria-label="放大" title="放大">+</button>
+    </span>
+    <button type="button" class="s1-ibar-exit" data-exit title="退出全屏阅读（Esc）" aria-label="退出全屏阅读">✕<span class="s1-ibar-lbl">&nbsp;退出</span></button>
+  </div>
+  <header class="post-header s1-header">
+    <div class="s1-crumb"><a href="{{ $m.column.RelPermalink }}">{{ $m.column.Title }}</a> › <a href="{{ $m.root.RelPermalink }}">{{ strings.TrimSuffix "中文译本" $m.root.Title }}</a> › <a href="{{ $v.RelPermalink }}">{{ $v.Params.version }} 目录</a></div>
+    <h1 class="post-title">{{ .Title }}</h1>
+    <div class="post-meta">原文第&nbsp;{{ index .Params.pages 0 }}{{ if ne (index .Params.pages 0) (index .Params.pages 1) }}–{{ index .Params.pages 1 }}{{ end }}&nbsp;页</div>
+  </header>
+  {{- partial "syscards/versionbar.html" (dict "page" .) }}
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" true) }}
+  <details class="s1-chtoc"><summary>章节目录</summary>{{ partial "syscards/toc.html" (dict "v" $v "current" $slug) }}</details>
+  <div class="s1-switchbar">
+    <div class="s1-switch" role="group" aria-label="版式">
+      <button type="button" data-view="reflow" aria-pressed="true">重排版</button>
+      <button type="button" data-view="original" aria-pressed="false">原版版式</button>
+    </div>
+    <a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>
+  </div>
+  <div class="post-content md-content s1-reflow" data-view="reflow">{{ .Content }}</div>
+  <div class="s1-original" data-view="original" hidden></div>
+  <template class="s1-original-tpl">{{ partial "syscards/original.html" (dict "page" .) }}</template>
+  <nav class="paginav s1-paginav">
+    {{- range $i, $c := $chs }}
+      {{- if eq $c.slug $slug }}
+        {{- if gt $i 0 }}{{ with index $chs (sub $i 1) }}<a class="prev" href="../{{ .slug }}/"><span class="title">« 上一章</span><br><span>{{ .title }}</span></a>{{ end }}{{ end }}
+        {{- if lt (add $i 1) (len $chs) }}{{ with index $chs (add $i 1) }}<a class="next" href="../{{ .slug }}/"><span class="title">下一章 »</span><br><span>{{ .title }}</span></a>{{ end }}{{ end }}
+      {{- end }}
+    {{- end }}
+  </nav>
+  {{- partial "syscards/rights.html" . }}
+</article>
+{{- partial "s1/script.html" . }}
 {{- end }}
