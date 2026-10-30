@@ -77,8 +77,12 @@ before(async () => {
   }
   const jobs = pages().flatMap((p) => Object.keys(VIEWPORTS).map((vp) => [p, vp]));
   const queue = [...jobs];
-  await Promise.all(Array.from({ length: 4 }, async () => { while (queue.length) await measure(...queue.shift()); }));
-  await browser.close();
+  // 某一页打不开（超时等）时也要关掉浏览器，否则测试进程挂住、拖住同一组后面的测试
+  try {
+    await Promise.all(Array.from({ length: 4 }, async () => { while (queue.length) await measure(...queue.shift()); }));
+  } finally {
+    await browser.close();
+  }
 });
 after(() => out && rmSync(out, { recursive: true, force: true }));
 
