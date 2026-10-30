@@ -26,7 +26,7 @@ export const BUDGET = {
   total: [["translations/", 900 * KB], ["en/translations/", 900 * KB], ["", 400 * KB]], // S-1 章节最多 434 KB；其余最多 111 KB（短文栏目第 2 页，电脑）
   cls: 0.1, // Web Vitals「良好」线；实测最多 0.035（S-1 短章节在电脑上插入原版版式时页脚翻页条下移，时有时无）
 };
-// 加载时允许请求的第三方网站：有公式的页面用 KaTeX、有图表的页面用 Mermaid（extend_head.html），正式站有 Cloudflare 访问统计（extend_footer.html）
+// 加载时允许请求的第三方网站：有公式的页面用 KaTeX（extend_head.html），正式站有 Cloudflare 访问统计（extend_footer.html）
 export const THIRD_PARTY = ["cdn.jsdelivr.net", "static.cloudflareinsights.com"];
 const VIEWPORTS = { phone: { width: 390, height: 844 }, desktop: { width: 1280, height: 800 } };
 
@@ -56,6 +56,8 @@ before(async () => {
     await tab.route("**/*", (route) => {
       const u = new URL(route.request().url());
       if (u.host !== local) { hosts.add(u.host); return route.abort(); }
+      // Mermaid 只在有图表的页面按需加载（约 27 个文件），不计入普通页面的预算，和它在 CDN 上时一样
+      if (u.pathname.startsWith("/vendor/mermaid/")) return route.abort();
       let f = join(out, decodeURIComponent(u.pathname));
       if (existsSync(f) && statSync(f).isDirectory()) f = join(f, "index.html");
       if (!existsSync(f)) { requests.push({ path: u.pathname, type: "", bytes: 0, status: 404 }); return route.fulfill({ status: 404, body: "" }); }

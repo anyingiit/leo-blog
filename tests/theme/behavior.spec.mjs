@@ -20,6 +20,26 @@ async function open(browser, info, url, opts = {}) {
   return { context, page, errors };
 }
 
+// Mermaid 由本站提供：读者打开带图表的页面时不向外站要任何 Mermaid 文件，分块都能取到，图表画得出来
+test("Mermaid 只从本站加载，图表画得出来", async ({ browser }, info) => {
+  const context = await browser.newContext({ ...info.project.use, colorScheme: "light" });
+  await connect(context);
+  const page = await context.newPage();
+  const errors = [], requested = [], bad = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("request", (r) => requested.push(r.url()));
+  page.on("requestfailed", (r) => bad.push(r.url()));
+  page.on("response", (r) => { if (r.status() >= 400) bad.push(r.url()); });
+  await page.goto(`${SITE}/posts/sample-post/`, { waitUntil: "load" });
+  await settle(page);
+  const files = requested.filter((u) => /mermaid|\/vendor\//.test(u));
+  expect(files.length).toBeGreaterThan(1); // 入口加分块
+  expect(files.filter((u) => !u.startsWith(`${SITE}/vendor/mermaid/`))).toEqual([]);
+  expect(bad.filter((u) => u.includes("mermaid"))).toEqual([]);
+  expect(errors).toEqual([]);
+  await expect(page.locator("pre.mermaid svg .node").first()).toBeVisible();
+});
+
 // 两个站点里所有截图页面：没有脚本错误，也没有横向滚动条（手机上最常见的版面问题）
 const all = [
   [SITE, ["/", "/posts/sample-post/", "/notes/", "/notes/photo-note/", "/notes/seven-photos/", "/notes/travel-photos/", "/notes/page/2/", "/tags/样式/", "/archives/", "/tags/", "/search/", "/404.html", "/en/", "/en/posts/sample-post/", "/en/notes/"]],

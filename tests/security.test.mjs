@@ -50,15 +50,11 @@ export function missingSri(html) {
 }
 
 // 行内 <script type=module> 里 import 外站模块（import 语句没法写 integrity）
-const MODULE_IMPORT_EXEMPT = [
-  // Mermaid 的 ESM 版本会再按需加载几十个分块文件，没法逐个写 SRI；改成单文件版本或放到本站，要先确认（docs/security.md 的待定项）
-  /^https:\/\/cdn\.jsdelivr\.net\/npm\/mermaid@\d+\.\d+\.\d+\/dist\/mermaid\.esm\.min\.mjs$/,
-];
 export function externalImports(html) {
   const found = [];
   for (const [, body] of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
     for (const [, url] of body.matchAll(/\bimport\s*(?:[^'"()]*?\bfrom\s*)?\(?\s*["']([^"']+)["']/g)) {
-      if (external(url) && !MODULE_IMPORT_EXEMPT.some((re) => re.test(url))) found.push(url);
+      if (external(url)) found.push(url);
     }
   }
   return found;
@@ -75,7 +71,8 @@ test("检查器自测：能认出缺 SRI 的外站脚本和样式表，放过本
   assert.equal(missingSri(`<script type=module src="${SRI_EXEMPT[0]}"></script>`).length, 0, "登记过的例外");
   assert.deepEqual(externalImports('<script type="module">import x from "https://evil.example/x.mjs";</script>'), ["https://evil.example/x.mjs"]);
   assert.deepEqual(externalImports('<script type="module">await import("https://evil.example/x.mjs")</script>'), ["https://evil.example/x.mjs"]);
-  assert.deepEqual(externalImports('<script>import m from "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs"</script>'), []);
+  assert.deepEqual(externalImports('<script>import m from "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs"</script>'), ["https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs"]);
+  assert.deepEqual(externalImports('<script type="module">import m from "/vendor/mermaid/11.17.2/mermaid.esm.min.mjs"</script>'), [], "本站模块");
 });
 
 test("模板和文章里从外站加载的脚本、样式表都带 SRI（例外逐条登记在本文件和 docs/security.md）", () => {

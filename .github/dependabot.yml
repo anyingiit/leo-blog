@@ -18,7 +18,7 @@ updates:
     directory: "/tests/theme"
     schedule:
       interval: "weekly"
-    # Playwright 同上；katex、mermaid 必须和站点引用的 CDN 版本一致（site.test.mjs 检查），改 CDN 版本时手动一起升级
+    # Playwright 同上；katex 必须和站点引用的 CDN 版本一致，mermaid 必须和 static/vendor/mermaid 一致（site.test.mjs 检查），手动一起升级
     ignore:
       - dependency-name: "@playwright/*"
       - dependency-name: "katex"

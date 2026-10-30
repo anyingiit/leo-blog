@@ -6,7 +6,7 @@
 
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
-| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、访问统计只在正式站加载、`build.sh` 预览地址、CDN 版本锁定（详见下文） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、访问统计只在正式站加载、`build.sh` 预览地址、CDN 版本锁定、本站提供的 Mermaid（详见下文） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/ci-shards.test.mjs` | 回归测试分组 `tests/ci-shards.mjs`：每个测试文件在且只在一组里跑、拆开的文件两半互补、新文件自动分组、组数和 ci.yml 的 matrix 一致、按名字筛选落空时算失败（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
@@ -25,7 +25,7 @@
 | `tests/bilingual.test.mjs` | 双语对照译文（[bilingual-translations.md](bilingual-translations.md)）：全文下载是冻结文件原样发布（大小、sha256）、直链无门槛、小文件按 KB 显示；站内显示原版版式的页面都关掉了 iOS 文字自动放大；导入用的源文件不发布；版本条、声明、版权行；重排版段落齐全；英文页只放说明不放原文全文、中英互链；Chromium 和 WebKit 上的首次默认版式（电脑原版、手机重排）、版式和「中文/对照/English」记住选择、全屏阅读进出（按钮、Esc、后退）、缩放、无横向滚动、深色模式纸面不反色且纸面里每个元素的文字颜色和浅色模式一致、原版版式的纸在灰框里居中（手机/平板/电脑/宽屏、全屏阅读含缩小、深色，布局差 ≤ 0.5px、截图差 ≤ 1 个设备像素）、本机存储被禁用、不开脚本、段落锚点、Cloudflare 邮件地址混淆下没有脚本错误 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tools/bilingual-import/test_import.py` | 导入脚本 `import.py`：沉浸式翻译网页拆成段落对（标题/作者进 header、行内 Markdown、特殊字符转义、插件注入的脚本/弹窗去掉）、原版片段（作者样式加 `.bl-sheet` 前缀、译文换成统一的 span）；仓库里每篇用 `source.html.raw` 重新导入，结果逐字节不变 | Python tests (tools/bilingual-import) |
 | `tools/bilingual-import/test_release.py` | 发布脚本 `release.py`（不覆盖已发布版本；下载的 HTML 是保存的原网页原样，去掉加的声明和 noindex 后与原网页逐字节相同；和 S-1 共用文字层修正），以及每篇已发布的冻结 HTML/PDF：大小和 sha256、和 `source.html.raw` 对得上、首末有声明、没有加原网页没有的样式、PDF 每页「非官方」标记、无部首字符、尺寸、元数据、标签结构 | Python tests (tools/bilingual-import) |
-| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用"两种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
+| `tests/theme/visual.spec.mjs` | 像素级截图：本站和 PaperMod 官方示例站的页面，Chromium/WebKit × 电脑/平板/手机 × 浅色/深色，以及"图片未加载""CDN 不可用""Mermaid 加载失败"三种网络状态、禁用脚本时的首页和文章 | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
 | `tests/theme/repaint.spec.mjs` | 截图只取决于页面最终的样子，与绘制历史无关（见「截图与绘制历史」） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
 | `tests/theme/fullpage.spec.mjs` | 整页截图截到完整页面：高度等于原视口下的页面高度，页脚在截图里（见「整页截图与 vh」） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
 | `tests/theme/behavior.spec.mjs` | 主题交互：KaTeX 样式表的 SRI 与本地副本一致且浏览器校验通过、深色模式、站内搜索、复制代码、目录、页头和文内语言切换、返回顶部、菜单、短文图集灯箱和折叠、键盘焦点框、无脚本错误、无横向滚动、慢网下的布局偏移和最终渲染、能横滑的表格和代码块有边缘阴影（放得下时除圆角外逐像素不变） | Browser tests（chromium、webkit × desktop、tablet、phone，6 个任务） |
@@ -45,6 +45,7 @@
 - **中英文副本**（项目规则）：每篇已发布的文章都有对应的 `.en.md`，反之亦然；slug、date 一致，页面互相链接；标签数量相同，「随笔」译为「Notes」。
 - **英文配图**：有 `.i18n.yaml` 的图，英文页引用 `.en` 版，中文页用原图，构建结果里也是如此。
 - **公式、Mermaid、提示框**（`layouts/_markup/`、`layouts/_partials/extend_head.html`）：用草稿 `content/posts/markdown-test/` 检查 `$…$`/`$$…$$` 渲染成 KaTeX、` ```mermaid ` 输出 `<pre class=mermaid>`、`> [!NOTE]` 等提示框带中文标题；KaTeX 样式和 Mermaid 脚本只在需要的页面加载；正文不会被误当成公式（例如英文里成对出现的美元金额）。
+- **本站提供的 Mermaid**（`static/vendor/mermaid/`）：页面从 `/vendor/mermaid/<版本>/` 引入，版本和 `tests/theme/package.json` 一致；从入口沿 `import` 走一遍，每个分块都在构建结果里；`_headers` 给这个目录设了长期缓存。文件和锁定的 npm 包逐字节相同由 `tests/theme/output.spec.mjs` 检查，读者打开页面时不向外站要 Mermaid 文件由 `behavior.spec.mjs` 检查（KaTeX 样式表仍来自 jsDelivr）。
 - **网站图标**：除跳转页外的每个页面（中英文页、404、S-1、双语译文）都有 PaperMod 的 5 个图标链接，指向的文件都存在；可下载的完整 HTML 不带图标链接。
 - **访问统计**（[analytics.md](analytics.md)）：Cloudflare Web Analytics 的脚本只在 `main` 分支构建时加载，每个站点页面正好一次，原样提供的下载文件、预览站、本地构建里都没有。
 - **`build.sh`**：预览构建（`CF_PAGES_BRANCH` 不是 `main`）的链接和 RSS 指向 `CF_PAGES_URL`，`main` 用正式域名。
@@ -60,11 +61,11 @@ PaperMod 本身没有测试（它的 CI 只检查示例站能否构建成功）�
 - `tests/theme/example-site/`：PaperMod 官方 exampleSite 原样拷贝（来源见其中的 `SOURCE.md`），代表主题自身的行为，包括多语言、RTL、个人主页模式、封面图、代码高亮等。
 - `tests/theme/site-fixture/content/`：本站的模板、样式和配置，加上一套固定的测试文章（中英文长文、短文、带图短文）。用固定文章而不是真实文章，发新文章时不需要更新基准图。
 
-**像素级比对**：`toHaveScreenshot` 容差为 0（`maxDiffPixels: 0, threshold: 0`），整页截图，关闭动画、隐藏光标。为了让同一页每次截图完全一致，截图前会等图片加载完、字体就绪、Mermaid 画完、版面连续 10 帧不变，并把视口拉到整页高度、让整页重新绘制一遍再截（`helpers.mjs` 的 `settle`、`fullPage`、`repaint`，原因见下面的「截图与绘制历史」「整页截图与 vh」）。浏览器的所有请求都由测试直接返回本地文件，不访问外网；页面用到的 KaTeX、Mermaid 由 `tests/theme/package.json` 锁定的本地副本提供，版本与线上一致（`tests/site.test.mjs` 会检查这一点）。
+**像素级比对**：`toHaveScreenshot` 容差为 0（`maxDiffPixels: 0, threshold: 0`），整页截图，关闭动画、隐藏光标。为了让同一页每次截图完全一致，截图前会等图片加载完、字体就绪、Mermaid 画完、版面连续 10 帧不变，并把视口拉到整页高度、让整页重新绘制一遍再截（`helpers.mjs` 的 `settle`、`fullPage`、`repaint`，原因见下面的「截图与绘制历史」「整页截图与 vh」）。浏览器的所有请求都由测试直接返回本地文件，不访问外网；页面用到的 KaTeX 由 `tests/theme/package.json` 锁定的本地副本提供，版本与线上一致（`tests/site.test.mjs` 会检查这一点）；Mermaid 本来就在本站。
 
 **设备与浏览器**：Chromium（对应 Chrome）和 WebKit（Safari 的引擎；它不等于真正的 Safari 应用，后者只能在 macOS 上运行），各自在电脑 1280×800、平板 820×1180、手机 390×844 三种视口下运行，平板和手机开启触屏；不开 Playwright 的 isMobile（移动端视口缩放），因为它会让 srcset 选图取决于时序、基准无法固定（原因见 `playwright.config.mjs`），响应式布局仍按视口宽度生效。截图按 CSS 像素 1:1 保存。
 
-**网络状态**：正常；图片一直没有响应（检查加载前的版面）；CDN 不可用（KaTeX 样式、Mermaid 加载失败时的降级显示）；Slow 3G（400ms 延迟、约 50KB/s，检查布局偏移 CLS ≤ 0.1，且最终渲染与正常网络逐像素一致）。CLS 只有 Chromium 能测。"图片一直没有响应"在 WebKit 上只检查页面能稳定、Mermaid 图表照常画出，不截图：WebKit 截图前要等整页 load，图片不回来就永远截不了。
+**网络状态**：正常；图片一直没有响应（检查加载前的版面）；CDN 不可用（KaTeX 样式加载失败时的降级显示，Mermaid 不受影响）；Mermaid 文件加载失败（图表保持源码）；Slow 3G（400ms 延迟、约 50KB/s，检查布局偏移 CLS ≤ 0.1，且最终渲染与正常网络逐像素一致）。CLS 只有 Chromium 能测。"图片一直没有响应"在 WebKit 上只检查页面能稳定、Mermaid 图表照常画出，不截图：WebKit 截图前要等整页 load，图片不回来就永远截不了。
 
 **运行环境**：CI 的浏览器测试任务固定在 Playwright 官方镜像 `mcr.microsoft.com/playwright:v1.63.0-noble`（按 digest 锁定）里运行，基准图 `tests/theme/__snapshots__/` 也是在这个镜像里生成的。不同机器的字体和渲染不同，本地截图和基准不一致是正常的，以 CI 为准。每个浏览器一个任务（两个任务并行），三种设备在任务内依次跑；非视觉的输出快照只在 chromium 任务里跑。
 
@@ -105,6 +106,16 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
 6. Hugo 处理过的图片（`resources/_gen`）用 `actions/cache` 跨运行复用，整站冷构建约 55 秒，有缓存约 2 秒；每组回归测试都恢复缓存，由第 1 组保存。Hugo 按源文件和处理参数给缓存文件命名，内容变了就会重新生成；Hugo 版本（`build.sh`）或图片渲染钩子（`layouts/_markup/`）变了，整份缓存作废。
 
 如果仓库改回私有，这样拆会让计费分钟大约翻倍（每个任务都要拉一次 Playwright 镜像、各自向上取整），到时候要重新权衡。
+
+## 升级 Mermaid
+
+Mermaid 放在本站（`static/vendor/mermaid/<版本>/`），不经过第三方 CDN：
+
+1. 改 `tests/theme/package.json` 的版本，在 `tests/theme` 下运行 `npm install`。
+2. 运行 `tools/vendor-mermaid.sh`，它会替换整个目录。
+3. 改 `layouts/_partials/extend_head.html` 里的版本号。
+
+少做哪一步，`site.test.mjs` 或 `output.spec.mjs` 都会失败。文件清单和 `<head>` 快照一定会变（`npx playwright test --project=output --update-snapshots=changed`）；图表画法也可能变化，按上面的办法核对并更新基准图。
 
 ## 手机端
 

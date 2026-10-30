@@ -17,7 +17,7 @@
 {{- end }}
 {{- if $hasMermaid }}
 <script type="module">
-  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs";
+  import mermaid from "/vendor/mermaid/11.17.2/mermaid.esm.min.mjs";
   const dark = document.documentElement.dataset.theme === "dark";
   // 不用 startOnLoad：它等 window 的 load 事件，Safari 里还在加载的图片会把图表一直拖着不画
   mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "default" });

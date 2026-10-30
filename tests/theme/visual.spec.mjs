@@ -58,15 +58,15 @@ for (const [site, path, name, dark] of pages) {
   }
 }
 
-// 网络状态：图片还没到、CDN 不可用（KaTeX 样式和 Mermaid 加载失败）时，版面也要稳定可读
-for (const network of ["images-pending", "cdn-down"]) {
+// 网络状态：图片还没到、CDN 不可用（KaTeX 样式加载失败）、Mermaid 文件加载失败时，版面也要稳定可读
+for (const network of ["images-pending", "cdn-down", "mermaid-down"]) {
   test(`site-post · ${network}`, async ({ browser, browserName }, info) => {
     const context = await browser.newContext({ ...info.project.use, colorScheme: "light" });
     await connect(context, network);
     const page = await context.newPage();
     await page.goto(hosts.site + "/posts/sample-post/", { waitUntil: network === "images-pending" ? "domcontentloaded" : "load" });
     // 图片未到时 Mermaid 图表也要画出来（settle 里会等它画完）
-    await settle(page, { images: network !== "images-pending", mermaid: network !== "cdn-down" });
+    await settle(page, { images: network !== "images-pending", mermaid: network !== "mermaid-down" });
     // WebKit 里截图前要等 document.fonts.ready，它又要等整页 load，图片一直不回来就永远截不了，只做上面的检查
     if (network === "images-pending" && browserName === "webkit") return;
     await fullPage(page);

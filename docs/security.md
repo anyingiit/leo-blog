@@ -27,8 +27,9 @@
 | 资源 | SRI | 说明 |
 | --- | --- | --- |
 | KaTeX 样式表（jsDelivr，锁定 0.16.22） | 有 | 只在有公式的页面加载；字体由样式表引用，浏览器不对字体做 SRI |
-| Mermaid（jsDelivr，锁定 11.17.2，ESM） | **没有，待定** | ESM 版本会再按需加载几十个分块文件，没法逐个写 SRI。可选做法：换成单文件版本 `mermaid.min.js` 加 SRI，或把它放进本站；两者都会改变加载方式，需要先确认 |
 | Cloudflare Web Analytics（`static.cloudflareinsights.com/beacon.min.js`） | 没有 | 不带版本号，Cloudflare 原地更新，固定哈希会让统计随时失效；只在正式站加载（[analytics.md](analytics.md)），不进下载文件 |
+
+Mermaid 不是外站资源：它放在本站 `static/vendor/mermaid/`，和锁定的 npm 包逐字节相同（`tests/theme/output.spec.mjs`），升级步骤见 [testing.md](testing.md)。
 
 新增外站资源时先带上 SRI；确实没法带的，写进本表和 `tests/security.test.mjs` 的例外列表，并说明原因。
 
@@ -36,4 +37,4 @@
 
 ## 依赖更新
 
-Dependabot（`.github/dependabot.yml`）每周检查 GitHub Actions、`tests/` 和 `tests/theme/` 的 npm 包、`tools/` 下三个 Python 工具的 `requirements.txt`。Playwright、KaTeX、Mermaid 要和 CI 镜像或线上 CDN 版本一起改，所以不自动升级。`ci.yml` 里给 `s1-links.test.mjs` 单独下载的 pypdf wheel 是另一处锁定，升级 `tools/s1-import` 的 pypdf 时顺手一起改。Hugo 在 `build.sh` 里锁定版本并校验 sha256，PaperMod 是子模块（升级要重做页头语言切换，见 [language-switch.md](language-switch.md)）。
+Dependabot（`.github/dependabot.yml`）每周检查 GitHub Actions、`tests/` 和 `tests/theme/` 的 npm 包、`tools/` 下三个 Python 工具的 `requirements.txt`。Playwright、KaTeX、Mermaid 要和 CI 镜像、线上 CDN 版本或本站副本一起改，所以不自动升级。`ci.yml` 里给 `s1-links.test.mjs` 单独下载的 pypdf wheel 是另一处锁定，升级 `tools/s1-import` 的 pypdf 时顺手一起改。Hugo 在 `build.sh` 里锁定版本并校验 sha256，PaperMod 是子模块（升级要重做页头语言切换，见 [language-switch.md](language-switch.md)）。
