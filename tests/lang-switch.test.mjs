@@ -34,6 +34,7 @@ async function inspect(html) {
   if (/<meta http-equiv="?refresh/.test(html)) return null; // 别名页一加载就会跳走，不读
   if (/<html[^>]* data-standalone/.test(html)) return null; // 供下载的独立文件（S-1 完整 HTML），没有站点页头
   if (published.has(html)) return null; // 原样发布的 .html.raw
+  if (/<meta name="robots" content="noindex"><link rel="canonical"[^>]*><style>html\{-webkit-text-size-adjust/.test(html.slice(0, 600))) return null; // 原样发布的短片播放器（films/<名字>/play/，docs/films.md），没有站点页头
   await dom.setContent(html, { waitUntil: "domcontentloaded" });
   return dom.evaluate(() => {
     return {

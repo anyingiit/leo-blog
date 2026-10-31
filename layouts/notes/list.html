@@ -20,7 +20,8 @@
   {{- end }}
 </header>
 
-{{- $paginator := .Paginate .RegularPages }}
+{{- /* 含次级栏目（短片 /notes/films/）里的文章，时间线里一起按日期排 */}}
+{{- $paginator := .Paginate .RegularPagesRecursive }}
 {{- range $paginator.Pages }}
 <article class="note-entry">
   <header class="note-header">
@@ -40,6 +41,14 @@
   */ -}}
   {{- $plans := dict "2" (slice 2) "3" (slice 3) "4" (slice 2 2) "5" (slice 3 2) "6" (slice 3 3) "7" (slice 4 3) "8" (slice 3 3 2) }}
   {{- $content := .Content }}
+  {{- /* 短片文章：时间线里只放导语和一张封面（链接到文章，左下角写明「短片 · 时长」），不放播放器 */}}
+  {{- $p := . }}
+  {{- with .Params.film }}
+    {{- $f := partial "film.html" (dict "name" . "page" $p) }}
+    {{- $content = $p.Summary }}
+    {{- $badge := i18n "film_badge" }}{{ with $f.minutes }}{{ $badge = printf "%s · %s" $badge (printf (i18n "film_minutes") (int .)) }}{{ end }}
+    {{- with $f.poster }}{{ $content = printf `%s<p><a class="film-cover" href="%s" aria-label="%s"><img src="%s" width="%d" height="%d" alt="" loading="lazy" decoding="async"><span class="film-badge">▶ %s</span></a></p>` $content $p.Permalink $p.Title . $f.width $f.height $badge }}{{ end }}
+  {{- end }}
   {{- range findRE `(?:<p>(?:<img[^>]*>\s*)+</p>\s*)+` $content }}
     {{- $imgs := findRE `<img[^>]*>` . }}
     {{- $n := len $imgs }}

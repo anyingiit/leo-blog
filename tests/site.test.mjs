@@ -59,7 +59,7 @@ const isDraft = (f) => field(frontMatter(join(root, "content", f)), "draft") ===
 // 短文、长文：content/notes、content/posts 下除 _index 以外的 .md（文件夹形式取 index.md）
 const notes = contentFiles
   .filter((f) => f.startsWith("notes/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
-  .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^notes\/|(\/index)?\.md$/g, "") }));
+  .map((f) => { const fm = frontMatter(join(root, "content", f)); return { file: f, film: !!field(fm, "film"), slug: field(fm, "slug") || f.replace(/^notes\/(films\/)?|(\/index)?\.md$/g, "") }; });
 const posts = contentFiles
   .filter((f) => f.startsWith("posts/") && !f.includes("_index") && !f.endsWith(".en.md") && !isDraft(f))
   .map((f) => ({ file: f, slug: field(frontMatter(join(root, "content", f)), "slug") || f.replace(/^posts\/|(\/index)?\.md$/g, "") }));
@@ -96,6 +96,12 @@ for (const [lang, prefix] of [["中文", ""], ["英文", "en/"]]) {
     for (const n of notes) {
       const entry = entries.find((e) => e.includes(`${PROD}${prefix}notes/${n.slug}/`));
       assert.ok(entry, `短文栏目缺少 ${n.slug}`);
+      // 短片的文章（front matter 有 film:）只放导语和封面（链接到文章，标着「短片 · 时长」），播放器和文字稿在文章页
+      if (n.film) {
+        assert.match(entry, new RegExp(`<a class="?film-cover"? href="?${PROD}${prefix}notes/${n.slug}/"?`), `${n.slug} 的封面要链接到短片文章`);
+        assert.ok(!entry.includes("film-frame") && !entry.includes('id="transcript"') && !entry.includes("id=transcript"), `${n.slug} 在栏目里不放播放器和文字稿`);
+        continue;
+      }
       // 展开全文：栏目里的正文和单篇页的正文一致，而不是摘要
       const single = site.read(`${prefix}notes/${n.slug}/`).split(/<div class="?post-content[^>]*>/)[1].split(/<\/div>\s*<footer/)[0];
       assert.ok(entry.includes(single.trim()), `${n.slug} 在栏目里不是全文`);
@@ -298,8 +304,8 @@ test("预览构建（非 main 分支）里的链接指向预览地址，main 分
 
 // 站点生成的所有 .html（含下载文件），路径相对于输出目录
 const htmlFiles = (dir) => readdirSync(dir, { recursive: true }).filter((f) => f.endsWith(".html"));
-// 原样提供的下载文件（S-1 冻结 HTML、双语译文全文）和 S-1 的单文件完整 HTML
-const isDownload = (f) => /(^|\/)files\//.test(f) || f.endsWith("/full.html");
+// 原样提供的下载文件（S-1 冻结 HTML、双语译文全文）、S-1 的单文件完整 HTML，以及原样发布的短片播放器（在文章的 iframe 里，文章已经计数）
+const isDownload = (f) => /(^|\/)files\//.test(f) || f.endsWith("/full.html") || /^films\/[^/]+\/play\//.test(f);
 const BEACON = "static.cloudflareinsights.com/beacon.min.js";
 
 test("访问统计只在正式站加载：main 分支每个站点页面都有，下载文件、预览站、本地构建都没有", () => {
@@ -391,7 +397,8 @@ const versioned = (f) => f.replace(/(\.[a-z]+)$/, `.${createHash("sha256").updat
 const iconHrefs = (html) => [...html.matchAll(/<link [^>]*rel="?(?:icon|apple-touch-icon|mask-icon)"?[^>]*>/g)].map((m) => m[0].match(/href="?([^"\s>]+)/)[1]);
 
 test("每个页面都有 PaperMod 的 5 个图标链接，指向的文件都存在（中英文页、404、S-1、双语译文）", () => {
-  const pages = walk(site.out).map((f) => relative(site.out, f)).filter((f) => f.endsWith(".html") && !/\/files\//.test(f));
+  // 不含原样提供的下载文件和短片播放器（films/<名字>/play/，在文章的 iframe 里显示，浏览器标签页用的是文章的图标）
+  const pages = walk(site.out).map((f) => relative(site.out, f)).filter((f) => f.endsWith(".html") && !/\/files\//.test(f) && !/^films\/[^/]+\/play\//.test(f));
   for (const must of ["index.html", "en/index.html", "404.html", "en/404.html", "translations/anthropic-s1/index.html", "translations/bitter-lesson/index.html"]) assert.ok(pages.includes(must), must);
   const want = ICONS.map((f) => `${PROD}icons/${versioned(f)}`);
   for (const p of pages) {

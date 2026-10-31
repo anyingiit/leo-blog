@@ -14,6 +14,24 @@
   translation: "查看图片 %d / %d"
 - id: zoom_more
   translation: "，还有 %d 张"
+- id: film_play
+  translation: 播放短片
+- id: film_badge
+  translation: 短片
+- id: film_minutes
+  translation: "约 %d 分钟"
+- id: film_chapters
+  translation: 章节
+- id: film_from_here
+  translation: 从这里播放
+- id: film_exit
+  translation: 退出
+- id: film_mp4
+  translation: MP4 视频
+- id: film_mp4_desc
+  translation: 1920×1080，中文配音，字幕在画面上。
+- id: film_mp4_get
+  translation: 下载 .mp4
 # 双语对照译文（layouts/bilingual/）
 - id: bl_published
   translation: "原文发表于"

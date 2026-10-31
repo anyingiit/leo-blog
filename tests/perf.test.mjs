@@ -88,10 +88,10 @@ before(async () => {
 });
 after(() => out && rmSync(out, { recursive: true, force: true }));
 
-// 构建出的每个 HTML 页面（跳过 alias 跳转页、下载文件、单文件完整 HTML）
+// 构建出的每个 HTML 页面（跳过 alias 跳转页、下载文件、单文件完整 HTML、原样发布的短片播放器 films/<名字>/play/）
 function pages() {
   return readdirSync(out, { recursive: true }).map(String)
-    .filter((f) => f.endsWith(".html") && !f.includes("/files/") && !f.endsWith("full.html"))
+    .filter((f) => f.endsWith(".html") && !f.includes("/files/") && !f.endsWith("full.html") && !/^films\/[^/]+\/play\//.test(f))
     .filter((f) => !/http-equiv="?refresh/.test(readFileSync(join(out, f), "utf8").slice(0, 600)))
     .sort();
 }

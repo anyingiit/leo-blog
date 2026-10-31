@@ -1,0 +1,7 @@
+{{- /*
+  短片（docs/films.md）：{{< film name="短片名" >}}，写在短片自己的文章里（front matter 写了 film: 短片名）。
+  原地放播放器、章节目录和下载（_partials/film_stage.html）。
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $f := partial "film.html" (dict "name" $name "page" .Page) -}}
+{{- partial "film_stage.html" (dict "f" $f "page" .Page) -}}

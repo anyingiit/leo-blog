@@ -14,6 +14,24 @@
   translation: "View image %d of %d"
 - id: zoom_more
   translation: ", %d more"
+- id: film_play
+  translation: Play the film
+- id: film_badge
+  translation: Film
+- id: film_minutes
+  translation: "about %d min"
+- id: film_chapters
+  translation: Chapters
+- id: film_from_here
+  translation: Play from here
+- id: film_exit
+  translation: Exit
+- id: film_mp4
+  translation: MP4 video
+- id: film_mp4_desc
+  translation: 1920×1080, English narration, subtitles in the picture.
+- id: film_mp4_get
+  translation: Download .mp4
 # Bilingual translations (layouts/bilingual/)
 - id: bl_published
   translation: "Published"

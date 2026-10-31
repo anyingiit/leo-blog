@@ -5,6 +5,11 @@
      多张图片的原位分组在构建时完成，见 notes/list.html。
   3. Cloudflare Web Analytics（docs/analytics.md）：只在正式站（Cloudflare Pages 的 main 分支构建）且配了令牌时加载。
      写法同 Cloudflare 后台给的片段（type=module，相当于 defer）；放在 PaperMod 的页脚扩展点里，所以只出现在站点页面上；原样提供的下载 HTML 不经过这里，不会被注入。
+  4. 短片（docs/films.md）：文章里的播放器（_partials/film_stage.html）是沙箱 iframe，和博客不同源，
+     双方只通过 postMessage 交换深浅色、高度、Esc、进度、章节（assets/js/film-bridge.js）。
+     画面上的大播放键发 film:play，章节目录的「从这里播放」发 film:seek，开播后把播放器滚进视野；
+     浏览器不能让元素全屏时（iPhone），短片的「全屏」发 film:fullscreen，这里把播放器铺满窗口（film:embed 通知短片换版式）。
+     页脚是按版式缓存的（PaperMod partialCached），这里不能按页面判断，脚本自己找不到播放器就什么也不做。
 */ -}}
 {{- with site.Params.cfAnalyticsToken }}{{ if eq (os.Getenv "CF_PAGES_BRANCH") "main" }}
 <script type=module src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ dict "token" . | jsonify }}'></script>
@@ -138,6 +143,61 @@
   for (const body of bodies) {
     fold(body);
     for (const img of body.querySelectorAll("img:not([width])")) img.addEventListener("load", () => fold(body), { once: true });
+  }
+})();
+</script>
+<script>
+(() => {
+  const f = document.querySelector("#film-stage iframe.film-frame");
+  if (!f) return;
+  const root = document.documentElement;
+  const stage = f.closest(".film-stage");
+  const bar = stage.querySelector(".film-wbar");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const post = (m) => f.contentWindow?.postMessage(m, "*");
+  const theme = () => root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const tell = () => post({ type: "film:theme", theme: theme() });
+  new MutationObserver(tell).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  f.addEventListener("load", tell);
+
+  // 铺满窗口（浏览器不能让元素全屏时，如 iPhone）：同一个播放器换个样子，进度不丢；返回键、Esc、「退出」都回到原处
+  let watching = false, y = 0;
+  const watch = (on, fromHistory) => {
+    if (on === watching) return;
+    watching = on;
+    if (on) { y = scrollY; history.pushState({ filmWatch: true }, ""); }
+    document.body.classList.toggle("film-watch", on);
+    bar.hidden = !on;
+    post({ type: "film:embed", embed: on ? "fit" : "page" });
+    if (!on) { if (!fromHistory && history.state?.filmWatch) history.back(); scrollTo(0, y); }
+    f.focus({ preventScroll: true });
+  };
+  bar.querySelector(".film-wbar-exit").addEventListener("click", () => watch(false));
+  addEventListener("popstate", () => watch(false, true));
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && watching) watch(false); });
+
+  addEventListener("message", (e) => {
+    if (e.source !== f.contentWindow || !e.data) return;
+    const d = e.data;
+    if (d.type === "film:ready") { tell(); f.style.backgroundImage = ""; }
+    if (d.type === "film:size" && d.height > 0) f.style.height = Math.min(d.height, 4000) + "px";
+    if (d.type === "film:playing" || d.type === "film:blocked") stage.querySelector(".film-start")?.remove();
+    if (d.type === "film:fullscreen") watch(!watching);
+    if (d.type === "film:escape" && watching) watch(false);
+    if (d.type === "film:chapters" && Array.isArray(d.starts)) {
+      const mmss = (t) => `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+      document.querySelectorAll(".film-seek .film-at").forEach((s, i) => { if (Number.isFinite(d.starts[i])) s.textContent = mmss(d.starts[i]); });
+    }
+  });
+
+  // 开播后把整个播放器（连同下面的控制条）滚进视野
+  const bring = () => stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+  const start = stage.querySelector(".film-start");
+  if (start) { start.hidden = false; start.addEventListener("click", () => { start.remove(); post({ type: "film:play" }); bring(); f.focus({ preventScroll: true }); }); }
+  // 章节目录的「从这里播放」
+  for (const b of document.querySelectorAll(".film-seek")) {
+    b.hidden = false;
+    b.addEventListener("click", () => { start?.remove(); post({ type: "film:seek", chapter: +b.dataset.chapter }); bring(); f.focus({ preventScroll: true }); });
   }
 })();
 </script>

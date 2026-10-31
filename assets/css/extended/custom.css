@@ -71,3 +71,43 @@
 [data-theme="dark"] :is(.md-content table, .md-content pre code, .post-content .katex-display) { --scroll-shadow: rgb(0 0 0 / 0.7); }
 /* 代码块在两种主题下都是深底，黑色阴影看不见 */
 :root .md-content pre code { --scroll-shadow: rgb(255 255 255 / 0.3); }
+/* 短片（docs/films.md）。博客这一侧沿用 PaperMod（文章目录 details.toc）和 S-1 译本（原版版式的宽度、s1-dl-cards 下载卡片）的样子，
+   这里只补播放器的尺寸、大播放键、「从这里播放」和铺满窗口。结构见 _partials/film_stage.html */
+/* 宽幅：跳出 720px 正文栏，和 S-1 原版版式同一个上限 1240px；整个播放器（画面 + 约 200px 的字幕和控制条）放得进一屏 */
+.film-stage { --w: min(1240px, 100vw - 2 * var(--gap), (100vh - 240px) * 16 / 9); --w: min(1240px, 100vw - 2 * var(--gap), (100svh - 240px) * 16 / 9);
+  position: relative; width: var(--w); margin: 0 0 var(--content-gap) calc(50% - var(--w) / 2); }
+@media (max-height: 500px) { .film-stage { --w: min(1240px, 100vw - 2 * var(--gap), (100svh - 1rem) * 16 / 9); } }
+.film-stage iframe { display: block; width: 100%; height: calc(var(--w) * 9 / 16 + 200px); border: 0; background: center / contain no-repeat; }
+.film-still { display: block; width: 100%; height: auto; border-radius: var(--radius); }
+/* 开播前画面上一个大播放键，放在开场画面下方的空白处（不挡标题和五个字母）；浅色圆底，深浅两种主题下都看得清 */
+.film-start { position: absolute; left: calc(50% - 2rem); top: calc(var(--w) * 9 / 16 * .8 - 2rem); width: 4rem; height: 4rem; border: 0; border-radius: 50%; background: rgb(255 255 255 / .92); box-shadow: 0 2px 12px rgb(0 0 0 / .35); cursor: pointer; }
+.film-start::before { content: ""; position: absolute; left: 54%; top: 50%; width: 1.4rem; height: 1.6rem; transform: translate(-50%, -50%); background: #0f1522; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+@media (hover: hover) { .film-start:hover { background: #fff; } }
+.film-start:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@media (max-width: 640px) { .film-start { left: calc(50% - 1.5rem); top: calc(var(--w) * 9 / 16 * .8 - 1.5rem); width: 3rem; height: 3rem; } .film-start::before { width: 1.05rem; height: 1.2rem; } }
+/* 章节目录：PaperMod 的 details.toc，每章一行，右边是开始时间和「从这里播放」 */
+.film-toc .film-toc-len { color: var(--secondary); font-size: .875rem; }
+.film-toc .inner ul { list-style: none; padding-inline-start: 0; }
+.film-toc li { display: flex; align-items: center; gap: .5rem; margin: 0; }
+.film-toc li a { flex: 1; padding: .3rem 0; text-wrap: pretty; }
+.md-content .film-toc a:not(.anchor) { text-decoration: none; }
+@media (hover: hover) { .md-content .film-toc a:not(.anchor):hover { text-decoration: underline; } }
+.film-seek { flex: none; display: inline-flex; align-items: center; gap: .35rem; min-height: 36px; padding: 0 .6rem; border: 0; border-radius: var(--radius); background: transparent; color: var(--secondary); font: inherit; font-size: .8rem; font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; }
+@media (pointer: coarse) { .film-seek { min-height: 44px; } .film-toc li a { padding: .6rem 0; } .film-toc summary { padding-block: .6rem; } }
+@media (hover: hover) { .film-seek:hover { background: var(--border); color: var(--primary); } }
+.film-seek:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.film-seek[hidden] { display: none; }
+/* 铺满窗口（浏览器不能让元素全屏时，如 iPhone）：隐藏站点外壳，播放器铺满窗口，顶上一条和画面同色的细栏 */
+.film-wbar { display: none; }
+body.film-watch { overflow: hidden; }
+body.film-watch .film-stage { position: fixed; inset: 0; z-index: 50; width: 100vw; height: 100vh; height: 100dvh; margin: 0; display: flex; flex-direction: column; background: #0f1522; }
+body.film-watch .film-stage iframe { flex: 1; height: auto !important; }
+body.film-watch .film-start, body.film-watch .top-link { display: none !important; }
+body.film-watch .film-wbar { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 4px 0 12px; padding-top: env(safe-area-inset-top); box-sizing: content-box; background: #0f1522; color: #e6e9ef; font-size: 14px; white-space: nowrap; }
+.film-wbar-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.film-wbar-exit { min-height: 44px; min-width: 44px; padding: 0 12px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.film-wbar-exit:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+/* 短文时间线里短片文章的封面：链接到文章，不进灯箱；左下角写明是短片和时长 */
+.film-cover { position: relative; display: block; }
+.film-cover img { display: block; width: 100%; height: auto; border-radius: var(--radius); }
+.film-badge { position: absolute; left: 12px; bottom: 12px; padding: 4px 10px; border-radius: var(--radius); background: rgb(15 21 34 / .85); color: #fff; font-size: 14px; line-height: 1.5; white-space: nowrap; }
