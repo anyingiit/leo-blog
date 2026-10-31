@@ -71,3 +71,14 @@
 [data-theme="dark"] :is(.md-content table, .md-content pre code, .post-content .katex-display) { --scroll-shadow: rgb(0 0 0 / 0.7); }
 /* 代码块在两种主题下都是深底，黑色阴影看不见 */
 :root .md-content pre code { --scroll-shadow: rgb(255 255 255 / 0.3); }
+/* 内嵌 SVG 示意图（layouts/_shortcodes/theme-svg.html）：颜色全用主题变量，浅色/深色跟着变 */
+.theme-svg { margin: 1.5rem 0; }
+.theme-svg svg { display: block; width: 100%; max-width: 640px; height: auto; margin: 0 auto; }
+.theme-svg .fg { fill: var(--primary); }
+.theme-svg .muted { fill: var(--secondary); }
+.theme-svg .b { font-weight: 600; }
+.theme-svg .panel { fill: var(--code-bg); }
+.theme-svg .axis { stroke: var(--secondary); stroke-width: 1.5; }
+.theme-svg .wall { stroke: var(--primary); stroke-width: 2; stroke-dasharray: 6 5; }
+.theme-svg .slide { stroke: var(--secondary); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.theme-svg .head { fill: var(--secondary); }

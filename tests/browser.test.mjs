@@ -314,3 +314,79 @@ test("读屏：没写说明的图片念「查看图片 3 / 12」，第 9 张加�
     await ctx.close();
   }
 });
+
+// 内嵌 SVG 示意图（layouts/_shortcodes/theme-svg.html）：图里的颜色用 PaperMod 的主题变量，浅色/深色跟着变；
+// 文字不出图、不出所在的底色块（字体换了、字号改了能发现）
+const svgColors = (fig) => fig.evaluate((f) => {
+  const root = getComputedStyle(document.documentElement);
+  const v = (name) => { const d = document.createElement("div"); d.style.color = `var(${name})`; document.body.append(d); const c = getComputedStyle(d).color; d.remove(); return c; };
+  const q = (sel, prop) => getComputedStyle(f.querySelector(sel))[prop];
+  return {
+    theme: document.documentElement.dataset.theme || "light",
+    want: { primary: v("--primary"), secondary: v("--secondary"), codeBg: v("--code-bg") },
+    got: { fg: q(".fg", "fill"), muted: q(".muted", "fill"), panel: q(".panel", "fill"), axis: q(".axis", "stroke"), wall: q(".wall", "stroke"), head: q(".head", "fill") },
+    bold: q(".b", "fontWeight"),
+  };
+});
+const svgOverflow = (fig) => fig.evaluate((f) => {
+  // 用屏幕上的矩形比较，旋转过的文字（纵轴标题）也算得对
+  const svg = f.querySelector("svg"), box = svg.getBoundingClientRect(), bad = [];
+  const panels = [...svg.querySelectorAll(".panel")].map((r) => r.getBoundingClientRect());
+  const inside = (b, r, pad = 0) => b.left >= r.left + pad - 0.5 && b.top >= r.top - 0.5 && b.right <= r.right - pad + 0.5 && b.bottom <= r.bottom + 0.5;
+  for (const t of svg.querySelectorAll("text")) {
+    const b = t.getBoundingClientRect();
+    if (!inside(b, box)) bad.push(`${t.textContent} 出了图`);
+    const x = b.left + 1, y = (b.top + b.bottom) / 2;
+    const home = panels.find((r) => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom);
+    if (home && !inside(b, home, 3)) bad.push(`${t.textContent} 出了底色块`);
+  }
+  return bad;
+});
+
+for (const theme of ["light", "dark"]) {
+  test(`内嵌 SVG：${theme === "dark" ? "深色" : "浅色"}模式下颜色等于主题变量，单篇和短文栏目都是内嵌的`, async () => {
+    for (const path of ["/notes/theme-svg/", "/notes/"]) {
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+      await ctx.addInitScript((t) => localStorage.setItem("pref-theme", t), theme);
+      const page = await ctx.newPage();
+      await page.goto(server.url + path, { waitUntil: "load" });
+      const fig = path === "/notes/" ? card(page, "theme-svg").locator("figure.theme-svg") : page.locator("figure.theme-svg");
+      assert.equal(await fig.count(), 1);
+      assert.equal(await fig.locator("svg").getAttribute("role"), "img");
+      assert.equal(await fig.locator("svg").getAttribute("aria-label"), "测试示意图");
+      const c = await svgColors(fig);
+      assert.equal(c.theme, theme);
+      const { primary, secondary, codeBg } = c.want;
+      assert.deepEqual(c.got, { fg: primary, muted: secondary, panel: codeBg, axis: secondary, wall: primary, head: secondary });
+      assert.equal(c.bold, "600");
+      await ctx.close();
+    }
+  });
+}
+
+test("内嵌 SVG：去掉 XML 声明和注释；浅色和深色的颜色确实不同", async () => {
+  const html = await (await fetch(server.url + "/notes/theme-svg/")).text();
+  assert.doesNotMatch(html, /<\?xml|内嵌时要去掉/);
+  const cs = {};
+  for (const theme of ["light", "dark"]) {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript((t) => localStorage.setItem("pref-theme", t), theme);
+    const page = await ctx.newPage();
+    await page.goto(server.url + "/notes/theme-svg/");
+    cs[theme] = (await svgColors(page.locator("figure.theme-svg"))).got;
+    await ctx.close();
+  }
+  for (const k of Object.keys(cs.light)) assert.notEqual(cs.light[k], cs.dark[k], k);
+});
+
+for (const [name, opts] of [["手机", devices["iPhone 13"]], ["电脑", { viewport: { width: 1280, height: 900 } }]]) {
+  test(`内嵌 SVG：${name}上全站每张示意图的文字不出图、不出底色块，页面不横向滚动`, async () => {
+    for (const path of ["/notes/theme-svg/", "/notes/lex-trust-stakes/", "/en/notes/lex-trust-stakes/"]) {
+      const { page, ctx } = await open(path, opts);
+      await page.evaluate(() => document.fonts.ready);
+      for (const fig of await page.locator("figure.theme-svg").all()) assert.deepEqual(await svgOverflow(fig), [], path);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, path);
+      await ctx.close();
+    }
+  });
+}

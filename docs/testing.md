@@ -10,7 +10,7 @@
 | `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/ci-shards.test.mjs` | 回归测试分组 `tests/ci-shards.mjs`：每个测试文件在且只在一组里跑、拆开的文件两半互补、新文件自动分组、组数和 ci.yml 的 matrix 一致、按名字筛选落空时算失败（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
-| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集、内嵌 SVG 示意图（`theme-svg` 短代码：颜色等于主题变量、浅色深色都对，文字不出图、不出底色块）（见 [tests/README.md](../tests/README.md)） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/mobile.test.mjs` | 手机端契约（见「手机端」）：站点生成的每个自带 `<html>` 的页面（含短片等独立页面；内容目录里原样提供的 `.html.raw` 下载文件不查，保留原始 HTML 的一切特征）都关掉 iOS 文字自动放大、不禁止双指缩放；以真实手机参数（isMobile、DPR 2/3、触屏）在 Chromium 和 WebKit 上打开主要页面，320 宽、390 宽、横屏、安卓下都没有横向滚动，能点的东西没有被挤出屏幕或被裁掉，输入框不小于 16px | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/favicon.test.mjs` | 网站图标（[favicon.md](favicon.md)）：`favicon.ico` 含 16/32/48 三档且与单独的 PNG 相同；16px 图标逐像素符合设计（整像素的白色 L、主题色底、灰色内圈、透明圆角），32px 的 L 也落在整像素上；`apple-touch-icon.png` 180×180 不透明；Safari 固定标签图是单色剪影；提交的文件就是 `tools/favicon/build.mjs` 的输出 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/lang-switch.test.mjs` | 页头语言切换跳到当前页的译文，没有译文才回首页；Chromium 和 WebKit 都跑（见 [docs/language-switch.md](language-switch.md)） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
