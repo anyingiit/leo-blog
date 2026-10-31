@@ -15,3 +15,5 @@ images: [slide-3-03-30.png]
 ![视频里的幻灯片：信任和赌注，AI 适合的地方](slide-3-03-30.png)
 
 摘自Lex Fridman播客第503期[视频（3:02:13起）](https://www.youtube.com/watch?v=ZAzWPE9CItg&t=10933s)，英文原文见[官网转录稿](https://lexfridman.com/math-ai-crisis-transcript#chapter11_why_llms_work_so_well)，中文为本站译文，图为视频 3:03:30 的画面（图中文字由本站译成中文）。
+
+一种不错的分类和思考AI应用范围的方式。

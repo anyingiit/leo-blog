@@ -15,3 +15,5 @@ images: [slide-3-03-30.en.png]
 ![The slide from the video: Trust and Stakes, Where AI Fits](slide-3-03-30.en.png)
 
 From Lex Fridman Podcast #503 ([video, from 3:02:13](https://www.youtube.com/watch?v=ZAzWPE9CItg&t=10933s)); text from the [official transcript](https://lexfridman.com/math-ai-crisis-transcript#chapter11_why_llms_work_so_well). The image is a frame from the video at 3:03:30.
+
+A good way to classify and think about where AI can be applied.
