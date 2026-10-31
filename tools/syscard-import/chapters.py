@@ -89,11 +89,20 @@ class Fonts:
 
     def _subset(self, f, chars, path):
         tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
+        # 页面是 lang="zh"：HarfBuzz（Chromium、WebKit 非 Apple 平台）取 ZHS，不认语言的引擎用 dflt。思源的 locl 还给
+        # JAN/KOR/ZHT/ZHH 各带几百个字形变体，按 "*" 取子集会全部跟进来（宋体常规 1785 个字形里 717 个），页面上永远画不出来：
+        # 只留 ZHS 和各文种的 dflt（两个引擎逐页渲染与全保留时像素相同）
+        for tag in ("GSUB", "GPOS"):
+            if "CJK" in f and tag in tt:
+                for sr in tt[tag].table.ScriptList.ScriptRecord:
+                    sr.Script.LangSysRecord = [r for r in sr.Script.LangSysRecord if r.LangSysTag == "ZHS "]
+                    sr.Script.LangSysCount = len(sr.Script.LangSysRecord)
         o = ftsub.Options()
         o.flavor = "woff2"
         o.layout_features = ["*"]
         s = ftsub.Subsetter(o)
-        s.populate(text="".join(sorted(chars)))
+        # 每个子集都带上空格：WebKit 遇到没有空格的子集，会去找同名的前一个 @font-face（如共用的 Lora）补空格，多下载一个整字体
+        s.populate(text="".join(sorted(chars | {" "})))
         s.subset(tt)
         tt.flavor = "woff2"
         tt.save(path)

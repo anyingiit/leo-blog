@@ -6,9 +6,10 @@
 PDF 去掉首末的声明页后逐页渲染像素、文字层（不含页脚）、链接相同。
 CI 里没有原文件，这一项跳过；无损瘦身由合成 PDF 的测试覆盖，加声明由合成 HTML 的测试和对每份下载文件的检查覆盖。
 """
-import base64, glob, hashlib, importlib.util, json, os, re, subprocess, sys, tempfile, unittest
+import base64, glob, io, hashlib, importlib.util, json, os, re, subprocess, sys, tempfile, unittest
 
 import pikepdf, pypdf, pypdfium2
+from fontTools.ttLib import TTFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
@@ -292,6 +293,11 @@ class PublishedFiles(unittest.TestCase):
                     self.assertEqual(sorted(n for _, n in faces), sorted(os.listdir(os.path.join(d, "fonts"))) if faces else [], f"{c['slug']} {ch['slug']} fonts/")
                     for f, b64 in inline:
                         self.assertLessEqual(len(base64.b64decode(b64)), chapters.INLINE, f"{c['slug']} {ch['slug']} {f}")
+                    # 中文字体只留简体（ZHS）和默认的字形变体：页面是 lang="zh"，日韩繁的 locl 变体画不出来，留着每章多 250 KB
+                    for f, data in [(f, open(os.path.join(d, "fonts", n), "rb").read()) for f, n in faces if "cjk" in f] + [(f, base64.b64decode(b)) for f, b in inline if "cjk" in f]:
+                        tt = TTFont(io.BytesIO(data))
+                        langs = {r.LangSysTag for t in ("GSUB", "GPOS") if t in tt for sr in tt[t].table.ScriptList.ScriptRecord for r in sr.Script.LangSysRecord}
+                        self.assertLessEqual(langs, {"ZHS "}, f"{c['slug']} {ch['slug']} {f} 带了其他语言的字形变体")
                     # 只写起点的行（省掉逐字坐标）：浏览器按字体排出的位置要和 PDF 一样，Fonts.layout 在导入时逐行核对过
                     self.assertRegex(orig, r'<text x="[\d.]+" y=', f"{c['slug']} {ch['slug']} 没有只写起点的行")
                 fns = os.path.join(DIR, c["slug"], name, "footnotes", "index.md")
