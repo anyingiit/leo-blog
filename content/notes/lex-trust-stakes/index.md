@@ -3,6 +3,7 @@ title: "信任和赌注：AI适合的地方"
 slug: lex-trust-stakes
 date: 2026-10-31T12:45:00Z
 tags: [随笔]
+images: [slide-3-03-30.png]
 ---
 
 > **Alex Kontorovich**：但也正因为如此，我们并不想把那么多决策——远远没有那么多——交给这些系统去做。
@@ -11,6 +12,6 @@ tags: [随笔]
 >
 > 所以像设计优化这样的领域非常适合AI，而我们人类必须非常小心，不要滑进——我们需要一道防火墙，划清哪些东西真正需要验证。我们有规程，有体系，有法律体系，有用于验证的基础设施。但这是我们必须认真考虑的事。如果我们变懒了……我们可能会——这是一道很滑的斜坡。我们需要那道防火墙。
 
-{{< theme-svg src="trust-stakes.svg" alt="示意图：纵轴是能否验证（信任），横轴是出错的代价（赌注），中间一道虚线是防火墙。左上角，易验证、出错代价低，是最适合 AI 的地方，例如证明和车型设计；防火墙右边是安全攸关、影响重大的决策，要先过已有规程（FAA、医学会、律师协会）的验证；一条箭头提示，一偷懒就会滑过界。" >}}
+![视频里的幻灯片：信任和赌注，AI 适合的地方](slide-3-03-30.png)
 
-摘自Lex Fridman播客第503期[视频（3:02:13起）](https://www.youtube.com/watch?v=ZAzWPE9CItg&t=10933s)，英文原文见[官网转录稿](https://lexfridman.com/math-ai-crisis-transcript#chapter11_why_llms_work_so_well)，中文为本站译文，示意图为本站根据这段话所画。
+摘自Lex Fridman播客第503期[视频（3:02:13起）](https://www.youtube.com/watch?v=ZAzWPE9CItg&t=10933s)，英文原文见[官网转录稿](https://lexfridman.com/math-ai-crisis-transcript#chapter11_why_llms_work_so_well)，中文为本站译文，图为视频 3:03:30 的画面（图中文字由本站译成中文）。
