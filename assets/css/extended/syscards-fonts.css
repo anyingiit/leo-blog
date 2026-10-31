@@ -1,4 +1,5 @@
-/* 系统卡原版版式文字层用的字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载 */
+/* 系统卡原版版式文字层用的西文字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载。
+   中文字体按章取子集，@font-face 在各章 original.html 开头 */
 @font-face { font-family: "sc-lorabold"; src: url(/translations/system-cards/fonts/Lora-Bold.woff2) format("woff2"); font-display: block; }
 .sc-lorabold { font-family: "sc-lorabold"; }
 @font-face { font-family: "sc-lorabolditalic"; src: url(/translations/system-cards/fonts/Lora-BoldItalic.woff2) format("woff2"); font-display: block; }
@@ -7,16 +8,6 @@
 .sc-loraitalic { font-family: "sc-loraitalic"; }
 @font-face { font-family: "sc-loraregular"; src: url(/translations/system-cards/fonts/Lora-Regular.woff2) format("woff2"); font-display: block; }
 .sc-loraregular { font-family: "sc-loraregular"; }
-@font-face { font-family: "sc-notosanscjksc"; src: url(/translations/system-cards/fonts/NotoSansCJKSC.woff2) format("woff2"); font-display: block; }
-.sc-notosanscjksc { font-family: "sc-notosanscjksc"; }
-@font-face { font-family: "sc-notosanscjkscbold"; src: url(/translations/system-cards/fonts/NotoSansCJKSCBold.woff2) format("woff2"); font-display: block; }
-.sc-notosanscjkscbold { font-family: "sc-notosanscjkscbold"; }
-@font-face { font-family: "sc-notosansmonocjksc"; src: url(/translations/system-cards/fonts/NotoSansMonoCJKSC.woff2) format("woff2"); font-display: block; }
-.sc-notosansmonocjksc { font-family: "sc-notosansmonocjksc"; }
-@font-face { font-family: "sc-notoserifcjksc"; src: url(/translations/system-cards/fonts/NotoSerifCJKSC.woff2) format("woff2"); font-display: block; }
-.sc-notoserifcjksc { font-family: "sc-notoserifcjksc"; }
-@font-face { font-family: "sc-notoserifcjkscbold"; src: url(/translations/system-cards/fonts/NotoSerifCJKSCBold.woff2) format("woff2"); font-display: block; }
-.sc-notoserifcjkscbold { font-family: "sc-notoserifcjkscbold"; }
 @font-face { font-family: "sc-poppinsmedium"; src: url(/translations/system-cards/fonts/Poppins-Medium.woff2) format("woff2"); font-display: block; }
 .sc-poppinsmedium { font-family: "sc-poppinsmedium"; }
 @font-face { font-family: "sc-poppinssemibold"; src: url(/translations/system-cards/fonts/Poppins-SemiBold.woff2) format("woff2"); font-display: block; }

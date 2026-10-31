@@ -4,7 +4,7 @@
   第 1 页（标题前的封面）单独一章。页码标记换成和 S-1 译本相同的分页线（{{< s1-page N >}}：第 N 页到此结束）。
 原版版式：PDF 每页拆成两层，叠起来和 PDF 逐像素几乎相同（test_import.py 对比渲染结果）：
   - 底图：去掉流水线排入的文字（中文和沿用英文的字体，见 FONTS）后渲染成 WebP，留下原版的图、线、色块和流水线没动过的原文文字；
-  - 文字层：一个 SVG，每段文字一个 <text>，每个字的横坐标取自 PDF（x 列表），字体是流水线排版用的同一套字体（按全部卡用到的字取子集）。
+  - 文字层：一个 SVG，每段文字一个 <text>，每个字的横坐标取自 PDF（x 列表），字体是流水线排版用的同一套字体（西文按全部卡、中文按章用到的字取子集）。
     文字可以选中、复制、在页内搜索；字体只在打开原版版式时才下载。
   字体里没有的字（PDF 的 ToUnicode 偶尔把一个字形映射到不相干的码位，比如两字线「——」映射成 U+054C）这一段留在底图上，不进文字层。
 """
@@ -36,12 +36,14 @@ def font_class(f):
 
 
 class Fonts:
-    """全部卡共用的字体子集：记下每种字体用到的字，最后一次性生成 woff2 和 @font-face"""
+    """文字层的字体子集。西文字体（Lora、Poppins、Roboto Mono）小，全部卡共用一份；中文字体大（全部卡用到的字取子集也有
+    0.1–0.5 MB 一个），按章取子集：每章只下载这一章用到的字（网页性能预算，tests/perf.test.mjs）"""
 
     def __init__(self, src):
         self.dir = os.path.join(src, FONT_DIR)
         self.cmaps = {f: set(TTFont(os.path.join(self.dir, f)).getBestCmap()) for f in set(FONTS.values())}
-        self.used = {}
+        self.used = {}  # 共用的字体 → 用到的字
+        self.chapter = {}  # 这一章的中文字体 → 用到的字（begin_chapter 清空）
 
     def file_for(self, pdf_font):
         return FONTS.get(re.sub(r"[^a-z]", "", pdf_font.lower()))
@@ -50,27 +52,49 @@ class Fonts:
         return all(ord(c) in self.cmaps[f] for c in text)
 
     def use(self, f, text):
-        self.used.setdefault(f, set()).update(text)
+        (self.chapter if "CJK" in f else self.used).setdefault(f, set()).update(text)
+
+    def begin_chapter(self):
+        self.chapter = {}
+
+    def _subset(self, f, chars, path):
+        tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
+        o = ftsub.Options()
+        o.flavor = "woff2"
+        o.layout_features = ["*"]
+        s = ftsub.Subsetter(o)
+        s.populate(text="".join(sorted(chars)))
+        s.subset(tt)
+        tt.flavor = "woff2"
+        tt.save(path)
+
+    @staticmethod
+    def _face(f, url):
+        fam = font_class(f)
+        return f'@font-face {{ font-family: "{fam}"; src: url({url}) format("woff2"); font-display: block; }}\n.{fam} {{ font-family: "{fam}"; }}'
 
     def write(self, out_dir):
-        """生成 out_dir/<字体>.woff2，返回 CSS（@font-face 和对应的 class）"""
+        """共用字体：生成 out_dir/<字体>.woff2，返回 CSS（@font-face 和对应的 class）"""
         os.makedirs(out_dir, exist_ok=True)
         css = []
         for f in sorted(self.used):
-            tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
-            o = ftsub.Options()
-            o.flavor = "woff2"
-            o.layout_features = ["*"]
-            s = ftsub.Subsetter(o)
-            s.populate(text="".join(sorted(self.used[f])))
-            s.subset(tt)
             name = f.split(".")[0] + ".woff2"
-            tt.flavor = "woff2"
-            tt.save(os.path.join(out_dir, name))
-            fam = font_class(f)
-            css.append(f'@font-face {{ font-family: "{fam}"; src: url(fonts/{name}) format("woff2"); font-display: block; }}')
-            css.append(f'.{fam} {{ font-family: "{fam}"; }}')
+            self._subset(f, self.used[f], os.path.join(out_dir, name))
+            css.append(self._face(f, f"fonts/{name}"))
         return "\n".join(css) + "\n"
+
+    def write_chapter(self, out_dir):
+        """这一章的中文字体：生成 out_dir/<字体>.woff2，返回放在原版版式开头的 <style>（网址写成占位 scfont:<文件名>，
+        模板换成发布后的地址，同底图的 scimg:）。没有用到中文字体时返回空串"""
+        if not self.chapter:
+            return ""
+        os.makedirs(out_dir, exist_ok=True)
+        css = []
+        for f in sorted(self.chapter):
+            name = f.split(".")[0] + ".woff2"
+            self._subset(f, self.chapter[f], os.path.join(out_dir, name))
+            css.append(self._face(f, f"scfont:{name}"))
+        return "<style>" + "\n".join(css) + "</style>"
 
 
 def original_pages(pdf_path, pages, fonts, out_dir):

@@ -237,6 +237,9 @@ test("章节页：重排版没有漏掉的 Markdown，页码分隔和原版版�
       const sheets = [...tpl.matchAll(/aria-label="原文第 (\d+) 页"/g)].map((m) => +m[1]);
       assert.deepEqual(sheets, Array.from({ length: b - a + 1 }, (_, k) => a + k), `${p} 原版版式的页`);
       for (const m of tpl.matchAll(/class="?sc-bg"?[^>]*src="?([^\s>"]+)/g)) assert.ok(site.exists(m[1]), `${p} 底图 ${m[1]} 没有发布`);
+      // 中文字体按章取子集（章节目录 fonts/），模板把占位 scfont: 换成发布后的地址
+      assert.ok(!tpl.includes("scfont:"), `${p} 字体占位没有换掉`);
+      for (const m of tpl.matchAll(/url\(([^)]+\.woff2)\)/g)) assert.ok(site.exists(m[1]), `${p} 字体 ${m[1]} 没有发布`);
       for (const m of reflow.matchAll(/href="?\.\.\/footnotes\/#fn-(\d+)/g)) if (!fnIds.has(m[1])) missing.push(m[1]);
       const prev = c.v.chapters[i - 1], next = c.v.chapters[i + 1];
       if (prev) assert.match(html, new RegExp(`class="?prev"? href="?\\.\\./${prev.slug}/"?>`), `${p} 上一章`);

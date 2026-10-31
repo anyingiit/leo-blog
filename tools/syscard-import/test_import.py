@@ -284,6 +284,11 @@ class PublishedFiles(unittest.TestCase):
                     pages = range(ch["pages"][0], ch["pages"][1] + 1)
                     self.assertEqual(re.findall(r'aria-label="原文第 (\d+) 页"', orig), [str(p) for p in pages], f"{c['slug']} {ch['slug']}")
                     self.assertEqual(sorted(os.listdir(os.path.join(d, "bg"))), [f"p{p:03d}.webp" for p in pages])
+                    # 中文字体按章取子集：用到的中文字体都在本章 fonts/ 下，@font-face 在 original.html 开头
+                    cjk = sorted(set(re.findall(r'class="(sc-noto[a-z]*cjk[a-z]*)"', orig)))
+                    faces = re.findall(r'font-family: "(sc-[a-z]+)"; src: url\(scfont:([\w-]+\.woff2)\)', orig)
+                    self.assertEqual(sorted(f for f, _ in faces), cjk, f"{c['slug']} {ch['slug']} 中文字体")
+                    self.assertEqual(sorted(n for _, n in faces), sorted(os.listdir(os.path.join(d, "fonts"))) if cjk else [], f"{c['slug']} {ch['slug']} fonts/")
                 fns = os.path.join(DIR, c["slug"], name, "footnotes", "index.md")
                 if os.path.exists(fns):
                     defs = set(re.findall(r"\{\{< sc-fn (\d+) >\}\}", open(fns, encoding="utf-8").read()))

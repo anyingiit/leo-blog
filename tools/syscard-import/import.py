@@ -273,8 +273,10 @@ def main():
                     im = im.resize((1600, round(im.height * 1600 / im.width)), Image.LANCZOS)
                 im.save(os.path.join(cdir, webp), quality=90, method=6)
                 ch["lines"] = [l.replace(f"]({img})", f"]({webp})") for l in ch["lines"]]
+            fonts.begin_chapter()
             sheets = chapters.original_pages(p_src, range(ch["pages"][0], ch["pages"][1] + 1), fonts, os.path.join(cdir, "bg"))
-            open(os.path.join(cdir, "original.html"), "w", encoding="utf-8").write("\n".join(sheets) + "\n")
+            style = fonts.write_chapter(os.path.join(cdir, "fonts"))  # 这一章用到的中文字（按章取子集）
+            open(os.path.join(cdir, "original.html"), "w", encoding="utf-8").write(style + "\n".join(sheets) + "\n")
             # 这一章里有没有译者另行翻译的部分（2.2 节、零散段落）：目录里标出来
             sep = ch["pages"][0] <= f22["s22"][1] and f22["s22"][0] <= ch["pages"][1]
             sep = sep or any(ch["pages"][0] <= int(p) <= ch["pages"][1] for p in re.findall(r"\d+", f22["scatteredPages"]))
@@ -304,7 +306,7 @@ def main():
     shutil.rmtree(fdir, ignore_errors=True)
     css = fonts.write(fdir).replace("url(fonts/", "url(/translations/system-cards/fonts/")
     open(os.path.join(REPO, "assets/css/extended/syscards-fonts.css"), "w", encoding="utf-8").write(
-        "/* 系统卡原版版式文字层用的字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载 */\n" + css)
+        "/* 系统卡原版版式文字层用的西文字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载。\n   中文字体按章取子集，@font-face 在各章 original.html 开头 */\n" + css)
 
     common = dict(type="syscards", date=a.date, sourceCommit=commit, sourceDate=commit_date,
                   cascade=dict(type="syscards"), ShowReadingTime=False, ShowWordCount=False, hideAuthor=True)
