@@ -58,3 +58,18 @@ test("主题测试的本站构建不读 content/", () => {
   const hugo = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../hugo.yaml"), "utf8");
   assert.doesNotMatch(hugo, /^\s*mounts:/m, "hugo.yaml 里加了 module mounts，要重新确认 content/ 之外有没有被主题测试读到的内容");
 });
+
+// 被计划跳过的矩阵任务不展开矩阵，名字里的 ${{ matrix.* }} 会原样显示在检查列表里（「Browser tests (${{ matrix.browser }}-…)」），
+// 看上去像出了错。会被跳过（有 if:）的矩阵任务名字里不写表达式，GitHub 运行时自动在后面加上矩阵的值
+test("会被跳过的矩阵任务，名字里没有表达式", () => {
+  const ci = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../.github/workflows/ci.yml"), "utf8");
+  const body = ci.split(/^jobs:\n/m)[1];
+  const jobs = body.split(/^(?=  [\w-]+:\s*$)/m).filter((b) => /^  [\w-]+:/.test(b));
+  const skippable = jobs.filter((b) => /^    if:/m.test(b) && /^      matrix:/m.test(b));
+  const ids = skippable.map((b) => b.match(/^  ([\w-]+):/)[1]);
+  for (const id of ["regression", "visual"]) assert.ok(ids.includes(id), `${id} 应是会被计划跳过的矩阵任务`);
+  for (const b of skippable) {
+    const name = b.match(/^    name:\s*(.*)$/m)?.[1] ?? "";
+    assert.doesNotMatch(name, /\$\{\{/, `${b.match(/^  ([\w-]+):/)[1]} 的名字 ${name}`);
+  }
+});
