@@ -7,7 +7,7 @@
 | 测试 | 覆盖什么 | CI 里的步骤 |
 | --- | --- | --- |
 | `tests/site.test.mjs` | 站点整体：短文栏目、中英文副本、英文配图、公式/Mermaid/提示框、访问统计只在正式站加载、`build.sh` 预览地址、CDN 版本锁定、本站提供的 Mermaid（详见下文） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
-| `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
+| `tests/ci-plan.test.mjs` | CI 跳过测试的规则：只在输入确实没变时跳过；会被跳过的矩阵任务名字里不写表达式（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/ci-shards.test.mjs` | 回归测试分组 `tests/ci-shards.mjs`：每个测试文件在且只在一组里跑、拆开的文件两半互补、新文件自动分组、组数和 ci.yml 的 matrix 一致、按名字筛选落空时算失败（见「CI 并行」） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/ci-coverage.test.mjs` | 覆盖检查脚本 `tests/ci-coverage.mjs` 本身，以及本仓库每个测试文件都在 CI 里执行 | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
 | `tests/build.test.mjs`、`tests/browser.test.mjs` | 图片处理（WebP、尺寸档位）、短文原位分组、折叠、图集（见 [tests/README.md](../tests/README.md)） | Regression tests（按 `tests/ci-shards.mjs` 分 5 组） |
@@ -103,6 +103,7 @@ PR 合并后可以删掉对应的 `ci-baselines/` 分支。
    - 只改 `content/`、`docs/`、根目录 `.md` 时跳过视觉测试，站点回归测试照跑。主题测试的本站只用 `tests/theme/site-fixture` 里的固定文章构建，不读 `content/`，文档也不进入任何构建，所以视觉测试的输入和 main 完全相同。
    - 合并 PR 产生的 main 提交，文件树和 PR 分支最后一个提交完全相同（PR 合并前已包含最新 main，几乎总是如此），而那个提交的 PR CI 已经通过时，main 上不再重复跑。
    - 手动运行（Run workflow）、拿不到改动列表、或者改到上面以外的任何文件，都全跑。
+   - 被跳过的矩阵任务不展开矩阵，名字里的 `${{ matrix.* }}` 会原样显示在 PR 的检查列表里，像出了错（2026-10-31 前的「Browser tests (${{ matrix.browser }}-${{ matrix.device }})」）。所以 Regression tests 和 Browser tests 的名字里不写表达式，由 GitHub 在运行时自动加上矩阵的值：运行时显示「Regression tests (1/5)」「Browser tests (chromium-desktop)」，跳过时显示「Regression tests」「Browser tests」。矩阵因此写成一个值一项（`shard: [1/5, …]`、`project: [chromium-desktop, …]`）；`ci-plan.test.mjs` 检查会被跳过的矩阵任务名字里没有表达式。
 6. Hugo 处理过的图片（`resources/_gen`）用 `actions/cache` 跨运行复用，整站冷构建约 55 秒，有缓存约 2 秒；每组回归测试都恢复缓存，由第 1 组保存。Hugo 按源文件和处理参数给缓存文件命名，内容变了就会重新生成；Hugo 版本（`build.sh`）或图片渲染钩子（`layouts/_markup/`）变了，整份缓存作废。
 
 如果仓库改回私有，这样拆会让计费分钟大约翻倍（每个任务都要拉一次 Playwright 镜像、各自向上取整），到时候要重新权衡。
