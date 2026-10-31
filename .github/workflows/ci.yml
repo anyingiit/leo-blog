@@ -70,8 +70,7 @@ jobs:
           else
             files=""
           fi
-          # 临时（演示用，验证后撤回）：按"main 上已测过的合并提交"计划，两种测试都跳过
-          printf 'layouts/x.html\n' | GITHUB_EVENT_NAME=push node tests/ci-plan.mjs --tested
+          printf '%s\n' "$files" | node tests/ci-plan.mjs $tested
 
   # 任务名不要改：main 的保护规则要求这个检查通过
   lint:
