@@ -166,8 +166,9 @@ test("草稿不发布", () => {
 
 // ── 中英文副本（项目规则：每篇文章都有英文副本）─────────────────────────
 
-// 例外：S-1 这类英文文件的中文译本（translations/<译本>/<版本>/），英文版就是原文（SEC 上的原件），只在译本首页给英文说明
-const isS1Version = (f) => /^translations\/[^/]+\/v[^/]+\//.test(f);
+// 例外：S-1、系统卡这类英文文件的中文译本的版本和章节（translations/<译本>/<版本>/、translations/system-cards/<卡>/<版本>/），
+// 英文版就是原文（Anthropic 官网、SEC 上的原件），只在译本首页给英文说明
+const isS1Version = (f) => /^translations\/(system-cards\/)?[^/]+\/v[^/]+\//.test(f);
 
 test("每篇已发布的中文文章都有英文副本，反之亦然", () => {
   for (const f of contentFiles.filter((f) => !isDraft(f) && !isS1Version(f))) {
@@ -368,10 +369,13 @@ test("Mermaid 引用的每个分块都发布了，页面上的地址在构建结
   assert.ok(seen.size > 50, `只找到 ${seen.size} 个分块，解析 import 的正则可能失效了`);
 });
 
-test("Mermaid 文件设了长期缓存，其他文件不受影响", () => {
+test("Mermaid 文件和系统卡字体（文件名带内容哈希）设了长期缓存，其他文件不受影响", () => {
   const headers = readFileSync(join(site.out, "_headers"), "utf8");
   assert.match(headers, /^\/vendor\/mermaid\/\*\n\s+Cache-Control: public, max-age=31536000, immutable$/m);
-  assert.equal(headers.match(/immutable/g).length, 1);
+  // 只有这几处：其他文件名不带哈希，长期缓存会让读者看不到更新
+  const paths = [...headers.matchAll(/^(\S+)\n\s+Cache-Control: [^\n]*immutable$/gm)].map((m) => m[1]);
+  assert.deepEqual(paths, ["/vendor/mermaid/*", "/translations/system-cards/fonts/*", "/translations/system-cards/:card/:version/fonts/*"]);
+  assert.equal(headers.match(/immutable/g).length, paths.length);
 });
 
 test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，版本不同会找不到浏览器）", () => {

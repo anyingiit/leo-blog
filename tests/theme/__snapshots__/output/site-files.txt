@@ -203,6 +203,13 @@ translations/page/1/index.html
 translations/sample-essay/files/sample-essay-zh-en-v1.0.html
 translations/sample-essay/files/sample-essay-zh-en-v1.0.pdf
 translations/sample-essay/index.html
+translations/system-cards/fonts/Lora-Bold.d495df10.woff2
+translations/system-cards/fonts/Lora-BoldItalic.a120d07c.woff2
+translations/system-cards/fonts/Lora-Italic.f00aab42.woff2
+translations/system-cards/fonts/Lora-Regular.e7d1862d.woff2
+translations/system-cards/fonts/Poppins-Medium.2f488877.woff2
+translations/system-cards/fonts/Poppins-SemiBold.77eeea62.woff2
+translations/system-cards/fonts/RobotoMono-Regular.9a153e31.woff2
 vendor/mermaid/11.17.2/LICENSE
 vendor/mermaid/11.17.2/chunks/mermaid.esm.min/abnfDiagram-PAR5IXJI.mjs
 vendor/mermaid/11.17.2/chunks/mermaid.esm.min/architecture-7GRP2DOG-M7G3SWCO.mjs

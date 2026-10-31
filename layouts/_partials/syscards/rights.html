@@ -1,0 +1,6 @@
+{{- /* 页面底部：权利归属和下架联系方式（同 S-1 的 s1/rights.html，去掉投资建议那句） */ -}}
+{{- if eq .Lang "zh" }}
+<p class="s1-rights">原文及其中文字、图表、商标的全部权利归 Anthropic, PBC 所有，本站仅提供非官方 AI 译本，仅供参考，后果自负。下架请求：{{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}。</p>
+{{- else }}
+<p class="s1-rights">All rights in the original, including text, figures and trademarks, belong to Anthropic, PBC. This site only hosts unofficial AI translations for reference; use them at your own risk. Takedown requests: {{ with site.Params.s1Contact }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}.</p>
+{{- end }}

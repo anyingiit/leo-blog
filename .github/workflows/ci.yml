@@ -111,6 +111,7 @@ jobs:
   # image-i18n 英文配图脚本，并核对 content/ 里提交的英文图和描述文件一致（docs/image-translation.md）；
   # s1-import S-1 译本发布工具，并核对已发布版本的冻结下载文件（PDF 页数、每页「非官方」标记、文字层、sha256；docs/testing.md）；
   # bilingual-import 双语对照译文的导入、发布工具，并核对每篇已发布的冻结下载文件（docs/bilingual-translations.md）
+  # syscard-import Anthropic 系统卡中文译本的导入工具（PDF 无损瘦身、重排版和原版版式），并核对导入的每份下载文件（docs/system-cards.md）
   python:
     name: Python tests (${{ matrix.tool }})
     runs-on: ubuntu-latest
@@ -118,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tool: [tools/image-i18n, tools/s1-import, tools/bilingual-import]
+        tool: [tools/image-i18n, tools/s1-import, tools/bilingual-import, tools/syscard-import]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

@@ -1,0 +1,84 @@
+{{- /*
+  Anthropic 系统卡中文译本的栏目页、每份卡的首页和版本页（tools/syscard-import/import.py 生成），和 S-1 译本同一套结构和样式：
+  - 栏目页（content/translations/system-cards/_index.md）：简短声明，每份卡一条 PaperMod 文章条目（标题、原版发布日期和页数；没有摘要，同 PaperMod 无摘要的条目），顺序同 Anthropic 官网系统卡列表（weight）
+  - 卡片首页（<卡>/_index.md）：和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版和英文原版、下载卡片、最新版目录、全部版本；
+    英文页同 S-1 英文页：标题、说明（声明各条写成段落）和中文译本的链接
+  - 版本页（<卡>/<版本>/_index.md）：该版本的目录（同 S-1 版本页）
+  章节页见 single.html。版本只增不改，每个版本有固定网址
+*/ -}}
+{{- define "main" }}
+{{- $en := ne .Lang "zh" }}
+{{- if .Params.version }}
+  {{- $m := partial "syscards/meta.html" . }}
+  <header class="page-header s1-header">
+    <div class="s1-crumb"><a href="{{ $m.column.RelPermalink }}">{{ $m.column.Title }}</a> › <a href="{{ $m.root.RelPermalink }}">{{ strings.TrimSuffix "中文译本" $m.root.Title }}</a></div>
+    <h1>{{ .Params.version }} 目录</h1>
+  </header>
+  {{- partial "syscards/versionbar.html" (dict "page" .) }}
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" true) }}
+  {{- partial "syscards/downloads.html" (dict "v" . "style" "cards") }}
+  {{- partial "syscards/toc.html" . }}
+  {{- partial "syscards/rights.html" . }}
+{{- else if .Params.latest }}
+  {{- $m := partial "syscards/meta.html" . }}
+  {{- $l := $m.latest }}
+  <header class="page-header s1-header">
+    {{- with .Parent }}<div class="s1-crumb"><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>{{ end }}
+    <h1>{{ .Title }}</h1>
+    {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+  </header>
+  {{- if $en }}
+  {{- /* 英文页同 S-1 英文页：只有一段段说明和中文译本的链接，没有下载和版本表 */}}
+  <div class="post-content" id="notice">
+    {{- range findRE `<li>[\s\S]*?</li>` (partial "syscards/notice.html" (dict "page" . "card" true)) }}
+    {{ replaceRE `^<li>([\s\S]*)</li>$` "<p>$1</p>" . | safeHTML }}
+    {{- end }}
+    {{- with .Translations }}{{ range first 1 . }}
+    <p>The Chinese translation: <a href="{{ .RelPermalink }}">{{ .RelPermalink }}</a></p>
+    {{- end }}{{ end }}
+  </div>
+  {{- else }}
+  {{- partial "syscards/notice.html" (dict "page" . "card" true) }}
+  <div class="s1-cta">
+    <a class="s1-btn" href="{{ $l.RelPermalink }}{{ (index $l.Params.chapters 0).slug }}/">开始阅读最新版 {{ $l.Params.version }}</a>
+    <a href="{{ .Params.official }}" rel="noopener">英文原版（Anthropic）</a>
+  </div>
+  {{- partial "syscards/downloads.html" (dict "v" $l "style" "cards") }}
+  <h2>目录（{{ $l.Params.version }}）</h2>
+  {{- partial "syscards/toc.html" $l }}
+  <h2 id="versions">全部版本</h2>
+  <table class="s1-versions">
+    <thead><tr><th>译本版本</th><th>定稿</th><th class="s1-dl-col">全文下载</th></tr></thead>
+    <tbody>
+    {{- range $m.versions }}
+      <tr><td><a href="{{ .RelPermalink }}">{{ .Params.version }}</a>{{ if eq . $l }} <span class="s1-vtag s1-latest">最新</span>{{ end }}</td>
+        <td><span class="sc-nobr">{{ .Params.versionDate }}</span></td>
+        <td class="s1-dl-col">{{ partial "syscards/downloads.html" (dict "v" . "style" "line") }}</td></tr>
+    {{- end }}
+    </tbody>
+  </table>
+  <p class="s1-small">历史版本只增不改：每个版本有自己的固定网址，发布后内容不再变动。</p>
+  {{- partial "syscards/rights.html" . }}
+  {{- end }}
+{{- else }}
+  <header class="page-header s1-header">
+    <h1>{{ .Title }}</h1>
+    {{- with .Description }}<div class="post-description">{{ . }}</div>{{ end }}
+  </header>
+  {{- partial "syscards/notice-short.html" (dict "page" . "card" false) }}
+  {{- /* 每份卡一条 PaperMod 文章条目，和「译文」栏目页一样：标题、原版发布日期和页数，整条可点进卡片首页（用户 2026-10-31：列表要简约） */}}
+  {{- range .Sections.ByWeight }}
+  {{- $name := cond $en .Params.titleEn (strings.TrimSuffix "中文译本" .Title) }}
+  {{- $released := time.AsTime .Params.released }}
+  <article class="post-entry" id="{{ path.Base .RelPermalink }}">
+    <header class="entry-header"><h2 class="entry-hint-parent">{{ $name }}</h2></header>
+    {{- /* 卡片没有摘要：同 PaperMod list.html 对无摘要文章的输出（空的 entry-content），标题和日期之间留出同样的间距（用户 2026-10-31：太紧） */}}
+    <div class="entry-content"><p></p></div>
+    <footer class="entry-footer"><span title="{{ $released.Format "2006-01-02T15:04:05-07:00" }}">{{ $released | time.Format (default ":date_long" site.Params.DateFormat) }}</span>&nbsp;·&nbsp;{{ if $en }}{{ .Params.pages }} pages{{ else }}{{ .Params.pages }}&nbsp;页{{ end }}</footer>
+    <a class="entry-link" aria-label="{{ if $en }}post link to {{ end }}{{ $name }}" href="{{ .Permalink }}"></a>
+  </article>
+  {{- end }}
+  {{- partial "syscards/rights.html" . }}
+{{- end }}
+{{- partial "s1/script.html" . }}
+{{- end }}

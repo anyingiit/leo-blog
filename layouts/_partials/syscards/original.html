@@ -1,0 +1,23 @@
+{{- /*
+  原版版式：输出一章的 original.html（导入工具从 PDF 生成，见 tools/syscard-import/chapters.py）：每页一张去掉文字的底图 + 一层 SVG 文字。
+  底图占位 scimg:<文件名> 换成章节目录 bg/ 里的 WebP（导入时已是 2 倍清晰度的 WebP，原样发布），懒加载。
+  外层结构和 S-1 的原版版式相同（.s1-sheets / .s1-sheet），缩放、页码、全屏阅读都用 s1.js。参数 dict "page" 章节页
+*/ -}}
+{{- $page := .page -}}
+{{- $html := "" -}}
+{{- with $page.Resources.Get "original.html" }}{{ $html = .Content }}{{ end -}}
+{{- range uniq (findRESubmatch `scimg:([^"]+)` $html) -}}
+  {{- $name := index . 1 -}}
+  {{- with $page.Resources.Get (printf "bg/%s" $name) -}}
+    {{- $html = replace $html (printf "scimg:%s" $name) .RelPermalink -}}
+  {{- else -}}
+    {{- errorf "%s: 找不到底图 bg/%s" $page.File.Path $name -}}
+  {{- end -}}
+{{- end -}}
+{{- /* 开头的 @font-face 由 syscards/font-css.html 换好字体地址、放进 <head>（syscards/font-preload.html），这里去掉 */ -}}
+{{- $html = replaceRE `^<style>[\s\S]*?</style>` "" $html 1 -}}
+{{- with findRE `(scfont|sccard):` $html 1 }}{{ errorf "%s: original.html 开头的 <style> 之外还有字体占位" $page.File.Path }}{{ end -}}
+{{- $html = replace $html `<img class="sc-bg" ` `<img class="sc-bg" loading="lazy" decoding="async" ` -}}
+<div class="s1-sheets sc-sheets" data-first-page="{{ index $page.Params.pages 0 }}">
+  <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>
+</div>

@@ -1,0 +1,23 @@
+/* Anthropic 系统卡中文译本（layouts/syscards/）：结构、声明框、版本条、目录、下载、原版版式和全屏阅读都沿用 S-1 译本（s1.css、s1.js），
+   这里只有系统卡自己的部分；原版版式文字层的字体在 syscards-fonts.css（导入工具生成） */
+/* 页码范围「第 11–18 页」和日期整体换行，不在短横处拆开 */
+.sc-nobr { white-space: nowrap; }
+/* 目录里含译者另行翻译部分的章节 */
+.sc-sep { display: inline-block; margin-inline-start: 6px; padding: 0 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; color: var(--secondary); white-space: nowrap; vertical-align: 1px; }
+/* 原版版式：一页 = 底图（PDF 去掉文字后渲染）+ 同尺寸的 SVG 文字层（每个字按 PDF 坐标定位） */
+.sc-sheet { position: relative; margin: 10px auto; background: #fff; overflow: hidden; }
+.sc-sheet .sc-bg, .sc-sheet svg { position: absolute; inset: 0; width: 100% !important; height: 100% !important; margin: 0; }
+.sc-sheet svg text { white-space: pre; font-kerning: none; font-variant-ligatures: none; text-spacing-trim: space-all; text-rendering: geometricPrecision; }
+/* s1.js 运行前的重排版（single.html 的内联脚本）：不排版，先占一屏高，页脚不会先露出来再被原版版式推下去 */
+.sc-pre .s1-reflow { content-visibility: hidden; contain-intrinsic-block-size: 100vh; }
+.sc-sheet svg ::selection { fill: #fff; background: #3367d6; }
+/* 章节本身带编号（1 引言、2 RSP 评估），目录不再加列表序号 */
+.sc-toc { list-style: none; padding-inline-start: 0; }
+/* S-1 的重排版把小标题居中（招股书的版式）；系统卡原版的小标题左对齐 */
+.sc-chapter .s1-reflow :is(h2, h3, h4, h5, h6) { text-align: start; }
+/* 卡片首页的简短声明不折叠，「完整声明」链到页内 */
+/* 手机上章节页首屏要露出正文：日期在卡片首页和版本页都有，章节页的版本条只留版本号和全文下载 */
+@media (max-width: 600px) {
+  .sc-chapter .s1-vbar > span:not([class]) { display: none; }
+  .sc-chapter .s1-chtoc { margin: 4px 0 8px; }
+}

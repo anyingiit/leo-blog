@@ -1,0 +1,19 @@
+{{- /*
+  一份卡（版本页 .）各章原版版式用到、又没有直接嵌入 original.html 的共用西文字体网址（syscards-fonts.css）。
+  font-preload.html 在后台下载整卡字体时一起下载，换章时西文字也不再空白。按版本 partialCached，每份卡只算一次。
+*/ -}}
+{{- $shared := dict }}
+{{- with resources.Get "css/extended/syscards-fonts.css" }}
+  {{- range findRESubmatch `font-family: "(sc-[a-z]+)"; src: url\(([^)]+)\)` .Content }}{{ $shared = merge $shared (dict (index . 1) (index . 2)) }}{{ end }}
+{{- end }}
+{{- $urls := slice }}
+{{- range .Pages }}
+  {{- with .Resources.Get "original.html" }}
+    {{- $html := .Content }}
+    {{- range uniq (findRESubmatch `class="(sc-[a-z]+)[ "]` $html) }}
+      {{- $fam := index . 1 }}
+      {{- with index $shared $fam }}{{ if not (findRE (printf `font-family: "%s"; src: url\(data:` $fam) $html 1) }}{{ $urls = $urls | append . }}{{ end }}{{ end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- return (sort (uniq $urls)) }}
