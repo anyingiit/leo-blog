@@ -9,13 +9,17 @@ import { shards, commands, testFiles, ranCount, SPLIT } from "./ci-shards.mjs";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const ci = readFileSync(join(dir, "../.github/workflows/ci.yml"), "utf8");
-const N = Number(ci.match(/node ci-shards\.mjs "\$\{\{ matrix\.shard \}\}" (\d+)/)?.[1]);
+// matrix 写成「组/组数」（任务名显示为 Regression tests (1/5)），运行时拆成两个参数
+const shardList = ci.match(/shard: \[([\d/, ]+)\]/)?.[1].split(",").map((x) => x.trim());
+const N = shardList?.length;
 
 test("ci.yml 的分组数和 matrix 一致：每一组都有任务去跑", () => {
-  assert.ok(N >= 1, "ci.yml 里找不到 node ci-shards.mjs <组> <组数>");
-  const m = ci.match(/shard: \[([\d, ]+)\]/);
-  assert.ok(m, "ci.yml 里找不到 shard 的 matrix");
-  assert.deepEqual(m[1].split(",").map(Number), Array.from({ length: N }, (_, i) => i + 1));
+  assert.ok(shardList, "ci.yml 里找不到 shard 的 matrix");
+  assert.deepEqual(shardList, Array.from({ length: N }, (_, i) => `${i + 1}/${N}`));
+  assert.ok(ci.includes('SHARD: ${{ matrix.shard }}') && ci.includes('node ci-shards.mjs "${SHARD%/*}" "${SHARD#*/}"'),
+    "ci.yml 应把 matrix.shard 拆成 <第几组> <组数> 传给 ci-shards.mjs");
+  // 拆参数的写法本身：1/5 → 1 5
+  assert.equal(execFileSync("bash", ["-c", 'SHARD=3/5; echo "${SHARD%/*} ${SHARD#*/}"'], { encoding: "utf8" }).trim(), "3 5");
 });
 
 test("每个测试文件都在且只在一组里；拆开的文件两半互补", () => {
