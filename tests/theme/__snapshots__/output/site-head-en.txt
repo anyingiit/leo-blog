@@ -8,11 +8,11 @@
 <meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/en/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
-<link rel=icon href=http://blog.test/favicon.ico>
-<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
-<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
-<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
-<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<link rel=icon href=http://blog.test/icons/favicon.e1a2a36e.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://blog.test/icons/favicon-16x16.31779f56.png>
+<link rel=icon type=image/png sizes=32x32 href=http://blog.test/icons/favicon-32x32.4a5aee7e.png>
+<link rel=apple-touch-icon href=http://blog.test/icons/apple-touch-icon.8eb641ea.png>
+<link rel=mask-icon href=http://blog.test/icons/safari-pinned-tab.a6a3f5b5.svg>
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
 <link rel=alternate type=application/rss+xml href=http://blog.test/en/index.xml title=rss>
@@ -35,4 +35,4 @@
 <meta name=twitter:image content="http://blog.test/share.png">
 <meta name=twitter:title content="Leoblog">
 <meta name=twitter:description content="Notes on learning, practice and thinking. Write it down first, polish it later.">
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","name":"Leoblog","url":"http://blog.test/en/","description":"Notes on learning, practice and thinking. Write it down first, polish it later.","logo":"http://blog.test/favicon.ico","sameAs":[]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","name":"Leoblog","url":"http://blog.test/en/","description":"Notes on learning, practice and thinking. Write it down first, polish it later.","logo":"http://blog.test/icons/favicon.e1a2a36e.ico","sameAs":[]}</script>

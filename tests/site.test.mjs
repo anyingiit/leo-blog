@@ -6,6 +6,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, readdirSync, existsSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, relative } from "node:path";
@@ -330,15 +331,47 @@ test("访问统计只在正式站加载：main 分支每个站点页面都有，
 
 // ── 主题测试里的 CDN 本地副本必须和线上加载的版本一致（tests/theme/package.json）──────────
 
-test("KaTeX、Mermaid 的线上地址锁定了精确版本，并与主题测试使用的版本一致", () => {
+test("KaTeX 的线上地址锁定了精确版本，并与主题测试使用的版本一致", () => {
   const head = readFileSync(join(root, "layouts/_partials/extend_head.html"), "utf8");
   const pkg = JSON.parse(readFileSync(join(root, "tests/theme/package.json"), "utf8")).devDependencies;
-  for (const name of ["katex", "mermaid"]) {
-    const m = head.match(new RegExp(`cdn\\.jsdelivr\\.net/npm/${name}@([^/]+)/`));
-    assert.ok(m, `extend_head.html 里没有 ${name} 的 CDN 地址`);
-    assert.match(m[1], /^\d+\.\d+\.\d+$/, `${name} 要锁定到精确版本，现在是 @${m[1]}`);
-    assert.equal(m[1], pkg[name], `${name}：线上 @${m[1]}，主题测试用 ${pkg[name]}`);
+  const m = head.match(/cdn\.jsdelivr\.net\/npm\/katex@([^/]+)\//);
+  assert.ok(m, "extend_head.html 里没有 KaTeX 的 CDN 地址");
+  assert.match(m[1], /^\d+\.\d+\.\d+$/, `KaTeX 要锁定到精确版本，现在是 @${m[1]}`);
+  assert.equal(m[1], pkg.katex, `KaTeX：线上 @${m[1]}，主题测试用 ${pkg.katex}`);
+});
+
+// ── Mermaid 由本站提供（static/vendor/mermaid/，tools/vendor-mermaid.sh）──────────
+
+test("Mermaid 从本站加载，版本目录和主题测试锁定的版本一致", () => {
+  const head = readFileSync(join(root, "layouts/_partials/extend_head.html"), "utf8");
+  const pkg = JSON.parse(readFileSync(join(root, "tests/theme/package.json"), "utf8")).devDependencies;
+  assert.doesNotMatch(head, /https?:\/\/[^"']*mermaid/, "Mermaid 不应再从外站加载");
+  const m = head.match(/from "\/vendor\/mermaid\/([^/]+)\/mermaid\.esm\.min\.mjs"/);
+  assert.ok(m, "extend_head.html 没有从 /vendor/mermaid/ 引入 Mermaid");
+  assert.equal(m[1], pkg.mermaid, `Mermaid：页面用 ${m[1]}，主题测试锁定 ${pkg.mermaid}`);
+  assert.deepEqual(readdirSync(join(root, "static/vendor/mermaid")), [pkg.mermaid], "只保留当前版本");
+});
+
+test("Mermaid 引用的每个分块都发布了，页面上的地址在构建结果里存在", () => {
+  const html = drafts.read("posts/markdown-test/");
+  const entry = html.match(/from"?\s*"?(\/vendor\/mermaid\/[^"]+\.mjs)"/)?.[1];
+  assert.ok(entry, "页面里没有找到 Mermaid 的地址");
+  const seen = new Set(), queue = [join(site.out, entry)];
+  while (queue.length) {
+    const file = queue.pop();
+    if (seen.has(file)) continue;
+    seen.add(file);
+    assert.ok(existsSync(file), `缺少 ${relative(site.out, file)}`);
+    const code = readFileSync(file, "utf8");
+    for (const [, spec] of code.matchAll(/(?:\bfrom|\bimport)\s*\(?\s*"(\.{1,2}\/[^"]+)"/g)) queue.push(join(dirname(file), spec));
   }
+  assert.ok(seen.size > 50, `只找到 ${seen.size} 个分块，解析 import 的正则可能失效了`);
+});
+
+test("Mermaid 文件设了长期缓存，其他文件不受影响", () => {
+  const headers = readFileSync(join(site.out, "_headers"), "utf8");
+  assert.match(headers, /^\/vendor\/mermaid\/\*\n\s+Cache-Control: public, max-age=31536000, immutable$/m);
+  assert.equal(headers.match(/immutable/g).length, 1);
 });
 
 test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，版本不同会找不到浏览器）", () => {
@@ -367,21 +400,29 @@ test("逐行量文字位置的测试都在 Chromium 和 WebKit 里跑（防止�
 
 // ── 网站图标（static/，tools/favicon/build.mjs 生成，docs/favicon.md）──────────────
 
+const ICONS = ["favicon.ico", "favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png", "safari-pinned-tab.svg"];
+const versioned = (f) => f.replace(/(\.[a-z]+)$/, `.${createHash("sha256").update(readFileSync(join(root, "static", f))).digest("hex").slice(0, 8)}$1`);
 const iconHrefs = (html) => [...html.matchAll(/<link [^>]*rel="?(?:icon|apple-touch-icon|mask-icon)"?[^>]*>/g)].map((m) => m[0].match(/href="?([^"\s>]+)/)[1]);
 
 test("每个页面都有 PaperMod 的 5 个图标链接，指向的文件都存在（中英文页、404、S-1、双语译文）", () => {
   const pages = walk(site.out).map((f) => relative(site.out, f)).filter((f) => f.endsWith(".html") && !/\/files\//.test(f));
   for (const must of ["index.html", "en/index.html", "404.html", "en/404.html", "translations/anthropic-s1/index.html", "translations/bitter-lesson/index.html"]) assert.ok(pages.includes(must), must);
+  const want = ICONS.map((f) => `${PROD}icons/${versioned(f)}`);
   for (const p of pages) {
     const html = readFileSync(join(site.out, p), "utf8");
     if (/<meta http-equiv="?refresh/.test(html)) continue; // aliases 生成的跳转页只有跳转，没有完整的 <head>
     const icons = iconHrefs(html);
-    assert.equal(icons.length, 5, `${p} 的图标链接数`);
-    for (const href of icons) {
-      assert.ok(href.startsWith(PROD), `${p}: ${href} 用正式域名的绝对地址`);
-      assert.ok(site.exists(href.slice(PROD.length)), `${p}: ${href} 指向的文件不存在`);
-    }
+    assert.deepEqual(icons, want, `${p} 的图标链接（hugo.yaml 的 params.assets.favicon* 要和 static/icons/ 的文件名一致）`);
+    for (const href of icons) assert.ok(site.exists(href.slice(PROD.length)), `${p}: ${href} 指向的文件不存在`);
   }
+});
+
+// 浏览器（尤其 Safari）按图标地址长期记住「取不到」或旧图标：2026-10-29 加上图标后，之前访问过正式站的
+// 设备一直不显示新图标，只加 ?v= 参数时有的 iPhone Safari 仍然不行。所以页面引用的是文件名带内容版本号的副本，
+// 图标一改文件名就变。这里检查副本和根目录的默认文件逐字节相同、版本号就是内容的 sha256，且没有残留的旧版本
+test("static/icons/ 是 5 个图标的版本号副本：内容与根目录文件相同，文件名带内容 sha256 前 8 位，没有旧版本残留", () => {
+  assert.deepEqual(readdirSync(join(root, "static/icons")).sort(), ICONS.map(versioned).sort(), "重新运行 tools/favicon/build.mjs");
+  for (const f of ICONS) assert.ok(readFileSync(join(root, "static/icons", versioned(f))).equals(readFileSync(join(root, "static", f))), f);
 });
 
 test("可下载的完整 HTML 保持原样，不带图标链接", () => {

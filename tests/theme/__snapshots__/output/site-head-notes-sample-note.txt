@@ -9,11 +9,11 @@
 <meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/notes/sample-note/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
-<link rel=icon href=http://blog.test/favicon.ico>
-<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
-<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
-<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
-<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<link rel=icon href=http://blog.test/icons/favicon.e1a2a36e.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://blog.test/icons/favicon-16x16.31779f56.png>
+<link rel=icon type=image/png sizes=32x32 href=http://blog.test/icons/favicon-32x32.4a5aee7e.png>
+<link rel=apple-touch-icon href=http://blog.test/icons/apple-touch-icon.8eb641ea.png>
+<link rel=mask-icon href=http://blog.test/icons/safari-pinned-tab.a6a3f5b5.svg>
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
 <link rel=alternate hreflang=zh href=http://blog.test/notes/sample-note/>
@@ -41,4 +41,4 @@
 <meta name=twitter:description content="短文直接在栏目里展开全文。这里有两段文字。
 第二段，带一个 链接。">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"短文","item":"http://blog.test/notes/"},{"@type":"ListItem","position":2,"name":"一条短文","item":"http://blog.test/notes/sample-note/"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"一条短文","name":"一条短文","description":"短文直接在栏目里展开全文。这里有两段文字。\n第二段，带一个 链接。\n","keywords":["随笔"],"articleBody":"短文直接在栏目里展开全文。这里有两段文字。\n第二段，带一个 链接。\n","wordCount":"31","inLanguage":"zh","image":"http://blog.test/share.png","datePublished":"2026-03-05T09:00:00Z","dateModified":"2026-03-05T09:00:00Z","author":{"@type":"Person","name":"Leo"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/notes/sample-note/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"一条短文","name":"一条短文","description":"短文直接在栏目里展开全文。这里有两段文字。\n第二段，带一个 链接。\n","keywords":["随笔"],"articleBody":"短文直接在栏目里展开全文。这里有两段文字。\n第二段，带一个 链接。\n","wordCount":"31","inLanguage":"zh","image":"http://blog.test/share.png","datePublished":"2026-03-05T09:00:00Z","dateModified":"2026-03-05T09:00:00Z","author":{"@type":"Person","name":"Leo"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/notes/sample-note/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/icons/favicon.e1a2a36e.ico"}}}</script>

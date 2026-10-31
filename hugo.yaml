@@ -61,6 +61,15 @@ params:
   disableSpecial1stPost: true
   assets:
     disableHLJS: true  # 用 Hugo 自带的 Chroma 高亮
+    # 网站图标：页面引用 static/icons/ 里文件名带内容版本号的副本（tools/favicon/build.mjs 生成，docs/favicon.md「缓存」）。
+    # 浏览器（尤其 Safari）会按图标地址长期记住「取不到」或旧图标；2026-10-29 加图标前访问过的设备，
+    # 只在原地址后加 ?v= 时有的 iPhone Safari 仍不显示，所以换成全新的文件名。根目录的 5 个默认文件名保留，
+    # 给直接请求 /favicon.ico 的浏览器和爬虫。改了图标要同步改这里，site.test.mjs 会检查并给出新值
+    favicon: icons/favicon.e1a2a36e.ico
+    favicon16x16: icons/favicon-16x16.31779f56.png
+    favicon32x32: icons/favicon-32x32.4a5aee7e.png
+    apple_touch_icon: icons/apple-touch-icon.8eb641ea.png
+    safari_pinned_tab: icons/safari-pinned-tab.a6a3f5b5.svg
   fuseOpts:
     keys: [title, permalink, summary, content]
 

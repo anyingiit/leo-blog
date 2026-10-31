@@ -8,11 +8,11 @@
 <meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/notes/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
-<link rel=icon href=http://blog.test/favicon.ico>
-<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
-<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
-<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
-<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<link rel=icon href=http://blog.test/icons/favicon.e1a2a36e.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://blog.test/icons/favicon-16x16.31779f56.png>
+<link rel=icon type=image/png sizes=32x32 href=http://blog.test/icons/favicon-32x32.4a5aee7e.png>
+<link rel=apple-touch-icon href=http://blog.test/icons/apple-touch-icon.8eb641ea.png>
+<link rel=mask-icon href=http://blog.test/icons/safari-pinned-tab.a6a3f5b5.svg>
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
 <link rel=alternate type=application/rss+xml href=http://blog.test/notes/index.xml title=rss>
@@ -23,9 +23,9 @@
 <style>…</style>
 </noscript>
 <script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script>
-<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css crossorigin=anonymous>
+<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css integrity=sha384-<hash> crossorigin=anonymous>
 <script type=module>
-  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs";
+  import mermaid from "/vendor/mermaid/11.17.2/mermaid.esm.min.mjs";
   const dark = document.documentElement.dataset.theme === "dark";
   
   mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "default" });

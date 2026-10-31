@@ -18,8 +18,16 @@ updates:
     directory: "/tests/theme"
     schedule:
       interval: "weekly"
-    # Playwright 同上；katex、mermaid 必须和站点引用的 CDN 版本一致（site.test.mjs 检查），改 CDN 版本时手动一起升级
+    # Playwright 同上；katex 必须和站点引用的 CDN 版本一致，mermaid 必须和 static/vendor/mermaid 一致（site.test.mjs 检查），手动一起升级
     ignore:
       - dependency-name: "@playwright/*"
       - dependency-name: "katex"
       - dependency-name: "mermaid"
+  # 仓库自带的 Python 工具（CI 的 Lint and build 任务安装并测试它们），版本用 == 锁定，有新版本或安全修复时提 PR
+  - package-ecosystem: "pip"
+    directories:
+      - "/tools/image-i18n"
+      - "/tools/s1-import"
+      - "/tools/bilingual-import"
+    schedule:
+      interval: "weekly"

@@ -33,7 +33,7 @@ PaperMod 原版的页头语言切换（`themes/PaperMod/layouts/_partials/header
 
 ## 测试
 
-`tests/lang-switch.test.mjs`（CI 的 Browser tests (chromium) 任务里 `npm test` 一起运行）：
+`tests/lang-switch.test.mjs`（CI 的 Regression tests 任务里一起运行）：
 
 - 主题拷贝与原版只差这一处；
 - 各类页面的期望去向（长文、短文、带图短文、没有英文版的短文、栏目、归档、搜索、标签总览、同名标签、译名不同的标签、404，中→英和英→中）；
