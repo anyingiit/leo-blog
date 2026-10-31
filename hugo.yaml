@@ -61,6 +61,14 @@ params:
   disableSpecial1stPost: true
   assets:
     disableHLJS: true  # 用 Hugo 自带的 Chroma 高亮
+    # 网站图标还是 PaperMod 默认的 5 个文件，只在地址后加 ?v=<文件 sha256 前 8 位>（docs/favicon.md）：
+    # 浏览器（尤其 Safari）按图标地址长期缓存图标，地址不变就一直显示旧的或「没有图标」，
+    # 2026-10-29 加图标前访问过正式站的浏览器因此一直不显示新图标。改了图标文件要同步改这里，site.test.mjs 会检查
+    favicon: favicon.ico?v=e1a2a36e
+    favicon16x16: favicon-16x16.png?v=31779f56
+    favicon32x32: favicon-32x32.png?v=4a5aee7e
+    apple_touch_icon: apple-touch-icon.png?v=8eb641ea
+    safari_pinned_tab: safari-pinned-tab.svg?v=a6a3f5b5
   fuseOpts:
     keys: [title, permalink, summary, content]
 

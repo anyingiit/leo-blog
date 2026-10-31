@@ -6,6 +6,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, readdirSync, existsSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, relative } from "node:path";
@@ -385,6 +386,7 @@ test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，
 
 // ── 网站图标（static/，tools/favicon/build.mjs 生成，docs/favicon.md）──────────────
 
+const iconVersion = (file) => createHash("sha256").update(readFileSync(join(root, "static", file))).digest("hex").slice(0, 8);
 const iconHrefs = (html) => [...html.matchAll(/<link [^>]*rel="?(?:icon|apple-touch-icon|mask-icon)"?[^>]*>/g)].map((m) => m[0].match(/href="?([^"\s>]+)/)[1]);
 
 test("每个页面都有 PaperMod 的 5 个图标链接，指向的文件都存在（中英文页、404、S-1、双语译文）", () => {
@@ -397,9 +399,20 @@ test("每个页面都有 PaperMod 的 5 个图标链接，指向的文件都存�
     assert.equal(icons.length, 5, `${p} 的图标链接数`);
     for (const href of icons) {
       assert.ok(href.startsWith(PROD), `${p}: ${href} 用正式域名的绝对地址`);
-      assert.ok(site.exists(href.slice(PROD.length)), `${p}: ${href} 指向的文件不存在`);
+      const file = href.slice(PROD.length).replace(/\?.*$/, "");
+      assert.ok(site.exists(file), `${p}: ${href} 指向的文件不存在`);
+      assert.ok(href.endsWith(`?v=${iconVersion(file)}`), `${p}: ${href} 应带 ?v=${iconVersion(file)}`);
     }
   }
+});
+
+// 浏览器（尤其 Safari）按图标地址长期缓存，地址不变就不会去取新图标：2026-10-29 加上图标后，
+// 之前访问过正式站的浏览器一直显示旧的「没有图标」，新开的预览域名却正常。所以图标地址要带文件内容的版本号，
+// 图标一改地址就变。改了图标却忘了改 hugo.yaml 里的 ?v= 时，这里会失败并给出新值
+test("图标地址带文件内容的版本号（hugo.yaml 的 params.assets），图标文件一改地址就跟着变", () => {
+  const html = readFileSync(join(site.out, "index.html"), "utf8");
+  const want = ["favicon.ico", "favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png", "safari-pinned-tab.svg"].map((f) => `${PROD}${f}?v=${iconVersion(f)}`);
+  assert.deepEqual(iconHrefs(html), want, "hugo.yaml 的 params.assets.favicon* 要改成这些 ?v= 值");
 });
 
 test("可下载的完整 HTML 保持原样，不带图标链接", () => {
