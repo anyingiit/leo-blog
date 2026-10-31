@@ -1,5 +1,5 @@
 ---
-title: "The Secretary Problem"
+title: "The Secretary Problem's Lesson: Explore First, Then Decide"
 slug: lex-secretary-problem
 date: 2026-10-31T12:00:10Z
 tags: [Notes]
@@ -11,6 +11,6 @@ tags: [Notes]
 
 From Lex Fridman Podcast #503 ([video, from 2:44:30](https://www.youtube.com/watch?v=ZAzWPE9CItg&t=9870s)); text from the [official transcript](https://lexfridman.com/math-ai-crisis-transcript#chapter10_can_ai_solve_p_vs_np_).
 
-This is very useful for hiring, and it may be useful in some other situations too. It's a heuristic, so I'm writing it down for now. In the classic solution, that waiting window is about 37% (1/e) of all the candidates.
+Its real lesson is to explore first to build a baseline, then switch to deciding, and not to wait until the very end to choose. The exact 37% only holds for the classic model and should be taken as an intuition.
 
-Turned around, it may also be useful for job seekers: a candidate should avoid being among the first 37% of applicants.
+This may be a very useful tool, but before using it you should also know its limits so you don't fall into them.
