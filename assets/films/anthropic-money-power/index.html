@@ -1,0 +1,522 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta charset="utf-8">
+<title>Anthropic 的钱与权</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a single centered "video player" column — dark 16:9 stage, captions, chapter bar — then chapters and the full transcript below. */
+:root{
+  --bg:#eef1f5; --fg:#141a26; --mute:#5a6478; --line:#d3d9e3; --card:#ffffff; --accent:#1f7a63;
+  --st-bg:#0f1522; --st-panel:#182033; --st-line:#33405e; --st-text:#e8ecf4; --st-mute:#8b96ad;
+  --cA:#6ea8ff; --cN:#9aa6bd; --cT:#3cc29a; --cF:#f0b23e; --cE:#c58af0; --cNo:#ef6b5b;
+  --serif:"Noto Serif SC","Songti SC",serif;
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b0f17; --fg:#e6eaf2; --mute:#8d97ab; --line:#232c3d; --card:#121827; --accent:#47c9a2; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b0f17; --fg:#e6eaf2; --mute:#8d97ab; --line:#232c3d; --card:#121827; --accent:#47c9a2; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.65}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.wrap{padding-block:28px 18px}
+h1{font-family:var(--serif);font-size:clamp(26px,4vw,38px);line-height:1.2;margin:0 0 8px;text-wrap:balance}
+.lede{color:var(--mute);margin:0;max-width:68ch}
+.lede b{color:var(--fg);font-weight:500}
+
+.player{background:var(--st-bg);color:var(--st-text);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.player:fullscreen{border-radius:0;display:flex;flex-direction:column;justify-content:center}
+.player:fullscreen .stage{max-height:80vh}
+.stage{position:relative;aspect-ratio:16/9;width:100%;max-width:100%}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* the browser refused to start sound without a tap (iOS in an embedded player): a big play button over the picture */
+.tap{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:rgb(15 21 34/.35);cursor:pointer}
+.tap[hidden]{display:none}
+.tap span{position:relative;width:76px;height:76px;border-radius:50%;background:rgb(0 0 0/.65)}
+.tap span::before{content:"";position:absolute;left:54%;top:50%;width:26px;height:30px;transform:translate(-50%,-50%);background:#fff;clip-path:polygon(0 0,100% 50%,0 100%)}
+.tap:focus-visible{outline:3px solid #fff;outline-offset:-6px}
+.stage text{font-family:var(--sans);fill:var(--st-text)}
+.stage .disp{font-family:var(--serif)}
+.stage .mono{font-family:var(--mono)}
+.stage [data-s],.stage [data-k],.stage [data-u],.stage [data-dim]{transition:opacity .7s ease}
+.stage .dimk{opacity:.2}
+.stage [data-s]:not(.on){opacity:0!important}
+.stage .off{opacity:0!important}
+.stage [data-s].on.dimmed{opacity:.14}
+.stage svg.enter{animation:fadein .5s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+.caption{padding:14px 20px 6px;min-height:92px;border-top:1px solid #1f2940}
+.chap{font-size:12px;letter-spacing:.08em;color:var(--st-mute);font-family:var(--mono)}
+.caption p{margin:4px 0 0;font-size:clamp(15px,1.9vw,19px);line-height:1.6;max-width:none}
+.bar{display:flex;gap:3px;padding:10px 20px 4px;cursor:pointer}
+.seg{position:relative;height:6px;background:#26314a;border-radius:3px;overflow:hidden;min-width:4px}
+.seg i{position:absolute;inset:0 auto 0 0;width:0;background:var(--cT)}
+@media (hover:hover){.seg:hover{background:#34425f}}
+.ctrls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 16px 14px}
+.ctrls button{font:inherit;font-size:14px;color:var(--st-text);background:#1c2539;border:1px solid #2c3854;border-radius:8px;padding:6px 12px;cursor:pointer;min-height:36px}
+@media (hover:hover){.ctrls button:hover{background:#25304a}}
+@media (pointer:coarse){.ctrls button{min-height:44px}.bar{padding-top:14px;padding-bottom:14px}}
+.ctrls button:focus-visible,.chapters button:focus-visible,.tr button:focus-visible{outline:2px solid var(--cT);outline-offset:2px}
+.ctrls #play{background:var(--cT);border-color:var(--cT);color:#06231a;font-weight:700;min-width:84px}
+.ctrls .time{font-family:var(--mono);font-size:13px;color:var(--st-mute);margin-left:auto;font-variant-numeric:tabular-nums}
+.ctrls button[aria-pressed="true"]{border-color:var(--cF);color:var(--cF)}
+.hint{font-size:13px;color:var(--mute);margin:10px 2px 0}
+
+section.wrap{padding-block:28px 8px}
+h2{font-family:var(--serif);font-size:22px;margin:0 0 14px}
+.chapters{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.chapters button{text-align:left;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;gap:10px;align-items:baseline}
+.chapters button span{font-family:var(--mono);font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.chapters button.cur{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 16px;font-size:14px;color:var(--mute)}
+.legend b{display:inline-block;width:22px;height:22px;border-radius:5px;text-align:center;line-height:22px;color:#0f1522;font-family:var(--serif);margin-right:6px}
+.tr{display:grid;gap:18px}
+.tr h3{font-size:16px;margin:0 0 6px;font-family:var(--serif)}
+.tr ol{margin:0;padding-left:0;list-style:none;display:grid;gap:2px}
+.tr button{all:unset;cursor:pointer;display:block;padding:4px 8px;border-radius:6px;max-width:72ch;color:var(--fg)}
+.tr button:hover{background:var(--card)}
+.tr button.cur{background:var(--card);box-shadow:inset 3px 0 0 var(--accent)}
+footer.wrap{padding-block:24px 40px;color:var(--mute);font-size:13px}
+@media (max-width:640px){.caption{padding:12px 14px 4px}.bar{padding:8px 14px 2px}.ctrls{padding:6px 10px 12px;gap:6px}.ctrls button{padding:6px 9px;font-size:13px}.ctrls #play{min-width:64px}.ctrls .time{width:100%;margin-left:0}}
+@media (max-width:480px){.ctrls{gap:5px}#prev,#next{font-size:0;min-width:44px}#prev::before{content:"\25C0\FE0E";font-size:13px}#next::before{content:"\25B6\FE0E";font-size:13px}}
+@media (max-width:400px){.ctrls{gap:4px;padding-left:6px;padding-right:6px}.ctrls #play{min-width:56px}}
+/* 嵌进博客时（?embed=fit 全窗口放映，?embed=page 短片页）只留播放器；标题、章节、文字稿由博客页面提供 */
+[data-embed] header.wrap,[data-embed] section.wrap,[data-embed] footer.wrap,[data-embed] .hint{display:none}
+[data-embed] body{background:transparent}
+[data-embed] main.wrap{padding:0;max-width:none}
+[data-embed="fit"] body{background:var(--st-bg)}
+[data-embed="fit"] .player{height:100vh;height:100dvh;display:flex;flex-direction:column;border-radius:0;border:0}
+[data-embed="fit"] .stage{flex:1;min-height:0;aspect-ratio:auto}
+@media (max-height:520px){[data-embed="fit"] .caption{min-height:0;padding:6px 16px 0}[data-embed="fit"] .chap{display:none}[data-embed="fit"] .caption p{font-size:15px;line-height:1.45}[data-embed="fit"] .bar{padding-top:6px;padding-bottom:4px}[data-embed="fit"] .ctrls{padding:4px 12px 8px}[data-embed="fit"] .ctrls button{min-height:30px;padding:3px 10px}[data-embed="fit"] .ctrls .time{width:auto;margin-left:auto}}
+@media (prefers-reduced-motion: reduce){.stage [data-s],.stage [data-k],.stage [data-u],.stage [data-dim]{transition:none}.stage svg.enter{animation:none}}
+</style>
+
+<header class="wrap">
+  <h1>Anthropic 的钱与权</h1>
+  <p class="lede">一段约 <span id="mins">14</span> 分钟的动画讲解：招股书里的 A / N / T / F / E 五类股票、LTBT 信托、Founder LLC 和 7 席董事会，到底是怎么相互制衡的。内容依据 S-1 招股书中<b>“我们的治理结构及其目标”</b>“股本说明”“管理层”及相关风险因素章节整理。</p>
+</header>
+
+<main class="wrap">
+  <div class="player" id="player">
+    <div class="stage" id="stage" aria-live="off"><button class="tap" id="tap" aria-label="播放" hidden><span></span></button></div>
+    <div class="caption"><div class="chap" id="chap"></div><p id="cap"></p></div>
+    <div class="bar" id="bar" role="slider" aria-label="播放进度" tabindex="0"></div>
+    <div class="ctrls">
+      <button id="prev" aria-label="上一句">◀︎ 上一句</button>
+      <button id="play">▶︎ 播放</button>
+      <button id="next" aria-label="下一句">下一句 ▶︎</button>
+      <button id="tts" aria-pressed="true">旁白：开</button>
+      <button id="fs">全屏</button>
+      <span class="time" id="time">00:00 / 00:00</span>
+    </div>
+  </div>
+  <p class="hint">空格键播放/暂停，← → 逐句跳转。手机上建议横屏。旁白为预先录制的配音，可随时关闭，关闭后按原节奏静音播放。</p>
+</main>
+
+<section class="wrap">
+  <h2>章节</h2>
+  <div class="legend">
+    <span><b style="background:var(--cA)">A</b>公众股</span>
+    <span><b style="background:var(--cN)">N</b>伙伴股</span>
+    <span><b style="background:var(--cT)">T</b>信托股</span>
+    <span><b style="background:var(--cF)">F</b>创始人股</span>
+    <span><b style="background:var(--cE)">E</b>员工股</span>
+  </div>
+  <div class="chapters" id="chapters"></div>
+</section>
+
+<section class="wrap">
+  <h2>文字稿</h2>
+  <div class="tr" id="tr"></div>
+</section>
+
+<footer class="wrap">本页为个人学习用的结构图解，依据招股书文本整理，不构成投资建议。条款细节以招股书原文为准。</footer>
+
+<script>
+const C={A:'#6ea8ff',N:'#9aa6bd',T:'#3cc29a',F:'#f0b23e',E:'#c58af0',no:'#ef6b5b',tx:'#e8ecf4',mu:'#8b96ad',ln:'#33405e',pn:'#182033',bg:'#0f1522'};
+/* English version: ?lang=en swaps on-screen text, captions and narration (narration/en/).
+   Keys are the Chinese originals; a value [text, k] also scales that text's font size by k so it fits its box. */
+const LANG=new URLSearchParams(location.search).get('lang')==='en'?'en':'zh';
+const EN={"两个问题":"Two questions","谁在控制 Anthropic？":"Who controls Anthropic?","公众股":"Public","伙伴股":"Partner","信托股":"Trust","创始人股":"Founder","员工股":"Employee","钱归谁？":"Whose money?","权力归谁？":"Whose power?","数据结构 → 权限表 → 董事会 → 制衡 → 状态机":"data structure → permissions → board → checks → state machine","一股股票的两个字段":"Two fields in one share","// 分钱":"// money","// 投票":"// vote","普通股 = { economic: true, votes: 1 }":"common = { economic: true, votes: 1 }","股东":"Shareholders","董事会":"Board","CEO 与管理层":"CEO & management","日常经营":"Day-to-day business","投票选举":"elect","任免、监督":"appoint, oversee","执行":"run","控制平面：":"Control plane:","谁定董事会多数，谁就控制公司":"the board majority decides control","Anthropic：把两个字段拆开":"Anthropic: split the two fields","A / N   → 有 economic":"A / N     → economic only","T / F / E → 只有特殊 votes":"T / F / E → special votes only","第一层：公益公司（PBC）":"Layer one: a public benefit corporation (PBC)","普通公司   maximize( 股东金钱利益 )":"ordinary   maximize( shareholder money )","公益公司   balance( 股东的钱, 受影响者, 公益宗旨 )":"PBC        balance( money, affected, purpose )","股东的金钱利益":"Shareholders' money","A 类、N 类股东关心的":"what Class A and N holders","财务回报":"care about: financial return","受影响者的最佳利益":"Those affected","受公司行为重大影响的人：":"people materially affected","用户、社会……":"by its conduct: users, society…","公益宗旨":"Public benefit purpose","为人类的长期利益，":"develop & maintain advanced AI","负责任地开发和维护先进 AI":"responsibly, for humanity's long run","没有第三方客观标准 · 标准由董事会自定、以定性为主 · 至少每两年发布一次公益绩效声明":"No outside yardstick · the board sets it, mostly qualitative · reported at least every 2 years","PBC 改的是“目标函数”；由谁来执行，取决于股权和董事会设计 →":"A PBC changes the objective function; who carries it out depends on the shares and board →","五类股票的权限表":"Permission table of five share classes","公众投资者":"Public investors","及其他股东":"and other holders","大量":"Many","每股 1 票（一般事项）":"1 vote per share (general)","不可转换":"Not convertible","主要为战略":"Mainly strategic","业务合作伙伴":"business partners","无表决权（法律另有规定除外）":"No vote (unless law requires)","卖给无关联第三方时一般转为 A 类":"Sold to a third party → A","长期利益信托":"Long-Term Benefit Trust","1 股":"1 share","选举、罢免 T 类董事":"Elects and removes T directors","（占董事会多数）":"(a board majority)","7 位联合创始人":"7 co-founders","一般事项固定占":"Always 50.1% of the","总投票权的 50.1%":"vote on general matters","员工":"Employees","（不含联合创始人）":"(not co-founders)","按工龄等发放":"By tenure","仅限少数特定事项":"A few specific matters only","（第 08 章详解）":"(see chapter 08)","类别":"Class","持有人":"Holder","数量":"Amount","经济权利":"Economic","投票权":"Votes","权力股（T / F / E）全部没有经济权利":"The power shares (T / F / E) have no economic rights at all","董事会：7 席怎么分":"The board: how the 7 seats split","（空缺）":"(vacant)","LTBT 选举 · 4 席 = 多数":"Elected by the LTBT · 4 seats = majority","LTBT（T 类股）":"LTBT (Class T)","A 类 + F 类共同选举 · 3 席":"Elected by A + F together · 3 seats","A 类 + F 类合并投票":"A + F vote together","F 固定 50.1% → 实际由创始人决定":"F is always 50.1% → founders decide","指定 T 类董事":"Designated T director","董事会作决策；LTBT 不管日常经营、不定战略。但并购、出售全部资产等重大事项须经董事会批准。":["The board decides; the LTBT doesn't run the business or set strategy, but mergers and asset sales need the board.",0.9],"股东大会：50.1% 的那一股":"The shareholder meeting: the 50.1% share","一般事项的投票（含选举 3 名非 T 类董事）":"Votes on general matters (incl. electing the 3 non-T directors)","F 类 · 50.1%":"Class F · 50.1%","A 类 · 49.9%":"Class A · 49.9%","votes(F) = 50.1% × 总投票权":"votes(F) = 50.1% × total votes","// 按比例计算，不是固定票数":"// a proportion, not a fixed count","A 类股再多 → A 类合计仍是 49.9%":"More A shares → A still totals 49.9%","N 类：无表决权":"Class N: no vote","T 类：不参与一般表决":"Class T: no general vote","E 类：不参与一般表决":"Class E: no general vote","“受控公司”：LTBT 选出董事会多数 → 可豁免纳斯达克部分治理要求（公司称仅用于 NGC）":["“Controlled company”: the LTBT elects the board majority → some Nasdaq rules waived (only for the NGC)",0.95],"对 A 类投资者：拿到的是经济利益，对董事会和一般表决的影响有限":"For Class A investors: the economics, with limited say over the board and general votes","谁牵制谁":"Who checks whom","长期利益信托 LTBT":"Long-Term Benefit Trust","5 个受托人席位，无财务利害关系":"5 trustee seats, no financial stake","受托人互选，任期 1 年":"chosen by trustees, 1-year terms","董事会（7 席）":"Board (7 seats)","4 名 T 类 + 3 名其他":"4 Class T + 3 others","做全部经营决策":"makes all business decisions","F 类：一般表决 50.1%":"Class F: 50.1% of general votes","特拉华州衡平法院":"Delaware Chancery","受托人有失格行为、":"if a trustee is disqualified","且罢免有利于信托宗旨时":"and removal serves the trust","提名与治理委员会":"Nominating (NGC)","NGC：1 名 T 类董事":"NGC: 1 Class T director","+ 2 名非 T 类董事":"+ 2 non-T directors","员工（E 类股）":"Employees (Class E)","平时不投票":"don't usually vote","只在特定争议时登场":"only in specific disputes","选/罢 4 席":"4 seats","选/罢 3 席":"3 seats","与 A 类合并":"with A","提前 30 天通知":"30 days' notice","分歧时":"if split","交员工":"they vote","可下令罢免受托人":"can remove a trustee","因故罢免董事：无需 NGC 或员工批准，但须提前 30 天通知对方和 NGC":"Removal for cause: no approval needed, 30 days' notice","LTBT 选董事会多数，但动作要先通知 NGC；创始人掌控股东大会，但董事会多数不是他们选的；":"The LTBT picks the board majority but must notify the NGC; the founders run the meeting","双方在关键席位上僵持时，由员工投票裁决。":"but not the board majority. If the two deadlock on the key seat, employees vote.","指定 T 类董事：员工当裁判":"The designated T director: employees as referee","LTBT 提议":"LTBT proposes","提名 / 罢免 / 更换":"add / remove / swap","通知 NGC":"Notify NGC","提前 30 天":"30 days ahead","NGC 15 天内":"NGC agrees","同意？":"within 15 days?","同意":"Yes","生效":"Takes effect","不同意":"No","员工 E 类股表决":"Class E employee vote","所投票数过半即通过":"majority of votes cast","法定人数：已发行 E 类股过半":"quorum: half of E shares","通过":"Pass","否决":"Fail","不生效":"No effect","表决前，LTBT 可随时撤回提议":"The LTBT can withdraw before the vote","// 类比：一次 code review":"// analogy: a code review","LTBT  提交变更":"LTBT       submits a change","NGC   评审（3 人中 2 人为非 T 类董事）":"NGC        reviews (2 of 3 are non-T)","员工  评审驳回时的最终仲裁":"Employees  final arbiter if rejected","E 类股怎么来":"Where E shares come from","每服务满 6 个月：+1 股":"+1 share per 6 months of service","每承诺捐出 1 股 A 类股：+1 股":"+1 share per Class A share pledged","离职后每年赎回一半":"half redeemed each year after leaving","修改 LTBT 规则 = 多重签名":"Changing the LTBT's rules = multisig","适用于：修改 LTBT 条款 · 修改 T 类股权利 · 无偿赎回 T 类股（让 LTBT 出局）":"Applies to: amending the LTBT · changing Class T rights · redeeming the T share (removing the LTBT)","路径 1 · 受托人赞成":"Path 1 · trustees agree","董事会法定人数的 80%":"80% of the board quorum","在任受托人的 80%":"80% of sitting trustees","路径 2 · 受托人不赞成，F 类仍在":"Path 2 · trustees disagree, F exists","上市三周年前，可以：":"Before the IPO's 3rd anniversary:","F：留任创始人一致同意":"F: all remaining founders","E：所投票数过半（法定 40%）":"E: majority of votes (quorum 40%)","A：所投票数过半（法定过半）":"A: majority of votes (quorum 50%)","或":"or","任何时候：":"At any time:","F：2/3 留任创始人":"F: 2/3 of remaining founders","E：所投票数 75%（法定过半）":"E: 75% of votes (quorum 50%)","路径 3 · 受托人不赞成":"Path 3 · trustees disagree","且 F 类已不存在":"and Class F is gone","已发行 A 类股":"85% of outstanding","的 85%":"Class A shares","受托人不同意时，创始人、员工、公众股东必须同时签字":"When trustees disagree, founders, employees and public holders must all sign","创始人的失效开关":"The founders' kill switch","Founder LLC：初始 7 名成员，按成员多数决定 F 类这一票怎么投":"Founder LLC: 7 initial members; a majority decides how the F share votes","留任：7 人":"Remaining: 7","留任 < 3 人":"Remaining < 3","任一情况发生，成员即离开 Founder LLC":"Any of these and a member leaves the Founder LLC","· 主动辞去成员身份":"· resigns membership","· 身故或丧失行为能力":"· death or incapacity","· 所持 A 类股低于其上市时持股的 2%":"· holds < 2% of their Class A shares at IPO","· 因故除名（含特定竞争性活动）":"· removed for cause (incl. competing activity)","· 经其他创始人绝对多数批准的休假":"· approved leave (supermajority of founders)","留任创始人连续 90 天少于 3 人":"Fewer than 3 founders for 90 days in a row","开始 450 天过渡期":"450-day transition period begins","F 类和 E 类全部被无偿赎回":"Classes F and E redeemed for nothing","创始人的特殊投票权结束":"The founders' special vote ends","上市 10 周年前，创始人身故或失能时可接纳继任者；过渡期内也可补人，但不能中止或延长过渡期":["Until year 10, a founder who dies or is incapacitated can be replaced; new members can't pause or extend the transition",0.86],"把它看成状态机":"Seeing it as a state machine","① 现在：T + F":"① Now: T + F","LTBT 选 4 席（多数）":"LTBT elects 4 (majority)","A + F 选 3 席":"A + F elect 3","F 占一般表决 50.1%":"F has 50.1% of general votes","员工持有 E 类股":"employees hold Class E","② F 日落后：只剩 T":"② After F sunsets: T only","LTBT 仍选董事会多数":"LTBT still elects the majority","A 类选其余董事、决定一般事项":"A elects the rest, general matters","E 类被赎回，指定席程序取消":"E redeemed, designated-seat rule ends","董事会改为三级交错任期":"the board becomes staggered","F 日落":"F sunsets","③ T 日落后：只剩 F":"③ After T sunsets: F only","A + F 合并投票选全部董事":"A + F together elect every director","F 仍占 50.1%":"F still has 50.1%","创始人决定一般事项":"founders decide general matters","T 日落":"T sunsets","④ 都日落":"④ Both sunset","A 类一股一票":"Class A: 1 share, 1 vote","接近普通上市公司":["≈ an ordinary listed company",0.82],"单向转移":"one-way","不可撤回":"irreversible","F 日落：创始人少于 3 人触发过渡期，或创始人绝对多数同意赎回 / 解散 LLC":"F sunset: fewer than 3 founders starts the transition, or a founder supermajority redeems / dissolves the LLC","T 日落：只能通过“信托修订门槛”，永远不会因时间流逝自动发生":"T sunset: only via the trust amendment threshold, never just because time passes","总结：六个设计点":"Summary: six design points","关注点分离":"Separation of concerns","钱和权分开：T / F / E 有权不分钱，N 有钱没票":"Money and power split: T / F / E have power, no money; N has money, no vote","分片的多数":"Sharded majority","董事会多数归 LTBT，股东大会多数归创始人":"The LTBT holds the board majority, the founders the shareholder majority","仲裁者":"An arbiter","指定 T 类董事有分歧时，员工投票裁决":"Employees decide disputes over the designated T director","多重签名":"Multisig","受托人不同意时，改 LTBT 规则需多方同时同意":"If trustees disagree, changing LTBT rules needs every party","失效开关":"Kill switch","创始人少于 3 人，F 类和 E 类退场":"Fewer than 3 founders: Classes F and E exit","已知代价":"Known costs","A 类股东影响有限；公益绩效没有客观指标":"Class A has limited say; public benefit has no objective metric","创始人管股东大会，LTBT 管董事会多数，":"Founders run the shareholder meeting, the LTBT the board majority,","员工在关键分歧时裁决，谁都不能单方面改规则。":"employees settle key disputes, and no one can change the rules alone.","❚❚ 暂停":"❚❚ Pause","▶︎ 播放":"▶︎ Play","播放":"Play","旁白：开":"Voice: on","旁白：关":"Voice: off","◀︎ 上一句":"◀︎ Previous","下一句 ▶︎":"Next ▶︎","全屏":"Full screen","上一句":"Previous line","下一句":"Next line","播放进度":"Progress","章节":"Chapters","文字稿":"Transcript","Anthropic 的钱与权":"Money and Power at Anthropic","空格键播放/暂停，← → 逐句跳转。手机上建议横屏。旁白为预先录制的配音，可随时关闭，关闭后按原节奏静音播放。":"Space plays and pauses, ← → step through lines. On a phone, turn it sideways. Narration is pre-recorded; turn it off to play silently at the same pace.","本页为个人学习用的结构图解，依据招股书文本整理，不构成投资建议。条款细节以招股书原文为准。":"A structural explainer made for personal study, based on the prospectus. Not investment advice; the prospectus text governs.","招股书这段话一口气提到五类股票：A、N、T、F、E，还有一个信托（LTBT）和一个由创始人组成的有限责任公司（Founder LLC）。":"This passage of the prospectus mentions five share classes in one breath: A, N, T, F and E, plus a trust (the LTBT) and a limited liability company made up of the founders (the Founder LLC).","它读起来乱，是因为同一段话在同时回答两个不同的问题：钱归谁？权力归谁？":"It reads as a tangle because the same passage answers two different questions at once: who gets the money, and who gets the power?","在普通公司里，这两个问题的答案基本相同：谁持股多，谁就分钱多、说话也算数。Anthropic 故意让两个答案不同。":"In an ordinary company the two answers are basically the same: whoever holds more shares gets more of the money and more of the say. Anthropic deliberately makes the two answers differ.","我们按工程师熟悉的顺序来拆：先看数据结构，再看权限表、董事会、制衡关系，最后看它会怎样随时间演变。":"We'll take it apart in an order engineers know: first the data structure, then the permission table, the board, the checks and balances, and finally how it changes over time.","在普通公司，一股股票同时带着两个字段：经济权利（分红、卖出时分钱）和投票权（在股东大会上表决）。":"In an ordinary company, one share carries two fields at once: economic rights (dividends, a cut when the company is sold) and voting rights (votes at the shareholder meeting).","股东投票选出董事会；董事会任免和监督 CEO；CEO 带着管理层做日常经营。":"Shareholders elect the board; the board appoints, removes and oversees the CEO; the CEO runs the business day to day with management.","所以真正的“控制平面”是董事会。问“谁控制公司”，本质上是在问：谁能决定董事会的多数席位？":"So the real “control plane” is the board. Asking “who controls the company” really means asking: who can decide a majority of the board seats?","Anthropic 的核心手法，就是把这两个字段拆开：A、N 类有钱；T、F、E 类有特殊的权，但一分钱不分。":"Anthropic's core move is to split these two fields: classes A and N have the money; classes T, F and E have special powers but receive no money at all.","最底层是公司的法律形式。Anthropic 注册为特拉华州的公益公司，简称 PBC。普通公司的董事会，目标大致是让股东价值最大化。":"The bottom layer is the company's legal form. Anthropic is incorporated as a Delaware public benefit corporation, or PBC. An ordinary company's board aims, roughly, to maximize shareholder value.","PBC 把目标函数改成了三项之间的平衡：股东的金钱利益、受公司行为重大影响者的最佳利益，以及章程写明的公益宗旨。":"A PBC changes the objective function into a balance of three things: shareholders' pecuniary interests, the best interests of those materially affected by the company's conduct, and the public benefit purpose written in its charter.","宗旨原文是：为人类的长期利益负责任地开发和维护先进 AI。董事会做决定时，被允许、也被要求同时考虑这三项。":"The purpose reads: to responsibly develop and maintain advanced AI for the long-term benefit of humanity. In its decisions the board is allowed, and required, to weigh all three.","但这个函数没有客观的评分器。招股书说，不采用第三方标准，衡量标准由董事会自己定、以定性为主；按法律至少每两年向股东报告一次。":"But this function has no objective scorer. The prospectus says no third-party standard is used; the board sets its own measures, mostly qualitative, and by law reports to shareholders at least every two years.","所以 PBC 只改了“要优化什么”。由谁来执行、执行者是否可靠，要靠接下来的股权和董事会设计来保证。":"So the PBC only changes “what to optimize.” Who carries it out, and whether they can be trusted, is left to the share and board design that follows.","把五类股票想成五种 token，看各自的权限位。A 类：上市后公众买到的就是它。有经济权利，一般事项每股一票，不能转换成别的类别。":"Think of the five classes as five kinds of token and look at each one's permission bits. Class A: what the public buys after the IPO. It has economic rights, one vote per share on general matters, and cannot convert into another class.","N 类：经济上和 A 类完全一样，但没有投票权。持有人主要是战略业务合作伙伴；卖给无关联的第三方时，一般自动转成 A 类。":"Class N: economically identical to A, but with no vote. It is held mainly by strategic business partners; when sold to an unaffiliated third party it generally converts to Class A automatically.","这样，大型合作伙伴可以持有大量经济利益，却不会因此拿到投票控制权。":"That way a large partner can hold a big economic stake without gaining voting control from it.","T 类：全公司只有一股，由长期利益信托 LTBT 持有。不分钱，一般事项也不投票，但它有权选举和罢免 T 类董事，而 T 类董事占董事会多数。":"Class T: there is a single share in the whole company, held by the Long-Term Benefit Trust (LTBT). It gets no money and does not vote on general matters, but it can elect and remove the Class T directors, and the Class T directors are a majority of the board.","F 类：也只有一股，由七位联合创始人组成的 Founder LLC 持有。不分钱，但在一般股东表决中，这一股固定代表总投票权的 50.1%。":"Class F: also a single share, held by the Founder LLC of seven co-founders. It gets no money, but in general shareholder votes that one share always carries 50.1% of the total voting power.","E 类：发给员工，联合创始人除外。不分钱，只在少数几件事上投票。而这几件事，恰好是制衡链条上的“仲裁”环节。":"Class E: issued to employees other than the co-founders. It gets no money and votes on only a few matters. Those few matters happen to be the “arbitration” link in the chain of checks.","再看经济权利这一列：T、F、E 三类“权力股”全部为零。掌权的通道和赚钱的通道被刻意分开了。":"Now look down the economic-rights column: the three “power shares,” T, F and E, are all zero. The channel to control and the channel to money are kept apart on purpose.","再看控制平面本身。上市完成时，董事会共有 7 个法定席位。":"Now the control plane itself. When the IPO closes, the board has 7 authorized seats.","其中 4 席是 T 类董事，由 LTBT 选举和罢免。4 比 3，刚好过半。":"Four of them are Class T directors, elected and removed by the LTBT. Four to three: just over half.","其余 3 席由 A 类和 F 类股东合并投票选出。因为 F 类固定占 50.1% 的票，这 3 席实际由创始人决定。":"The other 3 seats are elected by Class A and Class F voting together. Because Class F always holds 50.1% of the vote, these 3 seats are in practice decided by the founders.","初始名单：T 类席位是 Hastings、Narasimhan、Liddell，外加一个空缺；另外 3 席是 Dario Amodei、Daniela Amodei 和 Razavi。":"The initial slate: the Class T seats are Hastings, Narasimhan and Liddell, plus one vacancy; the other 3 seats are Dario Amodei, Daniela Amodei and Razavi.","Liddell 的席位叫“指定 T 类董事”。它的任免多一道程序，是整个设计里最精巧的一环，第 08 章细讲。":"Liddell's seat is the “designated Class T director.” Appointing or removing it takes an extra procedure, the cleverest part of the whole design, covered in chapter 08.","注意：LTBT 本身不管日常经营，也不定战略，它的职责是挑选能平衡三重目标的董事。但并购、出售全部资产这类大事须经董事会批准，而董事会多数是它选的。":"Note that the LTBT itself does not run day-to-day operations or set strategy; its job is to pick directors who can balance the three objectives. But major events such as a merger or a sale of substantially all assets need the board's approval, and it chooses the board's majority.","股东大会上，除了选 T 类董事以外的一般事项，A 类和 F 类合并成一个类别投票。":"At the shareholder meeting, on general matters other than electing Class T directors, Class A and Class F vote together as one class.","F 类那一股的票数不是固定数字，而是按比例算：永远等于总投票权的 50.1%。A 类发行得再多，也只能分剩下的 49.9%。":"The votes of that one Class F share are not a fixed number but a proportion: always 50.1% of the total. However many Class A shares are issued, they split only the remaining 49.9%.","N 类没有表决权，T 类和 E 类不参与一般表决。所以一般事项，包括选那 3 名非 T 类董事，结果由创始人决定。":"Class N has no vote, and Classes T and E don't take part in general votes. So general matters, including electing the 3 non-T directors, are decided by the founders.","另一边，因为 LTBT 选出董事会多数，公司在纳斯达克规则下属于“受控公司”，可以豁免部分治理要求；公司表示只对提名与治理委员会 NGC 使用这项豁免。":"On the other side, because the LTBT elects a majority of the board, the company is a “controlled company” under Nasdaq rules and may skip some governance requirements; the company says it uses this exemption only for the nominating and corporate governance committee (NGC).","对买 A 类股的投资者来说：你拿到的是经济利益，而对董事会和一般表决的影响力相当有限。招股书把这一点列为风险。":"For an investor buying Class A: what you get is the economic interest, with quite limited influence over the board and general votes. The prospectus lists this as a risk.","把各方画成一张图。LTBT 通过 T 类股，选举和罢免董事会 7 席中的 4 席。":"Draw all the parties on one diagram. Through the Class T share, the LTBT elects and removes 4 of the board's 7 seats.","Founder LLC 和 A 类股东合并投票，选举和罢免另外 3 席；因为 50.1%，实际由创始人决定。":"The Founder LLC and Class A holders vote together to elect and remove the other 3; because of the 50.1%, the founders decide in practice.","中间有个关键节点：提名与治理委员会 NGC，由 1 名 T 类董事和 2 名非 T 类董事组成。无论 LTBT 还是创始人要提名或罢免董事，或者 LTBT 要任免受托人，都要提前 30 天通知 NGC。":"In the middle sits a key node: the nominating and corporate governance committee (NGC), made up of 1 Class T director and 2 non-T directors. Whenever the LTBT or the founders want to nominate or remove a director, or the LTBT wants to appoint or remove a trustee, they must give the NGC 30 days' notice.","当 NGC 不同意 LTBT 对“指定 T 类董事”的动作时，争议交给员工投票裁决。下一章细看这个流程。":"When the NGC disagrees with what the LTBT wants to do with the “designated Class T director,” the dispute goes to an employee vote. The next chapter looks at that process.","谁来监督 LTBT 本身？受托人由在任受托人选出，任期一年。如果某位受托人有失格行为，且罢免最有利于信托宗旨，特拉华州衡平法院可以下令罢免。":"Who oversees the LTBT itself? Trustees are elected by the sitting trustees for one-year terms. If a trustee engages in disqualifying conduct and removal best serves the trust's purpose, the Delaware Court of Chancery can order the removal.","还有一条通道：任何 T 类董事都可以“因故”罢免，不需要 NGC 或员工同意；但 LTBT 和 Founder LLC 约定，因故罢免任何董事前，要提前 30 天通知对方和 NGC。":"There is one more path: any Class T director can be removed “for cause” without the NGC or the employees agreeing; but the LTBT and the Founder LLC have agreed to give each other and the NGC 30 days' notice before removing any director for cause.","整体来看：每一方的关键动作都会被另一方看到，也都有另一方可以接手的环节。":"Overall: every party's key moves are visible to another party, and each has a step where another party can take over.","先看流程起点：LTBT 想提名、罢免或者更换“指定 T 类董事”，要提前 30 天通知 NGC。":"Start where the process starts: if the LTBT wants to nominate, remove or replace the “designated Class T director,” it must give the NGC 30 days' notice.","如果 NGC 同意，事情就生效。":"If the NGC agrees, it takes effect.","如果 NGC 在 15 天内没有同意，这件事就交给 E 类股东，也就是员工投票。":"If the NGC has not agreed within 15 days, the matter goes to the Class E holders, that is, an employee vote.","只要已发行 E 类股过半参与投票，且所投票数过半赞成，LTBT 的提议就生效；否则不生效。":"If more than half of the outstanding Class E shares take part and more than half of the votes cast are in favor, the LTBT's proposal takes effect; otherwise it doesn't.","在员工表决之前，LTBT 也可以随时撤回提议。":"The LTBT can also withdraw its proposal at any time before the employees vote.","用 code review 来类比：LTBT 提交变更，NGC 负责评审，而 NGC 的 3 人中有 2 人是由创始人一侧选出的非 T 类董事。评审不通过时，全体员工做最终仲裁。":"A code-review analogy: the LTBT submits a change and the NGC reviews it, and 2 of the NGC's 3 members are non-T directors chosen by the founders' side. When the review fails, all employees act as the final arbiter.","员工的票怎么来？每服务满 6 个月得 1 股 E 类股；通过公司的捐赠匹配计划，每承诺捐出 1 股 A 类股再得 1 股。离职后每年赎回一半，去直接竞争对手则全部赎回。所以长期在职、愿意捐赠的员工话语权更大。":"Where do employees' votes come from? One Class E share for every full 6 months of service, and one more for every Class A share pledged through the company's donation matching program. After leaving, half are redeemed each year; joining a direct competitor redeems them all. So long-serving employees who give more have more say.","如果有人想修改 LTBT 的规则，或者干脆赎回那一股 T 类股、让 LTBT 出局，需要达到所谓“信托修订门槛”。它像一个多重签名。":"If someone wants to change the LTBT's rules, or simply redeem the Class T share and take the LTBT out, they must meet the so-called “trust amendment threshold.” It works like a multi-signature.","路径一：受托人自己赞成。这时需要董事会法定人数的 80%，加上在任受托人的 80%。":"Path one: the trustees themselves agree. Then it takes 80% of the board quorum plus 80% of the sitting trustees.","路径二：受托人不赞成，但 F 类股还在。这时创始人、员工、公众股东三方必须同时同意。上市三周年前，可以是创始人一致同意、员工和 A 类股东各自过半。":"Path two: the trustees disagree but Class F still exists. Then founders, employees and public shareholders must all agree. Before the third anniversary of the IPO, that can be the founders unanimously plus a majority each of employees and Class A holders.","任何时候，也可以是创始人三分之二同意、员工 75% 赞成、A 类股东过半。员工的门槛反而更高。":"At any time, it can also be two-thirds of the founders, 75% of employees and a majority of Class A holders. Here the employees' bar is actually higher.","路径三：受托人不赞成，F 类也已不存在。这时需要已发行 A 类股的 85%，这是一个非常高的门槛。":"Path three: the trustees disagree and Class F no longer exists. Then it takes 85% of outstanding Class A shares, a very high bar.","结论：受托人不同意时，创始人不能单方面拿掉 LTBT，投资者和员工也都不能。改规则必须多方同时签字。":"Conclusion: when the trustees disagree, the founders cannot remove the LTBT on their own, and neither can investors or employees. Changing the rules needs several parties to sign at once.","创始人的 50.1% 不是永久的。F 类股由 Founder LLC 持有，初始成员是 7 位联合创始人，按成员多数决定这一票怎么投。":"The founders' 50.1% is not permanent. The Class F share is held by the Founder LLC, whose initial members are the 7 co-founders; a majority of members decides how that vote is cast.","成员会因为这些情况离开：辞职、身故或失能、因故除名、获批休假，以及一个很有意思的条件：本人持有的 A 类股低于其上市时持股的 2%。":"Members leave in these cases: resignation, death or incapacity, removal for cause, approved leave, and one interesting condition: holding less than 2% of the Class A shares they held at the IPO.","这条 2% 规则意味着：创始人可以捐出大部分个人股权（他们已承诺捐出 80%），但必须保留一点真实的经济利益，否则失去投票资格。":"The 2% rule means the founders may give away most of their personal stock (they have pledged to give away 80%), but must keep some real economic interest or lose their vote.","如果留任的创始人少于 3 人……":"If fewer than 3 founders remain…","……并且连续 90 天如此，就开始一个 450 天的过渡期。期满后，F 类股和 E 类股都被无偿赎回，创始人的特殊投票权就此结束。":"…and that lasts 90 days in a row, a 450-day transition period begins. When it ends, the Class F and Class E shares are both redeemed for nothing, and the founders' special voting power is over.","F 类退场后，“指定 T 类董事”的特别程序也随之取消。员工的裁判角色本来就是为 LTBT 与创始人一侧的分歧准备的，这可以帮助理解 E 类为何与 F 类同进同退。":"Once Class F is gone, the special procedure for the “designated Class T director” goes too. The employees' role as referee was always meant for disagreements between the LTBT and the founders' side, which helps explain why Class E comes and goes with Class F.","在此之前，上市 10 周年前，创始人身故或失能时可以接纳继任者；过渡期内也可以补人，但补人不能中止或延长过渡期。":"Before then, until the 10th anniversary of the IPO, a successor can be admitted when a founder dies or becomes incapacitated; members can also be added during the transition period, but that cannot stop or extend it.","最后，把这套结构当成一个状态机。当前状态：T 类和 F 类同时存在，也就是前面讲的全部内容。":"Finally, treat the whole structure as a state machine. Current state: Class T and Class F both exist, which is everything covered so far.","如果创始人一侧先日落：F 类和 E 类被赎回；LTBT 仍然选出董事会多数，A 类股东选其余董事并决定一般事项；董事会改为三级交错任期。":"If the founders' side sunsets first: Classes F and E are redeemed; the LTBT still elects the board majority, Class A holders elect the other directors and decide general matters; the board moves to three staggered classes.","如果 LTBT 一侧先日落：A 类和 F 类合并投票选出全部董事，创始人凭 50.1% 掌控局面。":"If the LTBT's side sunsets first: Classes A and F vote together to elect every director, and the founders' 50.1% gives them control.","两边都日落后，就接近一家普通上市公司：A 类一股一票。":"Once both have sunset, it is close to an ordinary listed company: Class A, one share one vote.","两个触发条件很不对称：F 日落可以因人数减少自动触发；T 日落永远不会因时间流逝自动发生，必须达到上一章的多重签名门槛。而且所有转移都是单向的，一经触发，不可延长、推迟或豁免。":"The two triggers are very asymmetric: the F sunset can fire automatically as numbers shrink; the T sunset never happens just because time passes and needs the multisig threshold from the previous chapter. And every transition is one-way: once triggered it cannot be extended, postponed or waived.","回到开头的问题。用工程的语言总结，这套结构有六个设计点。第一，关注点分离：钱和权分开。T、F、E 类有权不分钱，N 类有钱没票。":"Back to the opening question. In engineering terms, the structure has six design points. One, separation of concerns: money and power are split. Classes T, F and E have power but no money; Class N has money but no vote.","第二，多数被分片：董事会的多数归 LTBT，股东大会的多数归创始人，谁都没有拿到全部。":"Two, the majority is sharded: the board majority belongs to the LTBT, the shareholder-meeting majority to the founders, and nobody has all of it.","第三，设了仲裁者：在“指定 T 类董事”这个席位上，LTBT 与 NGC 意见不一致时，由员工投票裁决。":"Three, there is an arbiter: for the “designated Class T director” seat, when the LTBT and the NGC disagree, employees vote to decide.","第四，多重签名：受托人不同意时，修改 LTBT 规则需要创始人、员工和公众股东同时同意。":"Four, multisig: when the trustees disagree, changing the LTBT's rules needs founders, employees and public shareholders to agree at once.","第五，失效开关：创始人的特殊权力会随着留任人数降到 3 人以下而结束。":"Five, a kill switch: the founders' special powers end once fewer than 3 of them remain.","第六，代价也写在招股书里：A 类股东的影响力有限，LTBT 的利益可能与股东不同，而公益绩效又没有客观指标来检验。":"Six, the costs are written in the prospectus too: Class A holders have limited influence, the LTBT's interests may differ from shareholders', and public-benefit performance has no objective metric to test it against.","一句话：创始人管股东大会，LTBT 管董事会多数，员工在关键分歧时裁决，谁都不能单方面改规则。":"In one sentence: the founders run the shareholder meeting, the LTBT runs the board majority, employees decide the key disputes, and no one can change the rules alone."};
+const TR=s=>{const v=LANG==='en'&&EN[s];return v?(Array.isArray(v)?v:[v,1]):[s,1]};
+const T=s=>TR(s)[0];
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function at(o){let a='';if(o.s!=null)a+=` data-s="${o.s}"`;if(o.k)a+=` data-k="${o.k}"`;if(o.u!=null)a+=` data-u="${o.u}"`;if(o.dim!=null)a+=` data-dim="${o.dim}"`;if(o.delay)a+=` style="transition-delay:${o.delay}ms"`;return a}
+function rect(x,y,w,h,o={}){return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.r??16}" fill="${o.fill??C.pn}" fill-opacity="${o.fo??1}" stroke="${o.stroke??C.ln}" stroke-width="${o.sw??2}"${o.dash?' stroke-dasharray="10 8"':''}${at(o)}/>`}
+function tx(x,y,str,o={}){
+  const tr=(Array.isArray(str)?str:[str]).map(TR),lines=tr.map(v=>v[0]),fs=(o.size??28)*Math.min(...tr.map(v=>v[1])),lh=o.lh??(o.size??28)*1.35;
+  const body=lines.map((l,i)=>`<tspan x="${x}" dy="${i?lh:0}">${esc(l)}</tspan>`).join('');
+  return `<text x="${x}" y="${y}" font-size="${fs}" fill="${o.fill??C.tx}" text-anchor="${o.anchor??'start'}" font-weight="${o.weight??400}"${o.cls?` class="${o.cls}"`:''}${at(o)}>${body}</text>`}
+function g(o,inner){return `<g${at(o)}>${inner}</g>`}
+function arr(x1,y1,x2,y2,col='mu',o={}){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C[col]}" stroke-width="${o.sw??3}"${o.dash?' stroke-dasharray="9 7"':''} marker-end="url(#ah-${col})"${o.both?` marker-start="url(#ah-${col})"`:''}${at(o)}/>`}
+function path(d,col='mu',o={}){return `<path d="${d}" fill="none" stroke="${C[col]}" stroke-width="${o.sw??3}"${o.dash?' stroke-dasharray="9 7"':''}${o.arrow!==false?` marker-end="url(#ah-${col})"`:''}${o.both?` marker-start="url(#ah-${col})"`:''}${at(o)}/>`}
+function node(x,y,w,h,title,subs=[],o={}){
+  const cx=o.center?x+w/2:x+28,an=o.center?'middle':'start';
+  return rect(x,y,w,h,{stroke:o.stroke,sw:o.sw??2.5,fill:o.fill,fo:o.fo})+
+    tx(cx,y+(o.ty??54),title,{size:o.ts??30,weight:600,anchor:an,fill:o.tc})+
+    (subs.length?tx(cx,y+(o.ty??54)+(o.gap??42),subs,{size:o.ss??22,fill:C.mu,anchor:an,lh:o.slh??31}):'')}
+const defs=`<defs>${Object.entries(C).map(([k,v])=>`<marker id="ah-${k}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${v}"/></marker>`).join('')}</defs>`;
+const head=(n,t)=>tx(80,92,t,{size:44,weight:700,cls:'disp'})+tx(1520,92,`${String(n).padStart(2,'0')} / 12`,{size:24,fill:C.mu,anchor:'end',cls:'mono'});
+
+const SCENES=[
+{title:'两个问题',draw:()=>
+  tx(800,230,'谁在控制 Anthropic？',{size:84,anchor:'middle',cls:'disp',weight:700})+
+  ['A','N','T','F','E'].map((c,i)=>{const x=220+i*240,lab=['公众股','伙伴股','信托股','创始人股','员工股'][i];
+    return g({s:1,k:c,delay:i*120},rect(x,330,200,200,{stroke:C[c],sw:3})+tx(x+100,458,c,{size:110,anchor:'middle',fill:C[c],cls:'disp',weight:700})+tx(x+100,512,lab,{size:26,anchor:'middle',fill:C.mu}))}).join('')+
+  g({s:2},rect(400,610,340,110,{stroke:C.A,sw:3})+tx(570,682,'钱归谁？',{size:44,anchor:'middle',weight:700,fill:C.A})+
+         rect(860,610,340,110,{stroke:C.F,sw:3})+tx(1030,682,'权力归谁？',{size:44,anchor:'middle',weight:700,fill:C.F}))+
+  tx(800,820,'数据结构 → 权限表 → 董事会 → 制衡 → 状态机',{size:30,anchor:'middle',fill:C.mu,s:3}),
+ cues:[
+  [1,'招股书这段话一口气提到五类股票：A、N、T、F、E，还有一个信托（LTBT）和一个由创始人组成的有限责任公司（Founder LLC）。'],
+  [2,'它读起来乱，是因为同一段话在同时回答两个不同的问题：钱归谁？权力归谁？'],
+  [2,'在普通公司里，这两个问题的答案基本相同：谁持股多，谁就分钱多、说话也算数。Anthropic 故意让两个答案不同。'],
+  [3,'我们按工程师熟悉的顺序来拆：先看数据结构，再看权限表、董事会、制衡关系，最后看它会怎样随时间演变。']]},
+
+{title:'一股股票的两个字段',draw:()=>
+  g({s:1},rect(80,150,700,370)+
+    tx(120,222,['interface Share {','  economic: boolean','  votes:    number','}'],{size:32,cls:'mono',lh:52})+
+    tx(560,274,['// 分钱','// 投票'],{size:28,cls:'mono',fill:C.mu,lh:52})+
+    tx(120,480,'普通股 = { economic: true, votes: 1 }',{size:28,cls:'mono',fill:C.A}))+
+  g({s:2},
+    [['股东',160],['董事会',320],['CEO 与管理层',480],['日常经营',640]].map(([t,y],i)=>
+      g(i===1?{k:'board'}:{k:'chain'},rect(1000,y,480,86,{stroke:i===1?C.T:C.ln,sw:i===1?3:2})+tx(1240,y+56,t,{size:32,anchor:'middle',weight:600}))).join('')+
+    [['投票选举',246],['任免、监督',406],['执行',566]].map(([t,y])=>g({k:'chain'},arr(1240,y,1240,y+70)+tx(1262,y+44,t,{size:22,fill:C.mu}))).join(''))+
+  g({s:3,k:'board'},tx(1240,790,['控制平面：','谁定董事会多数，谁就控制公司'],{size:28,anchor:'middle',fill:C.T,weight:600,lh:40}))+
+  g({s:4},rect(80,570,700,250,{stroke:C.F,sw:2.5})+tx(120,628,'Anthropic：把两个字段拆开',{size:30,weight:600})+
+    tx(120,694,'A / N   → 有 economic',{size:28,cls:'mono',fill:C.A})+
+    tx(120,760,'T / F / E → 只有特殊 votes',{size:28,cls:'mono',fill:C.F})),
+ cues:[
+  [1,'在普通公司，一股股票同时带着两个字段：经济权利（分红、卖出时分钱）和投票权（在股东大会上表决）。'],
+  [2,'股东投票选出董事会；董事会任免和监督 CEO；CEO 带着管理层做日常经营。'],
+  [3,'所以真正的“控制平面”是董事会。问“谁控制公司”，本质上是在问：谁能决定董事会的多数席位？','board'],
+  [4,'Anthropic 的核心手法，就是把这两个字段拆开：A、N 类有钱；T、F、E 类有特殊的权，但一分钱不分。']]},
+
+{title:'第一层：公益公司（PBC）',draw:()=>
+  g({s:1,k:'old'},tx(120,230,'普通公司   maximize( 股东金钱利益 )',{size:34,cls:'mono',fill:C.mu}))+
+  g({s:2,k:'pbc'},tx(120,320,'公益公司   balance( 股东的钱, 受影响者, 公益宗旨 )',{size:34,cls:'mono',fill:C.T})+
+    node(120,390,420,210,'股东的金钱利益',['A 类、N 类股东关心的','财务回报'],{stroke:C.A})+
+    node(590,390,420,210,'受影响者的最佳利益',['受公司行为重大影响的人：','用户、社会……'],{stroke:C.E})+
+    node(1060,390,420,210,'公益宗旨',['为人类的长期利益，','负责任地开发和维护先进 AI'],{stroke:C.T}))+
+  g({s:3},rect(120,650,1360,96,{dash:true})+tx(800,708,'没有第三方客观标准 · 标准由董事会自定、以定性为主 · 至少每两年发布一次公益绩效声明',{size:26,anchor:'middle',fill:C.mu}))+
+  tx(800,830,'PBC 改的是“目标函数”；由谁来执行，取决于股权和董事会设计 →',{size:32,anchor:'middle',fill:C.F,s:4,weight:600}),
+ cues:[
+  [1,'最底层是公司的法律形式。Anthropic 注册为特拉华州的公益公司，简称 PBC。普通公司的董事会，目标大致是让股东价值最大化。'],
+  [2,'PBC 把目标函数改成了三项之间的平衡：股东的金钱利益、受公司行为重大影响者的最佳利益，以及章程写明的公益宗旨。','pbc'],
+  [2,'宗旨原文是：为人类的长期利益负责任地开发和维护先进 AI。董事会做决定时，被允许、也被要求同时考虑这三项。','pbc'],
+  [3,'但这个函数没有客观的评分器。招股书说，不采用第三方标准，衡量标准由董事会自己定、以定性为主；按法律至少每两年向股东报告一次。'],
+  [4,'所以 PBC 只改了“要优化什么”。由谁来执行、执行者是否可靠，要靠接下来的股权和董事会设计来保证。']]},
+
+{title:'五类股票的权限表',draw:()=>{
+  const rows=[
+   ['A',['公众投资者','及其他股东'],'大量',1,['每股 1 票（一般事项）','不可转换']],
+   ['N',['主要为战略','业务合作伙伴'],'大量',1,['无表决权（法律另有规定除外）','卖给无关联第三方时一般转为 A 类']],
+   ['T',['长期利益信托','LTBT'],'1 股',0,['选举、罢免 T 类董事','（占董事会多数）']],
+   ['F',['Founder LLC','7 位联合创始人'],'1 股',0,['一般事项固定占','总投票权的 50.1%']],
+   ['E',['员工','（不含联合创始人）'],'按工龄等发放',0,['仅限少数特定事项','（第 08 章详解）']]];
+  let s=['类别','持有人','数量','经济权利','投票权'].map((h,i)=>tx([140,230,620,860,980][i],182,h,{size:24,fill:C.mu,anchor:i===0||i===3?'middle':'start'})).join('');
+  rows.forEach((r,i)=>{const y=205+i*112;
+    s+=g({s:i===0?1:i+1+(i>1?0:0),k:r[0]},
+      rect(80,y,1440,100,{stroke:C.ln,r:12})+
+      tx(140,y+70,r[0],{size:56,anchor:'middle',fill:C[r[0]],cls:'disp',weight:700})+
+      tx(230,y+42,r[1],{size:26,lh:34})+tx(620,y+60,r[2],{size:26})+
+      tx(860,y+68,r[3]?'✓':'✗',{size:46,anchor:'middle',fill:r[3]?C.T:C.no,weight:700})+
+      tx(980,y+42,r[4],{size:25,lh:34,fill:r[0]==='A'||r[0]==='N'?C.tx:C[r[0]]}))});
+  s+=g({s:6},rect(785,425,150,336,{fill:'none',stroke:C.F,sw:4,r:14})+tx(860,815,'权力股（T / F / E）全部没有经济权利',{size:30,anchor:'middle',fill:C.F,weight:600}));
+  return s},
+ cues:[
+  [1,'把五类股票想成五种 token，看各自的权限位。A 类：上市后公众买到的就是它。有经济权利，一般事项每股一票，不能转换成别的类别。','A'],
+  [2,'N 类：经济上和 A 类完全一样，但没有投票权。持有人主要是战略业务合作伙伴；卖给无关联的第三方时，一般自动转成 A 类。','N'],
+  [2,'这样，大型合作伙伴可以持有大量经济利益，却不会因此拿到投票控制权。','N'],
+  [3,'T 类：全公司只有一股，由长期利益信托 LTBT 持有。不分钱，一般事项也不投票，但它有权选举和罢免 T 类董事，而 T 类董事占董事会多数。','T'],
+  [4,'F 类：也只有一股，由七位联合创始人组成的 Founder LLC 持有。不分钱，但在一般股东表决中，这一股固定代表总投票权的 50.1%。','F'],
+  [5,'E 类：发给员工，联合创始人除外。不分钱，只在少数几件事上投票。而这几件事，恰好是制衡链条上的“仲裁”环节。','E'],
+  [6,'再看经济权利这一列：T、F、E 三类“权力股”全部为零。掌权的通道和赚钱的通道被刻意分开了。']]},
+
+{title:'董事会：7 席怎么分',draw:()=>{
+  const xs=[300,450,600,750,950,1100,1250],names=[['Hastings'],['Narasimhan'],['Liddell'],['（空缺）'],['Dario','Amodei'],['Daniela','Amodei'],['Razavi']];
+  let s=xs.map(x=>`<circle cx="${x}" cy="360" r="62" fill="${C.pn}" stroke="${C.ln}" stroke-width="2.5"/>`).join('');
+  s+=g({s:2,k:'T'},xs.slice(0,4).map(x=>`<circle cx="${x}" cy="360" r="62" fill="${C.T}" fill-opacity=".22" stroke="${C.T}" stroke-width="3"/>`).join('')+
+    path('M238,262 L238,240 L812,240 L812,262','T',{arrow:false})+tx(525,222,'LTBT 选举 · 4 席 = 多数',{size:30,anchor:'middle',fill:C.T,weight:600})+
+    rect(325,600,400,110,{stroke:C.T,sw:3})+tx(525,668,'LTBT（T 类股）',{size:32,anchor:'middle',weight:600})+arr(525,600,525,440,'T'));
+  s+=g({s:3,k:'F'},xs.slice(4).map(x=>`<circle cx="${x}" cy="360" r="62" fill="${C.F}" fill-opacity=".22" stroke="${C.F}" stroke-width="3"/>`).join('')+
+    path('M888,262 L888,240 L1312,240 L1312,262','F',{arrow:false})+tx(1100,222,'A 类 + F 类共同选举 · 3 席',{size:30,anchor:'middle',fill:C.F,weight:600})+
+    rect(870,600,460,110,{stroke:C.F,sw:3})+tx(1100,646,'A 类 + F 类合并投票',{size:30,anchor:'middle',weight:600})+tx(1100,688,'F 固定 50.1% → 实际由创始人决定',{size:22,anchor:'middle',fill:C.mu})+arr(1100,600,1100,440,'F'));
+  s+=g({s:4},xs.map((x,i)=>tx(x,i===3?370:(names[i].length>1?352:370),names[i],{size:22,anchor:'middle',lh:28})).join(''));
+  s+=g({s:5,k:'des'},`<circle cx="600" cy="360" r="80" fill="none" stroke="${C.T}" stroke-width="3" stroke-dasharray="8 7"/>`+tx(600,476,'指定 T 类董事',{size:24,anchor:'middle',fill:C.T,weight:600}));
+  s+=g({s:6},rect(120,760,1360,96,{dash:true})+tx(800,818,'董事会作决策；LTBT 不管日常经营、不定战略。但并购、出售全部资产等重大事项须经董事会批准。',{size:26,anchor:'middle',fill:C.mu}));
+  return s},
+ cues:[
+  [1,'再看控制平面本身。上市完成时，董事会共有 7 个法定席位。'],
+  [2,'其中 4 席是 T 类董事，由 LTBT 选举和罢免。4 比 3，刚好过半。','T'],
+  [3,'其余 3 席由 A 类和 F 类股东合并投票选出。因为 F 类固定占 50.1% 的票，这 3 席实际由创始人决定。','F'],
+  [4,'初始名单：T 类席位是 Hastings、Narasimhan、Liddell，外加一个空缺；另外 3 席是 Dario Amodei、Daniela Amodei 和 Razavi。'],
+  [5,'Liddell 的席位叫“指定 T 类董事”。它的任免多一道程序，是整个设计里最精巧的一环，第 08 章细讲。','des'],
+  [6,'注意：LTBT 本身不管日常经营，也不定战略，它的职责是挑选能平衡三重目标的董事。但并购、出售全部资产这类大事须经董事会批准，而董事会多数是它选的。']]},
+
+{title:'股东大会：50.1% 的那一股',draw:()=>
+  g({s:1},tx(160,222,'一般事项的投票（含选举 3 名非 T 类董事）',{size:26,fill:C.mu})+
+    `<rect x="160" y="250" width="641.3" height="120" rx="12" fill="${C.F}"/><rect x="801.3" y="250" width="638.7" height="120" rx="12" fill="${C.A}"/>`+
+    tx(480,326,'F 类 · 50.1%',{size:40,anchor:'middle',fill:C.bg,weight:700})+tx(1120,326,'A 类 · 49.9%',{size:40,anchor:'middle',fill:C.bg,weight:700}))+
+  g({s:2},tx(160,452,'votes(F) = 50.1% × 总投票权',{size:32,cls:'mono',fill:C.F})+tx(800,452,'// 按比例计算，不是固定票数',{size:26,cls:'mono',fill:C.mu})+
+    tx(160,505,'A 类股再多 → A 类合计仍是 49.9%',{size:28,fill:C.mu}))+
+  g({s:3},[['N 类：无表决权','N'],['T 类：不参与一般表决','T'],['E 类：不参与一般表决','E']].map(([t,c],i)=>rect(160+i*440,560,400,80,{stroke:C[c]})+tx(360+i*440,610,t,{size:26,anchor:'middle'})).join(''))+
+  g({s:4},rect(160,680,1280,84,{dash:true})+tx(800,732,'“受控公司”：LTBT 选出董事会多数 → 可豁免纳斯达克部分治理要求（公司称仅用于 NGC）',{size:25,anchor:'middle',fill:C.mu}))+
+  tx(800,835,'对 A 类投资者：拿到的是经济利益，对董事会和一般表决的影响有限',{size:30,anchor:'middle',fill:C.A,weight:600,s:5}),
+ cues:[
+  [1,'股东大会上，除了选 T 类董事以外的一般事项，A 类和 F 类合并成一个类别投票。'],
+  [2,'F 类那一股的票数不是固定数字，而是按比例算：永远等于总投票权的 50.1%。A 类发行得再多，也只能分剩下的 49.9%。'],
+  [3,'N 类没有表决权，T 类和 E 类不参与一般表决。所以一般事项，包括选那 3 名非 T 类董事，结果由创始人决定。'],
+  [4,'另一边，因为 LTBT 选出董事会多数，公司在纳斯达克规则下属于“受控公司”，可以豁免部分治理要求；公司表示只对提名与治理委员会 NGC 使用这项豁免。'],
+  [5,'对买 A 类股的投资者来说：你拿到的是经济利益，而对董事会和一般表决的影响力相当有限。招股书把这一点列为风险。']]},
+
+{title:'谁牵制谁',draw:()=>
+  g({k:'T'},node(120,170,380,150,'长期利益信托 LTBT',['5 个受托人席位，无财务利害关系','受托人互选，任期 1 年'],{stroke:C.T,ts:28}))+
+  g({k:'board'},node(610,170,380,150,'董事会（7 席）',['4 名 T 类 + 3 名其他','做全部经营决策'],{ts:28}))+
+  g({k:'F'},node(1100,170,380,150,'Founder LLC',['7 位联合创始人','F 类：一般表决 50.1%'],{stroke:C.F,ts:28}))+
+  g({k:'court'},node(120,500,380,150,'特拉华州衡平法院',['受托人有失格行为、','且罢免有利于信托宗旨时'],{ts:28}))+
+  g({k:'ngc'},node(610,500,380,150,'提名与治理委员会',['NGC：1 名 T 类董事','+ 2 名非 T 类董事'],{ts:28}))+
+  g({k:'E'},node(1100,500,380,150,'员工（E 类股）',['平时不投票','只在特定争议时登场'],{stroke:C.E,ts:28}))+
+  g({s:1,k:'T'},arr(500,250,606,250,'T')+tx(555,236,'选/罢 4 席',{size:20,anchor:'middle',fill:C.T}))+
+  g({s:2,k:'F'},arr(1100,250,994,250,'F')+tx(1045,236,'选/罢 3 席',{size:20,anchor:'middle',fill:C.F})+tx(1045,284,'与 A 类合并',{size:18,anchor:'middle',fill:C.mu}))+
+  g({s:3,k:'ngc'},arr(440,320,676,496,'mu',{dash:true})+arr(1160,320,924,496,'mu',{dash:true})+
+    tx(585,400,'提前 30 天通知',{size:22,fill:C.mu})+tx(1015,400,'提前 30 天通知',{size:22,fill:C.mu,anchor:'end'}))+
+  g({s:4,k:'E'},arr(990,575,1096,575,'E')+tx(1045,560,'分歧时',{size:20,anchor:'middle',fill:C.E})+tx(1045,606,'交员工',{size:20,anchor:'middle',fill:C.E}))+
+  g({s:5,k:'court'},arr(310,500,310,324,'mu')+tx(326,420,'可下令罢免受托人',{size:22,fill:C.mu}))+
+  g({s:6,k:'cause'},path('M300,170 C300,112 1290,112 1290,170','mu',{dash:true,both:true})+tx(800,110,'因故罢免董事：无需 NGC 或员工批准，但须提前 30 天通知对方和 NGC',{size:22,anchor:'middle',fill:C.tx}))+
+  g({s:7},rect(120,710,1360,140,{stroke:C.F,dash:true})+tx(800,766,['LTBT 选董事会多数，但动作要先通知 NGC；创始人掌控股东大会，但董事会多数不是他们选的；','双方在关键席位上僵持时，由员工投票裁决。'],{size:25,anchor:'middle',lh:42})),
+ cues:[
+  [1,'把各方画成一张图。LTBT 通过 T 类股，选举和罢免董事会 7 席中的 4 席。','T'],
+  [2,'Founder LLC 和 A 类股东合并投票，选举和罢免另外 3 席；因为 50.1%，实际由创始人决定。','F'],
+  [3,'中间有个关键节点：提名与治理委员会 NGC，由 1 名 T 类董事和 2 名非 T 类董事组成。无论 LTBT 还是创始人要提名或罢免董事，或者 LTBT 要任免受托人，都要提前 30 天通知 NGC。','ngc'],
+  [4,'当 NGC 不同意 LTBT 对“指定 T 类董事”的动作时，争议交给员工投票裁决。下一章细看这个流程。','E'],
+  [5,'谁来监督 LTBT 本身？受托人由在任受托人选出，任期一年。如果某位受托人有失格行为，且罢免最有利于信托宗旨，特拉华州衡平法院可以下令罢免。','court'],
+  [6,'还有一条通道：任何 T 类董事都可以“因故”罢免，不需要 NGC 或员工同意；但 LTBT 和 Founder LLC 约定，因故罢免任何董事前，要提前 30 天通知对方和 NGC。','cause'],
+  [7,'整体来看：每一方的关键动作都会被另一方看到，也都有另一方可以接手的环节。']]},
+
+{title:'指定 T 类董事：员工当裁判',draw:()=>
+  g({s:1},node(80,160,300,140,'LTBT 提议',['提名 / 罢免 / 更换','指定 T 类董事'],{stroke:C.T,ts:28,gap:38})+arr(380,230,436,230,'mu')+
+    node(440,160,280,140,'通知 NGC',['提前 30 天'],{ts:28,center:true})+arr(720,230,766,230,'mu'))+
+  g({s:2},`<polygon points="900,140 1030,230 900,320 770,230" fill="${C.pn}" stroke="${C.tx}" stroke-width="2.5"/>`+
+    tx(900,222,['NGC 15 天内','同意？'],{size:24,anchor:'middle',lh:32})+arr(1030,230,1126,230,'T')+tx(1078,214,'同意',{size:20,anchor:'middle',fill:C.T})+
+    rect(1130,170,350,120,{stroke:C.T,fill:C.T,fo:.15,sw:2.5})+tx(1305,242,'生效',{size:34,anchor:'middle',weight:700,fill:C.T}))+
+  g({s:3,k:'E'},arr(900,320,900,396,'E')+tx(916,366,'不同意',{size:20,fill:C.E})+
+    node(680,400,440,150,'员工 E 类股表决',['所投票数过半即通过','法定人数：已发行 E 类股过半'],{stroke:C.E,ts:28,center:true,gap:40}))+
+  g({s:4,k:'E'},arr(1120,475,1176,475,'T')+tx(1148,460,'通过',{size:18,anchor:'middle',fill:C.T})+
+    rect(1180,415,300,120,{stroke:C.T,fill:C.T,fo:.15,sw:2.5})+tx(1330,487,'生效',{size:34,anchor:'middle',weight:700,fill:C.T})+
+    arr(900,550,900,616,'no')+tx(916,592,'否决',{size:20,fill:C.no})+
+    rect(750,620,300,90,{stroke:C.no})+tx(900,676,'不生效',{size:30,anchor:'middle',weight:600,fill:C.no}))+
+  g({s:5},rect(80,400,560,80,{dash:true})+tx(110,450,'表决前，LTBT 可随时撤回提议',{size:26,fill:C.mu}))+
+  g({s:6},rect(80,520,560,270)+tx(110,572,['// 类比：一次 code review','LTBT  提交变更','NGC   评审（3 人中 2 人为非 T 类董事）','员工  评审驳回时的最终仲裁'],{size:22,cls:'mono',lh:52}))+
+  g({s:7,k:'E'},node(1100,600,420,200,'E 类股怎么来',['每服务满 6 个月：+1 股','每承诺捐出 1 股 A 类股：+1 股','离职后每年赎回一半'],{stroke:C.E,ts:26,ss:21,gap:40})),
+ cues:[
+  [1,'先看流程起点：LTBT 想提名、罢免或者更换“指定 T 类董事”，要提前 30 天通知 NGC。'],
+  [2,'如果 NGC 同意，事情就生效。'],
+  [3,'如果 NGC 在 15 天内没有同意，这件事就交给 E 类股东，也就是员工投票。','E'],
+  [4,'只要已发行 E 类股过半参与投票，且所投票数过半赞成，LTBT 的提议就生效；否则不生效。','E'],
+  [5,'在员工表决之前，LTBT 也可以随时撤回提议。'],
+  [6,'用 code review 来类比：LTBT 提交变更，NGC 负责评审，而 NGC 的 3 人中有 2 人是由创始人一侧选出的非 T 类董事。评审不通过时，全体员工做最终仲裁。'],
+  [7,'员工的票怎么来？每服务满 6 个月得 1 股 E 类股；通过公司的捐赠匹配计划，每承诺捐出 1 股 A 类股再得 1 股。离职后每年赎回一半，去直接竞争对手则全部赎回。所以长期在职、愿意捐赠的员工话语权更大。','E']]},
+
+{title:'修改 LTBT 规则 = 多重签名',draw:()=>
+  g({s:1},tx(80,160,'适用于：修改 LTBT 条款 · 修改 T 类股权利 · 无偿赎回 T 类股（让 LTBT 出局）',{size:26,fill:C.mu}))+
+  g({s:2,k:'p1'},rect(80,200,440,500,{stroke:C.T,sw:2.5})+tx(110,256,'路径 1 · 受托人赞成',{size:28,weight:700,fill:C.T})+
+    rect(110,320,380,110)+tx(300,388,'董事会法定人数的 80%',{size:26,anchor:'middle'})+
+    tx(300,478,'+',{size:40,anchor:'middle',fill:C.mu})+
+    rect(110,520,380,110)+tx(300,588,'在任受托人的 80%',{size:26,anchor:'middle'}))+
+  g({s:3,k:'p2'},rect(560,200,520,500,{stroke:C.F,sw:2.5})+tx(590,256,'路径 2 · 受托人不赞成，F 类仍在',{size:26,weight:700,fill:C.F})+
+    rect(590,290,460,190)+tx(615,330,'上市三周年前，可以：',{size:22,fill:C.mu})+
+    tx(615,372,['F：留任创始人一致同意','E：所投票数过半（法定 40%）','A：所投票数过半（法定过半）'],{size:22,lh:34})+
+    tx(820,505,'或',{size:24,anchor:'middle',fill:C.mu})+
+    rect(590,520,460,160)+tx(615,558,'任何时候：',{size:22,fill:C.mu})+
+    tx(615,598,['F：2/3 留任创始人','E：所投票数 75%（法定过半）','A：所投票数过半（法定过半）'],{size:22,lh:30}))+
+  g({s:4,k:'p3'},rect(1120,200,400,500,{stroke:C.A,sw:2.5})+tx(1150,256,'路径 3 · 受托人不赞成',{size:26,weight:700,fill:C.A})+tx(1150,294,'且 F 类已不存在',{size:22,fill:C.mu})+
+    tx(1320,470,['已发行 A 类股','的 85%'],{size:40,anchor:'middle',weight:700,lh:56}))+
+  g({s:5},tx(800,790,'受托人不同意时，创始人、员工、公众股东必须同时签字',{size:32,anchor:'middle',fill:C.F,weight:600})+
+    tx(800,846,'approve = trustees(80%) && board(80%)  ||  F && E && A  ||  A ≥ 85%',{size:22,anchor:'middle',cls:'mono',fill:C.mu})),
+ cues:[
+  [1,'如果有人想修改 LTBT 的规则，或者干脆赎回那一股 T 类股、让 LTBT 出局，需要达到所谓“信托修订门槛”。它像一个多重签名。'],
+  [2,'路径一：受托人自己赞成。这时需要董事会法定人数的 80%，加上在任受托人的 80%。','p1'],
+  [3,'路径二：受托人不赞成，但 F 类股还在。这时创始人、员工、公众股东三方必须同时同意。上市三周年前，可以是创始人一致同意、员工和 A 类股东各自过半。','p2'],
+  [3,'任何时候，也可以是创始人三分之二同意、员工 75% 赞成、A 类股东过半。员工的门槛反而更高。','p2'],
+  [4,'路径三：受托人不赞成，F 类也已不存在。这时需要已发行 A 类股的 85%，这是一个非常高的门槛。','p3'],
+  [5,'结论：受托人不同意时，创始人不能单方面拿掉 LTBT，投资者和员工也都不能。改规则必须多方同时签字。']]},
+
+{title:'创始人的失效开关',draw:()=>{
+  let s=g({s:1},tx(80,170,'Founder LLC：初始 7 名成员，按成员多数决定 F 类这一票怎么投',{size:26,fill:C.mu}));
+  for(let i=0;i<7;i++)s+=`<circle cx="${430+i*124}" cy="250" r="44" fill="${C.F}" data-s="1"${i>1?` data-dim="4" style="transition-delay:${(6-i)*250}ms"`:''}/>`;
+  s+=tx(1360,262,'留任：7 人',{size:30,fill:C.F,weight:600,s:1,u:4})+tx(1360,262,'留任 < 3 人',{size:30,fill:C.no,weight:700,s:4});
+  s+=g({s:2},rect(80,340,720,370)+tx(110,392,'任一情况发生，成员即离开 Founder LLC',{size:26,weight:600})+
+    tx(110,446,['· 主动辞去成员身份','· 身故或丧失行为能力','· 所持 A 类股低于其上市时持股的 2%','· 因故除名（含特定竞争性活动）','· 经其他创始人绝对多数批准的休假'],{size:24,lh:50}));
+  s+=g({s:3,k:'two'},rect(98,512,684,50,{fill:'none',stroke:C.F,sw:3,r:10}));
+  s+=g({s:5},node(860,340,660,90,'留任创始人连续 90 天少于 3 人',[],{ts:26,center:true,ty:56})+arr(1190,430,1190,466,'mu')+
+    node(860,470,660,90,'开始 450 天过渡期',[],{ts:26,center:true,ty:56,stroke:C.F})+arr(1190,560,1190,596,'no')+
+    node(860,600,660,110,'F 类和 E 类全部被无偿赎回',['创始人的特殊投票权结束'],{ts:26,center:true,ty:48,gap:38,stroke:C.no}));
+  s+=g({s:7},rect(80,760,1440,90,{dash:true})+tx(800,814,'上市 10 周年前，创始人身故或失能时可接纳继任者；过渡期内也可补人，但不能中止或延长过渡期',{size:24,anchor:'middle',fill:C.mu}));
+  return s},
+ cues:[
+  [1,'创始人的 50.1% 不是永久的。F 类股由 Founder LLC 持有，初始成员是 7 位联合创始人，按成员多数决定这一票怎么投。'],
+  [2,'成员会因为这些情况离开：辞职、身故或失能、因故除名、获批休假，以及一个很有意思的条件：本人持有的 A 类股低于其上市时持股的 2%。'],
+  [3,'这条 2% 规则意味着：创始人可以捐出大部分个人股权（他们已承诺捐出 80%），但必须保留一点真实的经济利益，否则失去投票资格。','two'],
+  [4,'如果留任的创始人少于 3 人……'],
+  [5,'……并且连续 90 天如此，就开始一个 450 天的过渡期。期满后，F 类股和 E 类股都被无偿赎回，创始人的特殊投票权就此结束。'],
+  [6,'F 类退场后，“指定 T 类董事”的特别程序也随之取消。员工的裁判角色本来就是为 LTBT 与创始人一侧的分歧准备的，这可以帮助理解 E 类为何与 F 类同进同退。'],
+  [7,'在此之前，上市 10 周年前，创始人身故或失能时可以接纳继任者；过渡期内也可以补人，但补人不能中止或延长过渡期。']]},
+
+{title:'把它看成状态机',draw:()=>
+  g({s:1,k:'s0'},node(80,330,420,250,'① 现在：T + F',['LTBT 选 4 席（多数）','A + F 选 3 席','F 占一般表决 50.1%','员工持有 E 类股'],{stroke:C.tx,ts:28,ss:22,slh:34}))+
+  g({s:2,k:'s1'},node(640,120,450,290,'② F 日落后：只剩 T',['LTBT 仍选董事会多数','A 类选其余董事、决定一般事项','E 类被赎回，指定席程序取消','董事会改为三级交错任期'],{stroke:C.T,ts:28,ss:22,slh:34})+
+    arr(500,400,636,300,'F')+tx(548,326,'F 日落',{size:22,fill:C.F,anchor:'middle'}))+
+  g({s:3,k:'s2'},node(640,520,450,250,'③ T 日落后：只剩 F',['A + F 合并投票选全部董事','F 仍占 50.1%','创始人决定一般事项'],{stroke:C.F,ts:28,ss:22,slh:34})+
+    arr(500,510,636,620,'T')+tx(548,600,'T 日落',{size:22,fill:C.T,anchor:'middle'}))+
+  g({s:4,k:'s3'},node(1230,330,290,200,'④ 都日落',['A 类一股一票','接近普通上市公司'],{stroke:C.A,ts:28,ss:22,slh:34})+
+    arr(1090,300,1226,390,'T')+tx(1170,322,'T 日落',{size:20,fill:C.T})+arr(1090,640,1226,480,'F')+tx(1170,600,'F 日落',{size:20,fill:C.F})+
+    tx(1375,580,['单向转移','不可撤回'],{size:22,anchor:'middle',fill:C.mu}))+
+  g({s:5},tx(80,820,'F 日落：创始人少于 3 人触发过渡期，或创始人绝对多数同意赎回 / 解散 LLC',{size:24,fill:C.F})+
+    tx(80,862,'T 日落：只能通过“信托修订门槛”，永远不会因时间流逝自动发生',{size:24,fill:C.T})),
+ cues:[
+  [1,'最后，把这套结构当成一个状态机。当前状态：T 类和 F 类同时存在，也就是前面讲的全部内容。','s0'],
+  [2,'如果创始人一侧先日落：F 类和 E 类被赎回；LTBT 仍然选出董事会多数，A 类股东选其余董事并决定一般事项；董事会改为三级交错任期。','s1'],
+  [3,'如果 LTBT 一侧先日落：A 类和 F 类合并投票选出全部董事，创始人凭 50.1% 掌控局面。','s2'],
+  [4,'两边都日落后，就接近一家普通上市公司：A 类一股一票。','s3'],
+  [5,'两个触发条件很不对称：F 日落可以因人数减少自动触发；T 日落永远不会因时间流逝自动发生，必须达到上一章的多重签名门槛。而且所有转移都是单向的，一经触发，不可延长、推迟或豁免。']]},
+
+{title:'总结：六个设计点',draw:()=>{
+  const rows=[['关注点分离','钱和权分开：T / F / E 有权不分钱，N 有钱没票','tx'],['分片的多数','董事会多数归 LTBT，股东大会多数归创始人','tx'],['仲裁者','指定 T 类董事有分歧时，员工投票裁决','tx'],['多重签名','受托人不同意时，改 LTBT 规则需多方同时同意','tx'],['失效开关','创始人少于 3 人，F 类和 E 类退场','tx'],['已知代价','A 类股东影响有限；公益绩效没有客观指标','no']];
+  let s=rows.map((r,i)=>{const y=150+i*92;return g({s:i+1},rect(80,y,420,76,{stroke:r[2]==='no'?C.no:C.ln})+tx(290,y+50,r[0],{size:28,anchor:'middle',cls:'mono',fill:r[2]==='no'?C.no:C.T})+tx(540,y+50,r[1],{size:28,fill:r[2]==='no'?C.no:C.tx}))}).join('');
+  s+=g({s:7},rect(80,722,1440,138,{stroke:C.F,fill:C.F,fo:.1,sw:3})+tx(800,778,['创始人管股东大会，LTBT 管董事会多数，','员工在关键分歧时裁决，谁都不能单方面改规则。'],{size:32,anchor:'middle',weight:600,lh:48,cls:'disp'}));
+  return s},
+ cues:[
+  [1,'回到开头的问题。用工程的语言总结，这套结构有六个设计点。第一，关注点分离：钱和权分开。T、F、E 类有权不分钱，N 类有钱没票。'],
+  [2,'第二，多数被分片：董事会的多数归 LTBT，股东大会的多数归创始人，谁都没有拿到全部。'],
+  [3,'第三，设了仲裁者：在“指定 T 类董事”这个席位上，LTBT 与 NGC 意见不一致时，由员工投票裁决。'],
+  [4,'第四，多重签名：受托人不同意时，修改 LTBT 规则需要创始人、员工和公众股东同时同意。'],
+  [5,'第五，失效开关：创始人的特殊权力会随着留任人数降到 3 人以下而结束。'],
+  [6,'第六，代价也写在招股书里：A 类股东的影响力有限，LTBT 的利益可能与股东不同，而公益绩效又没有客观指标来检验。'],
+  [7,'一句话：创始人管股东大会，LTBT 管董事会多数，员工在关键分歧时裁决，谁都不能单方面改规则。']]}
+];
+
+/* ---------- player ---------- */
+if(LANG==='en')SCENES.forEach(sc=>{sc.title=T(sc.title);sc.cues.forEach(c=>{c[1]=T(c[1])})});
+const CUES=[];SCENES.forEach((sc,si)=>sc.cues.forEach((c,ci)=>CUES.push({si,ci,s:c[0],t:c[1],k:c[2]||null,d:Math.max(3500,c[1].length*150+1000)})));
+/* recorded narration length per cue (ms); the timeline follows it so silent playback keeps the same pace */
+const AUD={"zh":[12840,8040,11064,10560,10248,8184,9216,10608,13320,11688,11736,13728,10512,13632,12144,7296,14352,13608,11856,10176,6408,7440,11184,11808,9552,16416,7824,13416,10992,15312,11304,7920,9888,18984,10032,15384,15864,7320,9288,3576,7608,9528,4968,15432,20904,12600,9768,16488,10296,10584,11352,12456,13488,13008,3048,12552,15456,11736,9888,14112,9888,5616,18504,14976,9216,10056,9984,7488,11952,10344],"en":[15456,7776,11616,10800,11832,9336,9000,11208,13848,14016,12120,13752,9864,15744,13512,5904,16536,14976,11736,11856,6552,7584,12648,11520,11496,17496,9288,13776,11544,16776,11112,8952,11016,21456,10752,15984,16536,7224,10848,2952,8256,10536,5232,14688,20808,12456,8592,17784,10920,10440,12696,13416,14520,10632,2592,14232,17376,14592,9816,15912,10176,6528,19872,17664,9864,9672,10176,6720,13608,11712]}[LANG];
+const GAP=550;
+if(AUD.length===CUES.length)CUES.forEach((c,i)=>c.d=AUD[i]+GAP);
+const START=[];let acc=0;CUES.forEach(c=>{START.push(acc);acc+=c.d});const TOTAL=acc;
+const $=id=>document.getElementById(id);
+const tap=$('tap'),stage=$('stage'),cap=$('cap'),chap=$('chap'),bar=$('bar'),playBtn=$('play'),timeEl=$('time');
+let cur=0,playing=false,elapsed=0,lastTs=0,shownScene=-1,tts=true,speaking=false,timer=null;
+const fmt=ms=>{const s=Math.round(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+
+const segs=SCENES.map((sc,si)=>{const idx=CUES.map((c,i)=>c.si===si?i:-1).filter(i=>i>=0);const d=idx.reduce((a,i)=>a+CUES[i].d,0);
+  const el=document.createElement('div');el.className='seg';el.style.flex=d;el.title=`${si+1}. ${sc.title}`;el.innerHTML='<i></i>';bar.appendChild(el);return{el,fill:el.firstChild,first:idx[0],last:idx[idx.length-1],start:START[idx[0]],d}});
+
+const chWrap=$('chapters');
+SCENES.forEach((sc,si)=>{const b=document.createElement('button');b.innerHTML=`<span>${String(si+1).padStart(2,'0')} · ${fmt(segs[si].start)}</span>${sc.title}`;b.onclick=()=>{go(segs[si].first);if(!playing)play();window.scrollTo({top:$('player').getBoundingClientRect().top+scrollY-12,behavior:'smooth'})};chWrap.appendChild(b)});
+const trWrap=$('tr');
+SCENES.forEach((sc,si)=>{const d=document.createElement('div');d.innerHTML=`<h3>${String(si+1).padStart(2,'0')}　${sc.title}</h3>`;const ol=document.createElement('ol');
+  CUES.forEach((c,i)=>{if(c.si!==si)return;const li=document.createElement('li'),b=document.createElement('button');b.textContent=c.t;b.dataset.i=i;b.onclick=()=>{go(i);window.scrollTo({top:$('player').getBoundingClientRect().top+scrollY-12,behavior:'smooth'})};li.appendChild(b);ol.appendChild(li)});
+  d.appendChild(ol);trWrap.appendChild(d)});
+
+function applyStep(c){
+  const svg=stage.querySelector('svg');if(!svg)return;
+  const step=Math.max(...CUES.filter((x,i)=>x.si===c.si&&i<=cur).map(x=>x.s));
+  svg.querySelectorAll('[data-s]').forEach(e=>e.classList.toggle('on',+e.dataset.s<=step));
+  svg.querySelectorAll('[data-u]').forEach(e=>e.classList.toggle('off',step>=+e.dataset.u));
+  svg.querySelectorAll('[data-dim]').forEach(e=>e.classList.toggle('dimmed',step>=+e.dataset.dim));
+  svg.querySelectorAll('[data-k]').forEach(e=>e.classList.toggle('dimk',!!c.k&&e.dataset.k!==c.k));
+}
+function render(){
+  const c=CUES[cur];
+  if(c.si!==shownScene){
+    stage.querySelector('svg')?.remove();stage.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" class="enter" role="img" aria-label="${esc(SCENES[c.si].title)}">${defs}${head(c.si+1,SCENES[c.si].title)}${SCENES[c.si].draw()}</svg>`);
+    shownScene=c.si;void stage.offsetWidth;
+    setTimeout(()=>applyStep(c),40);
+  }else applyStep(c);
+  cap.textContent=c.t;chap.textContent=`${String(c.si+1).padStart(2,'0')} · ${SCENES[c.si].title}`;
+  chWrap.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('cur',i===c.si));
+  trWrap.querySelectorAll('button').forEach(b=>b.classList.toggle('cur',+b.dataset.i===cur));
+  paintProgress();
+}
+function paintProgress(){
+  const t=START[cur]+Math.min(elapsed,CUES[cur].d);
+  segs.forEach(s=>{s.fill.style.width=Math.max(0,Math.min(1,(t-s.start)/s.d))*100+'%'});
+  timeEl.textContent=`${fmt(t)} / ${fmt(TOTAL)}`;
+}
+/* to the blog (film-bridge.js): which line is on screen, and that the film reached its end */
+const tell=m=>{if(parent!==window)parent.postMessage(m,'*')};
+function go(i){i=Math.max(0,Math.min(CUES.length-1,i));stopSpeech();cur=i;elapsed=0;lastTs=performance.now();render();if(playing&&tts)speak();tell({type:'film:progress',cue:cur,scene:CUES[cur].si})}
+function next(){if(cur>=CUES.length-1){pause();elapsed=CUES[cur].d;paintProgress();tell({type:'film:ended'});return}go(cur+1)}
+/* the clock: animation frames paint smoothly, a timer keeps it going where frames stop
+   (player scrolled out of view, tab in the background), so the narration never stalls */
+function tick(){if(!playing)return;step();requestAnimationFrame(tick)}
+setInterval(()=>{if(playing)step()},250);
+function step(){
+  const now=performance.now(),dt=now-lastTs;lastTs=now;
+  /* while a line is being spoken the clock follows the audio; after it ends, the short gap runs on wall time */
+  if(tts&&speaking)elapsed=Math.min(voice.currentTime*1000,CUES[cur].d*0.98);else elapsed+=dt;
+  if(!(tts&&speaking)&&elapsed>=CUES[cur].d)next();
+  paintProgress();
+}
+function play(){if(cur>=CUES.length-1&&elapsed>=CUES[cur].d){go(0)}playing=true;tap.hidden=true;if(!tts)tell({type:'film:playing'});playBtn.textContent=T('❚❚ 暂停');lastTs=performance.now();if(tts)speak();requestAnimationFrame(tick)}
+/* the browser refused to start sound (no tap inside the player yet): stay paused rather than run silently, and offer a play button right on the picture */
+function blocked(){pause();tap.hidden=false;tell({type:'film:blocked'})}
+function pause(){playing=false;playBtn.textContent=T('▶︎ 播放');stopSpeech()}
+
+/* narration: one pre-recorded clip per cue, the next one prefetched */
+const voice=new Audio(),pre=new Audio();voice.preload=pre.preload='auto';
+let voiceCue=-1;
+const clip=i=>`narration/${LANG==='en'?'en/':''}${String(i).padStart(3,'0')}.mp3`;
+voice.onended=voice.onerror=()=>{speaking=false;if(playing)step()};
+function stopSpeech(){clearTimeout(timer);speaking=false;voice.pause()}
+function speak(){
+  clearTimeout(timer);const myCue=cur;
+  if(AUD.length===CUES.length&&elapsed>=AUD[cur])return;   // already in the pause after this line
+  if(voiceCue!==cur){voice.src=clip(cur)+(elapsed>0?`#t=${elapsed/1000}`:'');voiceCue=cur}
+  else voice.currentTime=elapsed/1000;
+  speaking=true;
+  voice.play().then(()=>tell({type:'film:playing'}),e=>{speaking=false;if(e.name==='NotAllowedError')blocked()});
+  if(cur+1<CUES.length)pre.src=clip(cur+1);
+  /* a stalled download should not freeze the player */
+  timer=setTimeout(()=>{if(cur===myCue&&playing)speaking=false},CUES[cur].d*2);
+}
+
+playBtn.onclick=()=>playing?pause():play();
+tap.onclick=()=>{play();playBtn.focus()};
+$('prev').onclick=()=>go(cur-1);
+$('next').onclick=()=>go(cur+1);
+$('tts').onclick=e=>{tts=!tts;e.currentTarget.setAttribute('aria-pressed',String(tts));e.currentTarget.textContent=T(tts?'旁白：开':'旁白：关');
+  if(tts&&playing)speak();else if(!tts)stopSpeech()};
+/* iPhone has no element full screen (only video): no button there */
+const nativeFs=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+if(!nativeFs&&parent===window)$('fs').hidden=true;
+$('fs').onclick=()=>{const p=$('player'),d=document;if(!nativeFs){tell({type:'film:fullscreen'});return}try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);else{const r=(p.requestFullscreen||p.webkitRequestFullscreen).call(p);r?.catch?.(()=>{})}}catch(e){}};
+bar.onclick=e=>{const r=bar.getBoundingClientRect(),t=(e.clientX-r.left)/r.width*TOTAL;let i=START.findIndex((s,j)=>t>=s&&t<s+CUES[j].d);go(i<0?CUES.length-1:i)};
+bar.onkeydown=e=>{if(e.key==='ArrowRight'){go(cur+1);e.preventDefault()}if(e.key==='ArrowLeft'){go(cur-1);e.preventDefault()}};
+document.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName))return;
+  if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();playing?pause():play()}
+  else if(e.key==='ArrowRight'&&e.target!==bar)go(cur+1);else if(e.key==='ArrowLeft'&&e.target!==bar)go(cur-1)});
+
+/* English page chrome: static labels are swapped by exact text, the lede is rewritten */
+if(LANG==='en'){
+  document.documentElement.lang='en';document.title=T(document.title);
+  document.querySelector('.lede').innerHTML='An animated explainer of about <span id="mins">11</span> minutes: how the five share classes in the prospectus (A / N / T / F / E), the LTBT trust, the Founder LLC and the 7-seat board check and balance one another. Based on the S-1 sections on <b>“our governance structure and its objectives”</b>, the description of capital stock, management and related risk factors.';
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  for(let n;(n=w.nextNode());){const k=n.nodeValue.trim();if(EN[k])n.nodeValue=n.nodeValue.replace(k,T(k))}
+  document.querySelectorAll('[aria-label]').forEach(e=>e.setAttribute('aria-label',T(e.getAttribute('aria-label'))));
+}
+/* open on the first scene, fully drawn, so the still frame already says what this is */
+cur=0;render();
+$('mins').textContent=Math.round(TOTAL/60000);
+/* the blog's chapter list asks to play from a chapter */
+addEventListener('message',e=>{if(e.source!==parent||!e.data)return;
+  if(e.data.type==='film:play'&&!playing)play();
+  if(e.data.type==='film:seek'){const s=segs[e.data.chapter|0];if(s){go(s.first);if(!playing)play()}}});
+/* tell the blog where each chapter starts (shown next to the chapter list) */
+tell({type:'film:chapters',starts:segs.map(s=>Math.round(s.start/1000))});
+/* ?at=<line> opens on that line (resume); ?autoplay=1 starts at once when the reader already pressed Play on the blog */
+{const q=new URLSearchParams(location.search),at=parseInt(q.get('at'),10);
+  if(at>0&&at<CUES.length)go(at);
+  if(q.get('autoplay')==='1')play()}
+</script>
+
+</body></html>

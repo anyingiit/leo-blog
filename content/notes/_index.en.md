@@ -8,4 +8,4 @@ cascade:
   ShowWordCount: false
 ---
 
-Longer, edited posts are on the [home page](/en/).
+Longer, edited posts are on the [home page](/en/); animated explainers are under [Films](/en/notes/films/).

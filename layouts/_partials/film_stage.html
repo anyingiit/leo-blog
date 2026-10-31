@@ -1,0 +1,39 @@
+{{- /*
+  短片文章里的播放区（_shortcodes/film.html）。参数：f（partial "film.html" 的结果）、page 当前页面。
+  依次是：跳出 720px 正文栏的宽幅播放器（同 S-1 原版版式，最宽 1240px）→ 章节目录 → MP4 下载卡片（同 S-1 的下载卡片）。
+  播放器是沙箱 iframe（?embed=page），高度由短片报来（extend_footer.html）；没有脚本时显示封面。
+  画面上的大播放键和章节目录的「从这里播放」默认隐藏，有脚本时才出现（没有脚本时按了也没用）。
+  全屏：短片自己的「全屏」按钮。浏览器能让元素全屏时（电脑、安卓）用浏览器全屏；不能时（iPhone）短片发 film:fullscreen，
+  博客把播放器铺满窗口（body.film-watch），顶上一条细栏带「退出」，进度不丢。
+  章节目录用 PaperMod 文章目录（details.toc）的样子，条目取自「文字稿」（#transcript）下的三级标题。
+*/ -}}
+{{- $f := .f -}}
+{{- $page := .page -}}
+{{- $play := $f.play -}}
+{{- if and $f.lang (ne $f.lang $page.Lang) }}{{ $play = printf "%s?lang=%s&embed=page" $play $page.Lang }}{{ else }}{{ $play = printf "%s?embed=page" $play }}{{ end -}}
+{{- $chapters := slice -}}
+{{- range $page.Fragments.Headings }}{{ range .Headings }}{{ if eq .ID "transcript" }}{{ range .Headings }}{{ $chapters = $chapters | append . }}{{ end }}{{ end }}{{ end }}{{ end -}}
+
+<div class="film-stage" id="film-stage">
+<div class="film-wbar" hidden>
+<span class="film-wbar-title">{{ $page.Title }}</span>
+<button type="button" class="film-wbar-exit">✕&nbsp;{{ i18n "film_exit" }}</button>
+</div>
+<iframe class="film-frame" src="{{ $play }}"{{ with $f.poster }} style="background-image:url({{ . }})"{{ end }} title="{{ $page.Title }}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay" allowfullscreen></iframe>
+<button type="button" class="film-start" aria-label="{{ i18n "film_play" }}" hidden></button>
+{{- with $f.poster }}<noscript><style>.film-stage iframe{display:none}</style><img class="film-still" src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="{{ $page.Title }}"></noscript>{{ end }}
+</div>
+
+{{- with $chapters }}
+{{ partial "film_toc.html" (dict "f" $f "chapters" . "open" true) }}
+{{- end }}
+
+{{- with $f.video }}
+<div class="s1-dl-cards film-dl">
+<div class="s1-dl-card">
+<div class="s1-dl-kind">{{ i18n "film_mp4" }} <small>{{ .size }}</small></div>
+<p>{{ i18n "film_mp4_desc" }}</p>
+<p class="s1-dl-acts"><a href="{{ .url }}" download="{{ .name }}">{{ i18n "film_mp4_get" }} ↓</a></p>
+</div>
+</div>
+{{- end }}

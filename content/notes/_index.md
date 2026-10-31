@@ -8,4 +8,4 @@ cascade:
   ShowWordCount: false
 ---
 
-整理过的长文见[首页](/)。
+整理过的长文见[首页](/)，动画短片见[短片](/notes/films/)。

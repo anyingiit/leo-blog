@@ -18,6 +18,7 @@ export const SECONDS = {
   "bilingual.test.mjs": 37, "mobile.test.mjs": 15, "browser.test.mjs": 14, "lang-switch.test.mjs": 13,
   "s1.test.mjs": 10, "build.test.mjs": 6, "s1-overlap.test.mjs": 6, "seo.test.mjs": 4,
   "perf.test.mjs": 45, // PR #67 新增，本地实测约 40 秒
+  "film.test.mjs": 30, // 短片，本地实测约 25 秒（Chromium；CI 还跑 WebKit）
 };
 export const DEFAULT_SECONDS = 10;
 
