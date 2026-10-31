@@ -8,11 +8,11 @@
 <meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/posts/sample-post/>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
-<link rel=icon href=http://blog.test/favicon.ico>
-<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
-<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
-<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
-<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<link rel=icon href="http://blog.test/favicon.ico?v=e1a2a36e">
+<link rel=icon type=image/png sizes=16x16 href="http://blog.test/favicon-16x16.png?v=31779f56">
+<link rel=icon type=image/png sizes=32x32 href="http://blog.test/favicon-32x32.png?v=4a5aee7e">
+<link rel=apple-touch-icon href="http://blog.test/apple-touch-icon.png?v=8eb641ea">
+<link rel=mask-icon href="http://blog.test/safari-pinned-tab.svg?v=a6a3f5b5">
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
 <link rel=alternate hreflang=zh href=http://blog.test/posts/sample-post/>
@@ -47,4 +47,4 @@
 <meta name=twitter:title content="视觉回归样例长文">
 <meta name=twitter:description content="这篇固定的样例文章覆盖标题层级、列表、表格、代码、提示框、公式、Mermaid 和图片，用于像素级回归测试。">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"长文","item":"http://blog.test/posts/"},{"@type":"ListItem","position":2,"name":"视觉回归样例长文","item":"http://blog.test/posts/sample-post/"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"视觉回归样例长文","name":"视觉回归样例长文","description":"这篇固定的样例文章覆盖标题层级、列表、表格、代码、提示框、公式、Mermaid 和图片，用于像素级回归测试。","keywords":["测试","样式"],"articleBody":"这是一段正文，混排 粗体、斜体、行内代码 和 链接。中文与 English 混排时，行高和字距都应保持稳定。\n二级标题 无序列表第一项 第二项，带一个嵌套列表 嵌套项 有序列表 第二项 三级标题 列 A 列 B 列 C 左对齐 居中 123 文本 文本 4.56 package main import \"fmt\" func main() { fmt.Println(\"你好，世界\") } 注意\n这是注意。\n提示\n这是提示。\n重要\n这是重要。\n警告\n这是警告。\n小心\n这是小心。\n普通引用。\n公式与图表 行内公式 E=mc2E = mc^2E=mc2，块级公式：\n∫0∞e−x2 dx=π2 \\int_0^\\infty e^{-x^2}\\,dx = \\frac{\\sqrt{\\pi}}{2} ∫0∞​e−x2dx=2π​​graph LR A[写作] --\u003e B[构建] --\u003e C[发布]图片 最后一段文字。\n","wordCount":"261","inLanguage":"zh","image":"http://blog.test/share.png","datePublished":"2026-03-01T08:00:00Z","dateModified":"2026-03-01T08:00:00Z","author":{"@type":"Person","name":"Leo"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/posts/sample-post/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"视觉回归样例长文","name":"视觉回归样例长文","description":"这篇固定的样例文章覆盖标题层级、列表、表格、代码、提示框、公式、Mermaid 和图片，用于像素级回归测试。","keywords":["测试","样式"],"articleBody":"这是一段正文，混排 粗体、斜体、行内代码 和 链接。中文与 English 混排时，行高和字距都应保持稳定。\n二级标题 无序列表第一项 第二项，带一个嵌套列表 嵌套项 有序列表 第二项 三级标题 列 A 列 B 列 C 左对齐 居中 123 文本 文本 4.56 package main import \"fmt\" func main() { fmt.Println(\"你好，世界\") } 注意\n这是注意。\n提示\n这是提示。\n重要\n这是重要。\n警告\n这是警告。\n小心\n这是小心。\n普通引用。\n公式与图表 行内公式 E=mc2E = mc^2E=mc2，块级公式：\n∫0∞e−x2 dx=π2 \\int_0^\\infty e^{-x^2}\\,dx = \\frac{\\sqrt{\\pi}}{2} ∫0∞​e−x2dx=2π​​graph LR A[写作] --\u003e B[构建] --\u003e C[发布]图片 最后一段文字。\n","wordCount":"261","inLanguage":"zh","image":"http://blog.test/share.png","datePublished":"2026-03-01T08:00:00Z","dateModified":"2026-03-01T08:00:00Z","author":{"@type":"Person","name":"Leo"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/posts/sample-post/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico?v=e1a2a36e"}}}</script>
