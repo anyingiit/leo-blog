@@ -17,3 +17,10 @@
 # 不写这条时 Cloudflare 默认每次都要回源确认，每个文件多一次往返
 /vendor/mermaid/*
   Cache-Control: public, max-age=31536000, immutable
+
+# 系统卡原版版式的字体（tools/syscard-import）：文件名带内容哈希，内容变了文件名就变，可以长期缓存。
+# 不写这条时 Cloudflare 默认每次都要回源确认，换一章时字体（font-display: block）要等这一个往返，中文字空白一下
+/translations/system-cards/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/translations/system-cards/:card/:version/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

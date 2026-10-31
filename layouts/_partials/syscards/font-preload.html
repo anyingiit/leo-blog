@@ -1,0 +1,35 @@
+{{- /*
+  系统卡章节页 <head> 里（extend_head.html 调用）：提前下载这一章原版版式要用的字体，并在读完后把整卡共用的中文字体下载进缓存。
+  - 下载用 FontFace.load()（不用 <link rel=preload> 或 fetch()）：和样式表里 @font-face 的请求方式完全相同，WebKit 才会复用
+    （preload、fetch 的请求方式不同，WebKit 会再下载一次）
+  - 原版版式在页面末尾的 <template> 里，s1.js 要等整页 HTML 下载完才把它放进页面，浏览器到那时才开始下载字体；字体是
+    font-display: block，下载完之前字是空白（用户 2026-10-31：一打开会"闪"一下）。这里一开始就下载
+  - 中文字体两份（chapters.py Fonts.write_chapter）：本章用到的字（第一次打开时下载最少）和整卡共用的一份。页面 load 之后
+    再等 1 秒、浏览器空闲时后台下载整卡的那份（文件名带哈希、长期缓存；不和首屏的图片、字体抢带宽，不计入 tests/perf.test.mjs
+    的首屏预算），下载完记在 localStorage；之后打开这份卡的任何一章，<html> 加 sc-cardfonts，
+    中文字用缓存里整卡的那份，不再下载、不再空白；各章用到的共用西文字体（card-latin-fonts.html）也一起下载，
+    不然换到用了新西文字体的一章（如粗体标题）时，标题里的西文字还会空白一下
+  - 这一章的 @font-face（font-css.html）也放在这里而不是 <template> 里；直接嵌入的小字体（data: 网址）在这里就开始解码。
+    同名的共用西文字体（syscards-fonts.css，在前面）也在 document.fonts 里，只解码每个名字最后一个（本章嵌入的那个），不然会多下载共用的文件
+  - 只在先显示原版版式时做（判断同 s1.js：记住的版式，否则按屏宽），手机默认重排版不多下载
+*/ -}}
+{{- with .Resources.Get "original.html" }}
+  {{- $html := .Content }}
+  {{- $chapter := slice }}{{ $card := slice }}
+  {{- /* 西文字体（全部卡共用一份，syscards-fonts.css）：这一章用到、又没有在 original.html 开头直接嵌入的 */}}
+  {{- $shared := dict }}
+  {{- with resources.Get "css/extended/syscards-fonts.css" }}
+    {{- range findRESubmatch `font-family: "(sc-[a-z]+)"; src: url\(([^)]+)\)` .Content }}{{ $shared = merge $shared (dict (index . 1) (index . 2)) }}{{ end }}
+  {{- end }}
+  {{- range uniq (findRESubmatch `class="(sc-[a-z]+)[ "]` $html) }}
+    {{- $fam := index . 1 }}
+    {{- with index $shared $fam }}{{ if not (findRE (printf `font-family: "%s"; src: url\(data:` $fam) $html 1) }}{{ $chapter = $chapter | append . }}{{ $card = $card | append . }}{{ end }}{{ end }}
+  {{- end }}
+  {{- range uniq (findRESubmatch `scfont:([^)]+)` $html) }}{{ with $.Resources.GetMatch (printf "fonts/%s.*.woff2" (index . 1)) }}{{ $chapter = $chapter | append .RelPermalink }}{{ end }}{{ end }}
+  {{- range uniq (findRESubmatch `sccard:([^)]+)` $html) }}{{ with $.Parent.Resources.GetMatch (printf "fonts/%s.*.woff2" (index . 1)) }}{{ $card = $card | append .RelPermalink }}{{ end }}{{ end }}
+  {{- $all := slice }}{{ range partialCached "syscards/card-latin-fonts.html" $.Parent $.Parent.RelPermalink }}{{ $all = $all | append . }}{{ end }}{{ range $.Parent.Resources.Match "fonts/*.woff2" }}{{ $all = $all | append .RelPermalink }}{{ end }}
+  {{- $css := partial "syscards/font-css.html" $ }}
+  {{- $inline := slice }}{{ range findRESubmatch `font-family: "(sc-[a-z]+)"; src: url\(data:` $css }}{{ $inline = $inline | append (index . 1) }}{{ end }}
+{{ $css | safeHTML }}
+<script>(function(){var d=document.documentElement,n=!matchMedia("(min-width: 900px)").matches,v=null,k="sc-fonts:{{ $.Parent.RelPermalink }}",all={{ $all | jsonify | safeJS }},ok=false,f=function(u){return new FontFace("sc-pre",'url("'+u+'")').load()};try{v=localStorage.getItem(n?"s1-view-narrow":"s1-view");ok=localStorage.getItem(k)===all.join(" ")}catch(e){}if((v||(n?"reflow":"original"))!=="original")return;if(ok)d.classList.add("sc-cardfonts");(ok?{{ $card | jsonify | safeJS }}:{{ $chapter | jsonify | safeJS }}).forEach(f);var m={{ $inline | jsonify | safeJS }},l={};document.fonts.forEach(function(x){var y=x.family.replace(/"/g,"");if(m.indexOf(y)>=0)l[y]=x});for(var y in l)l[y].load();if(!ok)addEventListener("load",function(){setTimeout(function(){(window.requestIdleCallback||setTimeout)(function(){Promise.all(all.map(f)).then(function(){try{localStorage.setItem(k,all.join(" "))}catch(e){}},function(){})})},1000)})})()</script>
+{{- end }}

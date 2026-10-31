@@ -1,0 +1,19 @@
+{{- /*
+  一章原版版式的 @font-face（original.html 开头的 <style>，导入工具 chapters.py Fonts.write_chapter 生成），换好字体地址后返回。
+  由 font-preload.html 放进 <head>，不留在页面末尾的 <template> 里：s1.js 要等整页下载完才放进原版版式，规则在 <template> 里时，
+  直接嵌入的小字体（data: 网址，如标题用的 Poppins）要到那时才开始解码，WebKit 上标题里的西文字会空白约 0.1 秒。
+  占位 scfont:<字体> 换成本章 fonts/<字体>.<哈希>.woff2、sccard:<字体> 换成版本目录 fonts/<字体>.<哈希>.woff2（整卡共用）发布后的地址。
+  参数：章节页
+*/ -}}
+{{- $css := "" -}}
+{{- with .Resources.Get "original.html" }}{{ with findRE `^<style>[\s\S]*?</style>` .Content 1 }}{{ $css = index . 0 }}{{ end }}{{ end -}}
+{{- range uniq (findRESubmatch `(scfont|sccard):([^)]+)` $css) -}}
+  {{- $kind := index . 1 }}{{ $name := index . 2 -}}
+  {{- $from := cond (eq $kind "scfont") $ $.Parent -}}
+  {{- with $from.Resources.GetMatch (printf "fonts/%s.*.woff2" $name) -}}
+    {{- $css = replace $css (printf "%s:%s)" $kind $name) (printf "%s)" .RelPermalink) -}}
+  {{- else -}}
+    {{- errorf "%s: 找不到字体 %s:%s" $.File.Path $kind $name -}}
+  {{- end -}}
+{{- end -}}
+{{- return $css -}}

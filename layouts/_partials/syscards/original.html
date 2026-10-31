@@ -14,15 +14,9 @@
     {{- errorf "%s: 找不到底图 bg/%s" $page.File.Path $name -}}
   {{- end -}}
 {{- end -}}
-{{- /* 这一章的中文字体子集：scfont:<文件名> 换成章节目录 fonts/ 里的 woff2 */ -}}
-{{- range uniq (findRESubmatch `scfont:([^)]+)` $html) -}}
-  {{- $name := index . 1 -}}
-  {{- with $page.Resources.Get (printf "fonts/%s" $name) -}}
-    {{- $html = replace $html (printf "scfont:%s" $name) .RelPermalink -}}
-  {{- else -}}
-    {{- errorf "%s: 找不到字体 fonts/%s" $page.File.Path $name -}}
-  {{- end -}}
-{{- end -}}
+{{- /* 开头的 @font-face 由 syscards/font-css.html 换好字体地址、放进 <head>（syscards/font-preload.html），这里去掉 */ -}}
+{{- $html = replaceRE `^<style>[\s\S]*?</style>` "" $html 1 -}}
+{{- with findRE `(scfont|sccard):` $html 1 }}{{ errorf "%s: original.html 开头的 <style> 之外还有字体占位" $page.File.Path }}{{ end -}}
 {{- $html = replace $html `<img class="sc-bg" ` `<img class="sc-bg" loading="lazy" decoding="async" ` -}}
 <div class="s1-sheets sc-sheets" data-first-page="{{ index $page.Params.pages 0 }}">
   <div class="s1-sheets-inner">{{ $html | safeHTML }}</div>

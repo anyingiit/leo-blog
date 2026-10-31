@@ -8,7 +8,7 @@
     文字可以选中、复制、在页内搜索；字体只在打开原版版式时才下载。
   字体里没有的字（PDF 的 ToUnicode 偶尔把一个字形映射到不相干的码位，比如两字线「——」映射成 U+054C）这一段留在底图上，不进文字层。
 """
-import base64
+import base64, hashlib
 import html
 import math
 import os
@@ -41,8 +41,8 @@ INLINE = 4096  # 只取一章用到的字后不超过这么大的字体直接写
 
 
 class Fonts:
-    """文字层的字体子集。西文字体（Lora、Poppins、Roboto Mono）小，全部卡共用一份；中文字体大（全部卡用到的字取子集也有
-    0.1–0.5 MB 一个），按章取子集：每章只下载这一章用到的字（网页性能预算，tests/perf.test.mjs）"""
+    """文字层的字体子集。西文字体（Lora、Poppins、Roboto Mono）小，全部卡共用一份；中文字体大，每章一份（第一次打开时下载最少）
+    加每份卡一份（之后各章共用，见 write_chapter）。文件名带内容哈希，可以长期缓存（static/_headers）"""
 
     def __init__(self, src):
         self.dir = os.path.join(src, FONT_DIR)
@@ -50,6 +50,7 @@ class Fonts:
         self.hb = {}  # 字体 → (HarfBuzz 字体, 每 em 单位数)，算浏览器排出来的字距（advance）
         self.used = {}  # 共用的字体 → 全部卡用到的字
         self.chapter = {}  # 这一章的字体 → 用到的字（begin_chapter 清空）
+        self.card = {}  # 这份卡的中文字体 → 用到的字（begin_card 清空）
 
     def file_for(self, pdf_font):
         return FONTS.get(re.sub(r"[^a-z]", "", pdf_font.lower()))
@@ -59,11 +60,16 @@ class Fonts:
 
     def use(self, f, text):
         self.chapter.setdefault(f, set()).update(text)
-        if "CJK" not in f:
+        if "CJK" in f:
+            self.card.setdefault(f, set()).update(text)
+        else:
             self.used.setdefault(f, set()).update(text)
 
     def begin_chapter(self):
         self.chapter = {}
+
+    def begin_card(self):
+        self.card = {}
 
     def layout(self, f, text, size, x0, xs):
         """浏览器只给起点时排出的逐字横坐标和 PDF 的一样吗：PDF 里每个字都按字体本身的字宽（不用字距调整、连字）排时是。
@@ -112,36 +118,56 @@ class Fonts:
         fam = font_class(f)
         return f'@font-face {{ font-family: "{fam}"; src: url({url}) format("woff2"); font-display: block; }}\n.{fam} {{ font-family: "{fam}"; }}'
 
-    def write(self, out_dir):
-        """共用字体：生成 out_dir/<字体>.woff2，返回 CSS（@font-face 和对应的 class）"""
+    def _hashed(self, f, chars, out_dir):
+        """取子集写成 out_dir/<字体>.<内容哈希前 8 位>.woff2，返回文件名"""
         os.makedirs(out_dir, exist_ok=True)
-        css = []
-        for f in sorted(self.used):
-            name = f.split(".")[0] + ".woff2"
-            self._subset(f, self.used[f], os.path.join(out_dir, name))
-            css.append(self._face(f, f"fonts/{name}"))
-        return "\n".join(css) + "\n"
+        tmp = os.path.join(out_dir, ".tmp.woff2")
+        self._subset(f, chars, tmp)
+        name = f"{f.split('.')[0]}.{hashlib.sha256(open(tmp, 'rb').read()).hexdigest()[:8]}.woff2"
+        os.replace(tmp, os.path.join(out_dir, name))
+        return name
+
+    def write(self, out_dir):
+        """共用字体：生成 out_dir/<字体>.<哈希>.woff2，返回 CSS（@font-face 和对应的 class）"""
+        return "\n".join(self._face(f, f"fonts/{self._hashed(f, self.used[f], out_dir)}") for f in sorted(self.used)) + "\n"
+
+    def write_card(self, out_dir):
+        """这份卡的中文字体：生成 out_dir/<字体>.<哈希>.woff2（版本目录的 fonts/），只写有章节用到 sccard: 的（见 write_chapter）"""
+        for f in sorted(self.card):
+            self._hashed(f, self.card[f], out_dir)
 
     def write_chapter(self, out_dir):
         """这一章的字体，返回放在原版版式开头的 <style>（没有要写的返回空串）：
-        - 只取这一章用到的字后不超过 INLINE 字节的字体（几 KB 的 Poppins、Lora 粗斜体、等宽中文等）直接写进 <style>（data: 网址），
-          不再单独请求；同名的共用 @font-face 在样式表里，这里的写在后面，浏览器用这里的
-        - 其余的中文字体生成 out_dir/<字体>.woff2，网址写成占位 scfont:<文件名>，模板换成发布后的地址（同底图的 scimg:）
-        - 其余的西文字体用共用的一份（write）"""
+        - 中文字体两份（用户 2026-10-31：换章时中文字空白一下）：
+          · 这一章用到的字取的子集，写成 out_dir/<字体>.<哈希>.woff2，网址占位 scfont:<字体>（模板换成发布后的地址，同底图的 scimg:），
+            字体名 sc-<字体>；不超过 INLINE 字节的直接写成 data: 网址，只用这一份
+          · 这份卡共用的一份（write_card，版本目录 fonts/），网址占位 sccard:<字体>，字体名 sc-<字体>-card，<html> 有 sc-cardfonts 时用它。
+            第一次打开某份卡的一章只下载这一章的（最小），读完后台把整卡的下载进缓存，之后各章都用缓存里整卡的那份，不再下载
+            （layouts/_partials/syscards/font-preload.html）
+        - 西文字体只取这一章用到的字后不超过 INLINE 字节的（几 KB 的 Poppins、Lora 粗斜体等）直接写进 <style>（data: 网址），
+          不再单独请求；同名的共用 @font-face 在样式表里，这里的写在后面，浏览器用这里的；其余的用共用的一份（write）"""
         css = []
         for f in sorted(self.chapter):
-            name = f.split(".")[0] + ".woff2"
-            path = os.path.join(out_dir, name)
+            stem = f.split(".")[0]
+            if "CJK" in f:
+                name = self._hashed(f, self.chapter[f], out_dir)
+                data = open(os.path.join(out_dir, name), "rb").read()
+                if len(data) <= INLINE:
+                    os.remove(os.path.join(out_dir, name))
+                    css.append(self._face(f, "data:font/woff2;base64," + base64.b64encode(data).decode()))
+                else:
+                    fam = font_class(f)
+                    css.append(self._face(f, f"scfont:{stem}"))
+                    css.append(f'@font-face {{ font-family: "{fam}-card"; src: url(sccard:{stem}) format("woff2"); font-display: block; }}\n'
+                               f'.sc-cardfonts .{fam} {{ font-family: "{fam}-card"; }}')
+                continue
+            path = os.path.join(out_dir, stem + ".woff2")
             os.makedirs(out_dir, exist_ok=True)
             self._subset(f, self.chapter[f], path)
             data = open(path, "rb").read()
+            os.remove(path)
             if len(data) <= INLINE:
-                os.remove(path)
                 css.append(self._face(f, "data:font/woff2;base64," + base64.b64encode(data).decode()))
-            elif "CJK" in f:
-                css.append(self._face(f, f"scfont:{name}"))
-            else:
-                os.remove(path)
         if os.path.isdir(out_dir) and not os.listdir(out_dir):
             os.rmdir(out_dir)
         return "<style>" + "\n".join(css) + "</style>" if css else ""

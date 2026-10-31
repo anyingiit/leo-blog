@@ -281,6 +281,23 @@ test("章节页：重排版没有漏掉的 Markdown，页码分隔和原版版�
   }
 });
 
+test("原版版式的 @font-face 在 <head> 里，不在页面末尾的 <template> 里（直接嵌入的小字体一开始就解码，标题西文字不空白）", () => {
+  for (const c of cards) for (const ch of c.v.chapters) {
+    const html = read(chap(c, ch)), head = html.slice(0, html.indexOf("</head>")), tpl = html.slice(html.indexOf("s1-original-tpl"));
+    assert.ok(head.includes("@font-face"), `${chap(c, ch)} <head> 里没有原版版式的字体`);
+    assert.ok(!tpl.includes("@font-face") && !/sc(font|card):/.test(html), `${chap(c, ch)} <template> 里还有 @font-face 或没换掉的字体占位`);
+  }
+});
+
+test("原版版式的字体文件名都带内容哈希，_headers 让它们长期缓存（换章、再次打开不用回源确认）", () => {
+  const h = readFileSync(join(root, "static/_headers"), "utf8");
+  for (const p of ["/translations/system-cards/fonts/*", "/translations/system-cards/:card/:version/fonts/*"])
+    assert.match(h, new RegExp(`^${p.replace(/[*]/g, "\\*")}\\n  Cache-Control: public, max-age=31536000, immutable$`, "m"), p);
+  const files = readdirSync(join(site.out, P.slice(1)), { recursive: true }).map(String).filter((f) => f.endsWith(".woff2"));
+  assert.ok(files.length > 20);
+  for (const f of files) assert.match(f, /(^|\/)fonts\/[\w-]+\.[0-9a-f]{8}\.woff2$/, f);
+});
+
 // ---------- 浏览器 ----------
 async function open(t, engine, opts) {
   if (!browsers[engine]) { t.skip("本地没有安装 WebKit（npx playwright install webkit）"); return null; }
@@ -402,6 +419,53 @@ for (const engine of ENGINES) {
       assert.ok(worst.d < 0.05, `${key}「${worst.text}」第 ${worst.j + 1} 个字差 ${worst.d.toFixed(2)}pt`);
       assert.ok(starts > 0, `${key} 没有只写起点的行，这个测试没测到浏览器排字`);
     }
+    await s.done();
+  });
+
+  test(`${engine}：原版版式的字体一开始就下载；第一次打开某份卡只下载本章的中文字，读完把整卡的存进缓存，之后各章都用整卡的那份`, async (t) => {
+    // 用户 2026-10-31：换章时中文字空白一下（字体 font-display: block，按章取子集时每章都要重新下载）
+    const s = await open(t, engine, { viewport: { width: 1280, height: 800 } });
+    if (!s) return;
+    const c = longest, chs = c.v.chapters, fonts = [];
+    s.page.on("request", (r) => { if (r.url().endsWith(".woff2")) fonts.push(new URL(r.url()).pathname); });
+    const vdir = `${P}${c.slug}/${c.zh.latest}/`;
+    const isChapter = (u) => /\/v[^/]+\/[^/]+\/fonts\//.test(u), isCard = (u) => u.startsWith(vdir + "fonts/");
+    // <head> 里的脚本一开始就下载本章用到的字体（s1.js 要等整页 HTML 下载完才放进原版版式，字体不能等到那时）
+    let atDCL = null, atLoad = null;
+    s.page.once("domcontentloaded", () => { atDCL = [...fonts]; });
+    s.page.once("load", () => { atLoad = [...fonts]; });
+    await s.go(chap(c, chs[1]));
+    assert.ok(atDCL.some(isChapter), `第一次：HTML 解析完之前已开始下载本章的中文字体 ${atDCL}`);
+    // 整卡的字体在页面 load 之后、空闲时才下载，不和首屏抢带宽
+    assert.ok(!atLoad.some(isCard), `首屏不下载整卡的字体 ${atLoad}`);
+    assert.equal(await s.page.evaluate(() => document.documentElement.classList.contains("sc-cardfonts")), false);
+    await s.page.waitForFunction((k) => localStorage.getItem(k), `sc-fonts:${vdir}`);
+    assert.ok(fonts.some(isCard), "读完后台下载整卡的字体");
+    fonts.length = 0;
+    await s.go(chap(c, chs[3]));
+    assert.equal(await s.page.evaluate(() => document.documentElement.classList.contains("sc-cardfonts")), true, "之后各章用整卡的字体");
+    await s.page.evaluate(() => document.fonts.ready);
+    assert.ok(!fonts.some(isChapter), `不再下载本章的字体：${fonts}`);
+    const fam = await s.page.evaluate(() => getComputedStyle(document.querySelector(".s1-original:not([hidden]) text.sc-notoserifcjksc")).fontFamily);
+    assert.match(fam, /sc-notoserifcjksc-card/);
+    // 用整卡的字体和用本章的字体画出来逐像素相同（同一款字体的两个子集）
+    // 等这一页每种字体都真的下载完、底图画出来再截图（只等 document.fonts.ready 不够：测试并行跑、机器忙时，原版版式刚放进页面，@font-face 可能还没开始下载）
+    const shot = async (pg) => {
+      await pg.evaluate(() => Promise.all([...document.querySelector(".s1-original:not([hidden]) .sc-sheet").querySelectorAll("text")]
+        .map((el) => document.fonts.load(`16px ${getComputedStyle(el).fontFamily}`, el.textContent))
+        // 底图是懒加载、异步解码的，也要等它画出来
+        .concat([...document.querySelector(".s1-original:not([hidden]) .sc-sheet").querySelectorAll("img")].map((im) => { im.loading = "eager"; return im.decode().catch(() => {}); }))));
+      return pg.locator(".s1-original:not([hidden]) .sc-sheet").first().screenshot({ animations: "disabled" });
+    };
+    const withCard = await shot(s.page);
+    const s2 = await open(t, engine, { viewport: { width: 1280, height: 800 } });
+    await s2.go(chap(c, chs[3]));
+    assert.equal(await s2.page.evaluate(() => document.documentElement.classList.contains("sc-cardfonts")), false);
+    let a = withCard, b = await shot(s2.page);
+    // 全量测试时机器忙，偶尔截到还没画完的一帧（约三次全量跑一次）：不同就隔半秒两边重截一次，真有字形差别会一直不同
+    if (!a.equals(b)) { await s.page.waitForTimeout(500); a = await shot(s.page); b = await shot(s2.page); }
+    assert.ok(a.equals(b), "整卡字体和本章字体画出来不同");
+    await s2.done();
     await s.done();
   });
 

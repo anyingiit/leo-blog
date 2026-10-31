@@ -1,16 +1,16 @@
 /* 系统卡原版版式文字层用的西文字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载。
-   中文字体按章取子集，@font-face 在各章 original.html 开头 */
-@font-face { font-family: "sc-lorabold"; src: url(/translations/system-cards/fonts/Lora-Bold.woff2) format("woff2"); font-display: block; }
+   中文字体每份卡一份（版本目录 fonts/），@font-face 在各章 original.html 开头 */
+@font-face { font-family: "sc-lorabold"; src: url(/translations/system-cards/fonts/Lora-Bold.d495df10.woff2) format("woff2"); font-display: block; }
 .sc-lorabold { font-family: "sc-lorabold"; }
-@font-face { font-family: "sc-lorabolditalic"; src: url(/translations/system-cards/fonts/Lora-BoldItalic.woff2) format("woff2"); font-display: block; }
+@font-face { font-family: "sc-lorabolditalic"; src: url(/translations/system-cards/fonts/Lora-BoldItalic.a120d07c.woff2) format("woff2"); font-display: block; }
 .sc-lorabolditalic { font-family: "sc-lorabolditalic"; }
-@font-face { font-family: "sc-loraitalic"; src: url(/translations/system-cards/fonts/Lora-Italic.woff2) format("woff2"); font-display: block; }
+@font-face { font-family: "sc-loraitalic"; src: url(/translations/system-cards/fonts/Lora-Italic.f00aab42.woff2) format("woff2"); font-display: block; }
 .sc-loraitalic { font-family: "sc-loraitalic"; }
-@font-face { font-family: "sc-loraregular"; src: url(/translations/system-cards/fonts/Lora-Regular.woff2) format("woff2"); font-display: block; }
+@font-face { font-family: "sc-loraregular"; src: url(/translations/system-cards/fonts/Lora-Regular.e7d1862d.woff2) format("woff2"); font-display: block; }
 .sc-loraregular { font-family: "sc-loraregular"; }
-@font-face { font-family: "sc-poppinsmedium"; src: url(/translations/system-cards/fonts/Poppins-Medium.woff2) format("woff2"); font-display: block; }
+@font-face { font-family: "sc-poppinsmedium"; src: url(/translations/system-cards/fonts/Poppins-Medium.2f488877.woff2) format("woff2"); font-display: block; }
 .sc-poppinsmedium { font-family: "sc-poppinsmedium"; }
-@font-face { font-family: "sc-poppinssemibold"; src: url(/translations/system-cards/fonts/Poppins-SemiBold.woff2) format("woff2"); font-display: block; }
+@font-face { font-family: "sc-poppinssemibold"; src: url(/translations/system-cards/fonts/Poppins-SemiBold.77eeea62.woff2) format("woff2"); font-display: block; }
 .sc-poppinssemibold { font-family: "sc-poppinssemibold"; }
-@font-face { font-family: "sc-robotomonoregular"; src: url(/translations/system-cards/fonts/RobotoMono-Regular.woff2) format("woff2"); font-display: block; }
+@font-face { font-family: "sc-robotomonoregular"; src: url(/translations/system-cards/fonts/RobotoMono-Regular.9a153e31.woff2) format("woff2"); font-display: block; }
 .sc-robotomonoregular { font-family: "sc-robotomonoregular"; }

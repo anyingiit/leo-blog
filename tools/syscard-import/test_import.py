@@ -285,21 +285,30 @@ class PublishedFiles(unittest.TestCase):
                     pages = range(ch["pages"][0], ch["pages"][1] + 1)
                     self.assertEqual(re.findall(r'aria-label="原文第 (\d+) 页"', orig), [str(p) for p in pages], f"{c['slug']} {ch['slug']}")
                     self.assertEqual(sorted(os.listdir(os.path.join(d, "bg"))), [f"p{p:03d}.webp" for p in pages])
-                    # 中文字体按章取子集：用到的中文字体在本章 fonts/ 下或（几 KB 的）直接写在 original.html 开头的 <style> 里
+                    # 中文字体两份（chapters.py Fonts.write_chapter）：本章 fonts/<字体>.<哈希>.woff2（占位 scfont:<字体>，几 KB 的直接嵌入）
+                    # 和整卡共用的版本目录 fonts/<字体>.<哈希>.woff2（占位 sccard:<字体>，字体名多 -card）；小的西文字体直接嵌入
                     cjk = sorted(set(re.findall(r'class="(sc-noto[a-z]*cjk[a-z]*)[ "]', orig)))
-                    faces = re.findall(r'font-family: "(sc-[a-z]+)"; src: url\(scfont:([\w-]+\.woff2)\)', orig)
+                    faces = re.findall(r'font-family: "(sc-[a-z]+)"; src: url\(scfont:([\w-]+)\)', orig)
+                    cards = re.findall(r'font-family: "(sc-[a-z]+)-card"; src: url\(sccard:([\w-]+)\)', orig)
                     inline = re.findall(r'font-family: "(sc-[a-z]+)"; src: url\(data:font/woff2;base64,([A-Za-z0-9+/=]+)\)', orig)
                     self.assertEqual(sorted({f for f, _ in faces + inline if "cjk" in f}), cjk, f"{c['slug']} {ch['slug']} 中文字体")
-                    self.assertEqual(sorted(n for _, n in faces), sorted(os.listdir(os.path.join(d, "fonts"))) if faces else [], f"{c['slug']} {ch['slug']} fonts/")
+                    self.assertEqual(cards, faces, f"{c['slug']} {ch['slug']} 每个按章的中文字体都有整卡的一份")
                     for f, b64 in inline:
                         self.assertLessEqual(len(base64.b64decode(b64)), chapters.INLINE, f"{c['slug']} {ch['slug']} {f}")
-                    # 中文字体只留简体（ZHS）和默认的字形变体：页面是 lang="zh"，日韩繁的 locl 变体画不出来，留着每章多 250 KB
-                    for f, data in [(f, open(os.path.join(d, "fonts", n), "rb").read()) for f, n in faces if "cjk" in f] + [(f, base64.b64decode(b)) for f, b in inline if "cjk" in f]:
-                        tt = TTFont(io.BytesIO(data))
-                        langs = {r.LangSysTag for t in ("GSUB", "GPOS") if t in tt for sr in tt[t].table.ScriptList.ScriptRecord for r in sr.Script.LangSysRecord}
-                        self.assertLessEqual(langs, {"ZHS "}, f"{c['slug']} {ch['slug']} {f} 带了其他语言的字形变体")
+                    for _, n in faces:
+                        self.assertEqual(len(glob.glob(os.path.join(d, "fonts", n + ".????????.woff2"))), 1, f"{c['slug']} {ch['slug']} {n}")
+                        self.assertEqual(len(glob.glob(os.path.join(DIR, c["slug"], name, "fonts", n + ".????????.woff2"))), 1, f"{c['slug']} {n}")
+                    self.assertEqual(len(os.listdir(os.path.join(d, "fonts"))) if faces else 0, len(faces), f"{c['slug']} {ch['slug']} fonts/")
                     # 只写起点的行（省掉逐字坐标）：浏览器按字体排出的位置要和 PDF 一样，Fonts.layout 在导入时逐行核对过
                     self.assertRegex(orig, r'<text x="[\d.]+" y=', f"{c['slug']} {ch['slug']} 没有只写起点的行")
+                # 中文字体（整卡的和各章的）：文件名里的哈希就是内容的哈希（长期缓存靠它）；只留简体（ZHS）和默认的字形变体：
+                # 页面是 lang="zh"，日韩繁的 locl 变体画不出来，留着多四成字节
+                for fp in glob.glob(os.path.join(DIR, c["slug"], name, "fonts", "*.woff2")) + glob.glob(os.path.join(DIR, c["slug"], name, "*", "fonts", "*.woff2")):
+                    data = open(fp, "rb").read()
+                    self.assertEqual(os.path.basename(fp).split(".")[1], hashlib.sha256(data).hexdigest()[:8], fp)
+                    tt = TTFont(io.BytesIO(data))
+                    langs = {r.LangSysTag for t in ("GSUB", "GPOS") if t in tt for sr in tt[t].table.ScriptList.ScriptRecord for r in sr.Script.LangSysRecord}
+                    self.assertLessEqual(langs, {"ZHS "}, f"{fp} 带了其他语言的字形变体")
                 fns = os.path.join(DIR, c["slug"], name, "footnotes", "index.md")
                 if os.path.exists(fns):
                     defs = set(re.findall(r"\{\{< sc-fn (\d+) >\}\}", open(fns, encoding="utf-8").read()))

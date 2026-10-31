@@ -369,10 +369,13 @@ test("Mermaid 引用的每个分块都发布了，页面上的地址在构建结
   assert.ok(seen.size > 50, `只找到 ${seen.size} 个分块，解析 import 的正则可能失效了`);
 });
 
-test("Mermaid 文件设了长期缓存，其他文件不受影响", () => {
+test("Mermaid 文件和系统卡字体（文件名带内容哈希）设了长期缓存，其他文件不受影响", () => {
   const headers = readFileSync(join(site.out, "_headers"), "utf8");
   assert.match(headers, /^\/vendor\/mermaid\/\*\n\s+Cache-Control: public, max-age=31536000, immutable$/m);
-  assert.equal(headers.match(/immutable/g).length, 1);
+  // 只有这几处：其他文件名不带哈希，长期缓存会让读者看不到更新
+  const paths = [...headers.matchAll(/^(\S+)\n\s+Cache-Control: [^\n]*immutable$/gm)].map((m) => m[1]);
+  assert.deepEqual(paths, ["/vendor/mermaid/*", "/translations/system-cards/fonts/*", "/translations/system-cards/:card/:version/fonts/*"]);
+  assert.equal(headers.match(/immutable/g).length, paths.length);
 });
 
 test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，版本不同会找不到浏览器）", () => {

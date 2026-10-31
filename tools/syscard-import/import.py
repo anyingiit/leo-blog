@@ -260,6 +260,7 @@ def main():
         md_path = next(os.path.join(a.src, d, "md", f) for f in os.listdir(os.path.join(a.src, d, "md")) if f.endswith(".md"))
         chs = chapters.split_md(open(md_path, encoding="utf-8").read(), c["pages"])
         f22 = c["facts"]
+        fonts.begin_card()
         for k, ch in enumerate(chs, 1):
             cdir = os.path.join(vdir, ch["slug"])
             os.makedirs(cdir)
@@ -275,7 +276,7 @@ def main():
                 ch["lines"] = [l.replace(f"]({img})", f"]({webp})") for l in ch["lines"]]
             fonts.begin_chapter()
             sheets = chapters.original_pages(p_src, range(ch["pages"][0], ch["pages"][1] + 1), fonts, os.path.join(cdir, "bg"))
-            style = fonts.write_chapter(os.path.join(cdir, "fonts"))  # 这一章用到的中文字（按章取子集）
+            style = fonts.write_chapter(os.path.join(cdir, "fonts"))  # 这一章的中文字体子集和字体的占位
             open(os.path.join(cdir, "original.html"), "w", encoding="utf-8").write(style + "\n".join(sheets) + "\n")
             # 这一章里有没有译者另行翻译的部分（2.2 节、零散段落）：目录里标出来
             sep = ch["pages"][0] <= f22["s22"][1] and f22["s22"][0] <= ch["pages"][1]
@@ -284,6 +285,7 @@ def main():
             write_page(os.path.join(cdir, "index.md"), dict(
                 title=ch["title"], weight=k, pages=ch["pages"],
                 description=f"{c['title']}中文译本 {ver} · {ch['title']}（非官方，AI 翻译）"), chapters.to_hugo(ch))
+        fonts.write_card(os.path.join(vdir, "fonts"))  # 这份卡的中文字体，各章共用
         toc = [dict(slug=ch["slug"], title=ch["title"], pages=ch["pages"], included=True, separate=ch["separate"]) for ch in chs]
         cascade = dict(build=dict(list="local", publishResources=False))
         write_page(os.path.join(vdir, "_index.md"), dict(
@@ -306,7 +308,7 @@ def main():
     shutil.rmtree(fdir, ignore_errors=True)
     css = fonts.write(fdir).replace("url(fonts/", "url(/translations/system-cards/fonts/")
     open(os.path.join(REPO, "assets/css/extended/syscards-fonts.css"), "w", encoding="utf-8").write(
-        "/* 系统卡原版版式文字层用的西文字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载。\n   中文字体按章取子集，@font-face 在各章 original.html 开头 */\n" + css)
+        "/* 系统卡原版版式文字层用的西文字体（tools/syscard-import 按全部卡用到的字取子集生成，不要手改）；只在打开原版版式时下载。\n   中文字体每份卡一份（版本目录 fonts/），@font-face 在各章 original.html 开头 */\n" + css)
 
     common = dict(type="syscards", date=a.date, sourceCommit=commit, sourceDate=commit_date,
                   cascade=dict(type="syscards"), ShowReadingTime=False, ShowWordCount=False, hideAuthor=True)
