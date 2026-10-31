@@ -386,33 +386,29 @@ test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，
 
 // ── 网站图标（static/，tools/favicon/build.mjs 生成，docs/favicon.md）──────────────
 
-const iconVersion = (file) => createHash("sha256").update(readFileSync(join(root, "static", file))).digest("hex").slice(0, 8);
+const ICONS = ["favicon.ico", "favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png", "safari-pinned-tab.svg"];
+const versioned = (f) => f.replace(/(\.[a-z]+)$/, `.${createHash("sha256").update(readFileSync(join(root, "static", f))).digest("hex").slice(0, 8)}$1`);
 const iconHrefs = (html) => [...html.matchAll(/<link [^>]*rel="?(?:icon|apple-touch-icon|mask-icon)"?[^>]*>/g)].map((m) => m[0].match(/href="?([^"\s>]+)/)[1]);
 
 test("每个页面都有 PaperMod 的 5 个图标链接，指向的文件都存在（中英文页、404、S-1、双语译文）", () => {
   const pages = walk(site.out).map((f) => relative(site.out, f)).filter((f) => f.endsWith(".html") && !/\/files\//.test(f));
   for (const must of ["index.html", "en/index.html", "404.html", "en/404.html", "translations/anthropic-s1/index.html", "translations/bitter-lesson/index.html"]) assert.ok(pages.includes(must), must);
+  const want = ICONS.map((f) => `${PROD}icons/${versioned(f)}`);
   for (const p of pages) {
     const html = readFileSync(join(site.out, p), "utf8");
     if (/<meta http-equiv="?refresh/.test(html)) continue; // aliases 生成的跳转页只有跳转，没有完整的 <head>
     const icons = iconHrefs(html);
-    assert.equal(icons.length, 5, `${p} 的图标链接数`);
-    for (const href of icons) {
-      assert.ok(href.startsWith(PROD), `${p}: ${href} 用正式域名的绝对地址`);
-      const file = href.slice(PROD.length).replace(/\?.*$/, "");
-      assert.ok(site.exists(file), `${p}: ${href} 指向的文件不存在`);
-      assert.ok(href.endsWith(`?v=${iconVersion(file)}`), `${p}: ${href} 应带 ?v=${iconVersion(file)}`);
-    }
+    assert.deepEqual(icons, want, `${p} 的图标链接（hugo.yaml 的 params.assets.favicon* 要和 static/icons/ 的文件名一致）`);
+    for (const href of icons) assert.ok(site.exists(href.slice(PROD.length)), `${p}: ${href} 指向的文件不存在`);
   }
 });
 
-// 浏览器（尤其 Safari）按图标地址长期缓存，地址不变就不会去取新图标：2026-10-29 加上图标后，
-// 之前访问过正式站的浏览器一直显示旧的「没有图标」，新开的预览域名却正常。所以图标地址要带文件内容的版本号，
-// 图标一改地址就变。改了图标却忘了改 hugo.yaml 里的 ?v= 时，这里会失败并给出新值
-test("图标地址带文件内容的版本号（hugo.yaml 的 params.assets），图标文件一改地址就跟着变", () => {
-  const html = readFileSync(join(site.out, "index.html"), "utf8");
-  const want = ["favicon.ico", "favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png", "safari-pinned-tab.svg"].map((f) => `${PROD}${f}?v=${iconVersion(f)}`);
-  assert.deepEqual(iconHrefs(html), want, "hugo.yaml 的 params.assets.favicon* 要改成这些 ?v= 值");
+// 浏览器（尤其 Safari）按图标地址长期记住「取不到」或旧图标：2026-10-29 加上图标后，之前访问过正式站的
+// 设备一直不显示新图标，只加 ?v= 参数时有的 iPhone Safari 仍然不行。所以页面引用的是文件名带内容版本号的副本，
+// 图标一改文件名就变。这里检查副本和根目录的默认文件逐字节相同、版本号就是内容的 sha256，且没有残留的旧版本
+test("static/icons/ 是 5 个图标的版本号副本：内容与根目录文件相同，文件名带内容 sha256 前 8 位，没有旧版本残留", () => {
+  assert.deepEqual(readdirSync(join(root, "static/icons")).sort(), ICONS.map(versioned).sort(), "重新运行 tools/favicon/build.mjs");
+  for (const f of ICONS) assert.ok(readFileSync(join(root, "static/icons", versioned(f))).equals(readFileSync(join(root, "static", f))), f);
 });
 
 test("可下载的完整 HTML 保持原样，不带图标链接", () => {

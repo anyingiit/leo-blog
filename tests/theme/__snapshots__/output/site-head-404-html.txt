@@ -8,11 +8,11 @@
 <meta name=author content="Leo">
 <link rel=canonical href=http://blog.test/404.html>
 <link crossorigin=anonymous href=/assets/css/stylesheet.<hash>.css integrity="sha256-<hash>" rel="preload stylesheet" as=style>
-<link rel=icon href="http://blog.test/favicon.ico?v=e1a2a36e">
-<link rel=icon type=image/png sizes=16x16 href="http://blog.test/favicon-16x16.png?v=31779f56">
-<link rel=icon type=image/png sizes=32x32 href="http://blog.test/favicon-32x32.png?v=4a5aee7e">
-<link rel=apple-touch-icon href="http://blog.test/apple-touch-icon.png?v=8eb641ea">
-<link rel=mask-icon href="http://blog.test/safari-pinned-tab.svg?v=a6a3f5b5">
+<link rel=icon href=http://blog.test/icons/favicon.e1a2a36e.ico>
+<link rel=icon type=image/png sizes=16x16 href=http://blog.test/icons/favicon-16x16.31779f56.png>
+<link rel=icon type=image/png sizes=32x32 href=http://blog.test/icons/favicon-32x32.4a5aee7e.png>
+<link rel=apple-touch-icon href=http://blog.test/icons/apple-touch-icon.8eb641ea.png>
+<link rel=mask-icon href=http://blog.test/icons/safari-pinned-tab.a6a3f5b5.svg>
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
 <link rel=alternate hreflang=zh href=http://blog.test/404.html>
