@@ -7,15 +7,16 @@
 每份卡生成一个页面（叶子包），顺序和 Anthropic 官网系统卡列表（INDEX_URL）相同，写进 weight：
   content/translations/system-cards/<目录名>/index.md / index.en.md        front matter：原名、发布日期、页数、英文原版地址、
                                                                            facts（译者声明用到的数字）、downloads（文件、大小、SHA-256）
-  content/translations/system-cards/<目录名>/files/claude-<名>-system-card-zh.html.raw   HTML 逐字节原样（网站上发布为 .html）
-  content/translations/system-cards/<目录名>/files/claude-<名>-system-card-zh.pdf        PDF：不超过 Cloudflare Pages 单文件上限的
-                                                                           原样复制；超过的做无损瘦身（见 slim_pdf），渲染逐像素不变
+  content/translations/system-cards/<目录名>/files/claude-<名>-system-card-zh.html.raw   HTML（网站上发布为 .html）
+  content/translations/system-cards/<目录名>/files/claude-<名>-system-card-zh.pdf        PDF：超过 Cloudflare Pages 单文件上限的
+                                                                           先做无损瘦身（见 slim_pdf），渲染逐像素不变
+  两个文件最后由 release.py 加上和 S-1 下载文件同样的译者声明（首末各一份、PDF 每页「非官方」页脚），原文部分不动
   content/translations/system-cards/_index.md / _index.en.md               栏目页（layouts/syscards/list.html）
 facts 取自该卡 README，标题取自 HTML 的 <title>；声明的措辞统一在 layouts/_partials/syscards/notice.html。
 译文仓库不公开，页面上不放仓库链接。英文原版地址按官网命名规则（https://www.anthropic.com/claude-<目录名，点换成横线>-system-card）拼出，
 --check-links 联网逐个确认能打开。重新导入会整体覆盖上面这些文件：要改说明文字就改模板或这个脚本。
 """
-import argparse, hashlib, json, os, re, shutil, subprocess, sys, urllib.parse, urllib.request
+import argparse, hashlib, importlib.util, json, os, re, shutil, subprocess, sys, urllib.parse, urllib.request
 
 import pikepdf
 from PIL import Image
@@ -316,6 +317,11 @@ def main():
         description=f"Unofficial, AI-produced Chinese translations of {len(cards)} Claude model system cards published by Anthropic.",
         **common))
     print(f"导入 {len(cards)} 份系统卡，译文仓库提交 {commit[:7]}（{commit_date}）")
+    # 下载文件加译者声明：声明的文字取自网站卡片首页，所以要在上面的页面都写好之后
+    spec = importlib.util.spec_from_file_location("syscard_release", os.path.join(HERE, "release.py"))
+    release = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(release)
+    release.main(["--only", ",".join(c["slug"] for c in cards)])
 
 
 if __name__ == "__main__":

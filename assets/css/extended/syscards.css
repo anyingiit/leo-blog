@@ -1,10 +1,5 @@
 /* Anthropic 系统卡中文译本（layouts/syscards/）：结构、声明框、版本条、目录、下载、原版版式和全屏阅读都沿用 S-1 译本（s1.css、s1.js），
    这里只有系统卡自己的部分；原版版式文字层的字体在 syscards-fonts.css（导入工具生成） */
-.sc-entry .entry-header h2 a { box-shadow: none; }
-.sc-entry .entry-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
-.sc-links { display: inline-flex; flex-wrap: wrap; gap: 0 16px; }
-.sc-links a { display: inline-flex; align-items: center; min-height: 32px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
-@media (max-width: 600px) { .sc-links a { min-height: 44px; } }
 /* 页码范围「第 11–18 页」和日期整体换行，不在短横处拆开 */
 .sc-nobr { white-space: nowrap; }
 /* 目录里含译者另行翻译部分的章节 */

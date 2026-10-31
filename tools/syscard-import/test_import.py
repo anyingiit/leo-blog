@@ -2,8 +2,9 @@
 
     python3 -m unittest discover -s tools/syscard-import -v
 
-另外，本机有译文仓库的克隆时设 SYSCARDS_SRC=<克隆路径>，会把瘦身过的 PDF 与原文件逐页对比（渲染像素、文字层、书签、链接）。
-CI 里没有原文件，这一项跳过；无损的做法本身由合成 PDF 的测试覆盖。
+另外，本机有译文仓库的克隆时设 SYSCARDS_SRC=<克隆路径>，会把下载文件与原文件对比：HTML 去掉加的声明后逐字节相同，
+PDF 去掉首末的声明页后逐页渲染像素、文字层（不含页脚）、链接相同。
+CI 里没有原文件，这一项跳过；无损瘦身由合成 PDF 的测试覆盖，加声明由合成 HTML 的测试和对每份下载文件的检查覆盖。
 """
 import glob, hashlib, importlib.util, json, os, re, subprocess, sys, tempfile, unittest
 
@@ -17,6 +18,9 @@ LIMIT = 25 * 1024 * 1024
 spec = importlib.util.spec_from_file_location("syscard_import", os.path.join(HERE, "import.py"))
 imp = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(imp)
+spec = importlib.util.spec_from_file_location("syscard_release", os.path.join(HERE, "release.py"))
+rel = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rel)
 sys.path.insert(0, HERE)
 import chapters, reference  # noqa: E402
 
@@ -188,6 +192,39 @@ class BoldAndFootnotes(unittest.TestCase):
         self.assertEqual(chapters.to_hugo(ch), "{{< sc-fn 1 >}} a\n\n{{< sc-fn 2 >}} b\n")
 
 
+class Release(unittest.TestCase):
+    """release.py 给下载文件加译者声明（样式同 S-1 的下载文件）"""
+
+    def test_html(self):
+        src = ('<!doctype html><html><head><meta charset="utf-8"><title>t</title></head><body><div class="wrap">'
+               '<header class="ttl"><h1>卡</h1></header>\n<div class="note"><b>关于本译本：</b>各卡不同的说明。</div>\n<nav id="toc"></nav><p>正文</p></div></body></html>')
+        v = dict(version="v1.0", versionDate="2026-10-30", pages=9, official="https://www.anthropic.com/x")
+        notice = '<aside class=s1-notice role=note><p class=s1-notice-title>译者声明（请先阅读）</p><ul><li>声明</li></ul></aside>'
+        with tempfile.TemporaryDirectory() as d:
+            a, b = os.path.join(d, "a.html"), os.path.join(d, "b.html")
+            open(a, "w", encoding="utf-8").write(src)
+            rel.release_html(a, b, dict(released="2026-10-07"), v, notice, "https://example.org/v1.0/")
+            out = open(b, encoding="utf-8").read()
+        # 原文只少了「关于本译本」，其余逐字节不变；声明在正文前后各一份，横幅在最前面，noindex
+        self.assertEqual(rel.strip_added(out), src.replace('<div class="note"><b>关于本译本：</b>各卡不同的说明。</div>\n', ""))
+        self.assertNotIn("关于本译本", out)
+        self.assertEqual(out.count(notice), 2)
+        self.assertLess(out.index("dl-banner"), out.index("<header"))
+        self.assertLess(out.index("</header>"), out.index(notice), "第一份声明在标题之后、目录之前")
+        self.assertLess(out.index(notice), out.index('<nav id="toc">'))
+        self.assertLess(out.rindex(notice), out.index("</body>"))
+        self.assertGreater(out.rindex(notice), out.index("<p>正文</p>"))
+        self.assertIn('<meta name="robots" content="noindex">', out[:out.index("</head>")])
+        self.assertIn("https://example.org/v1.0/", out)
+
+    def test_notice_without_id(self):
+        with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, "translations/system-cards/x"))
+            open(os.path.join(d, "translations/system-cards/x/index.html"), "w", encoding="utf-8").write(
+                '<main><aside class=s1-notice role=note id=notice><p>声明</p></aside></main>')
+            self.assertEqual(rel.notice_of(d, "x"), "<aside class=s1-notice role=note><p>声明</p></aside>")
+
+
 class PublishedFiles(unittest.TestCase):
     """仓库里导入的每份系统卡"""
     zh = front_matter("_index.md")
@@ -224,6 +261,8 @@ class PublishedFiles(unittest.TestCase):
                     self.assertLessEqual(len(data), LIMIT, f"{path} 超过 Cloudflare Pages 单文件上限")
                 pdf = v["downloads"]["pdf"]
                 self.assertEqual(pdf.get("slimmed", False), pdf.get("sourceBytes", 0) > LIMIT, c["slug"])
+                for kind in ("html", "pdf"):  # 都加过译者声明（release.py），记下了加之前的文件
+                    self.assertRegex(v["downloads"][kind].get("source", {}).get("sha256", ""), r"^[0-9a-f]{64}$", f"{c['slug']} {kind} 没有加声明")
                 self.assertEqual(sorted(os.listdir(os.path.join(vdir, "files"))),
                                  sorted(os.path.basename(v["downloads"][k]["file"]) for k in ("html", "pdf")), "files/ 下只有这两个文件")
 
@@ -266,14 +305,37 @@ class PublishedFiles(unittest.TestCase):
             for name, v in c["versions"].items():
                 path = os.path.join(DIR, c["slug"], name, v["downloads"]["pdf"]["file"])
                 r = pypdf.PdfReader(path)
-                self.assertEqual(len(r.pages), c["pages"], f"{c['slug']} 页数与原版不同")
+                self.assertEqual(len(r.pages), c["pages"] + 2, f"{c['slug']} 页数应为原版 + 首末两页声明")
                 self.assertEqual(len(r.outline) > 0, v["downloads"]["pdf"]["bookmarks"], f"{c['slug']} 书签")
                 if v["downloads"]["pdf"].get("slimmed"):
                     keys = [imp._stream_key(o) for o in images(path)]
                     self.assertEqual(len(keys), len(set(keys)), f"{c['slug']} 还有重复的图片")
 
+    def test_notices_in_downloads(self):
+        """同 S-1 的下载文件：PDF 首页是声明和目录、末页再附声明，每页底部有「非官方」页脚和页码；HTML 首末各一份声明、顶部横幅。
+        声明的文字和网站卡片首页相同（这里核对和本卡事实一致的几处）"""
+        for c in self.cards:
+            v = c["versions"][c["latest"]]
+            vdir = os.path.join(DIR, c["slug"], c["latest"])
+            path = os.path.join(vdir, v["downloads"]["pdf"]["file"])
+            rel.check_pdf(path, c["pages"], sample=True)
+            r = pypdf.PdfReader(path)
+            for i in (0, len(r.pages) - 1):
+                text = re.sub(r"\s+", "", r.pages[i].extract_text())
+                for want in ("译者声明（请先阅读）", f"《{v['titleEn']}》", f"译本版本：{v['version']}（{v['versionDate']}定稿）", "leoycwan@gmail.com"):
+                    self.assertIn(re.sub(r"\s+", "", want), text, f"{c['slug']} PDF 第 {i + 1} 页")
+            # 首页目录每一章都能点，跳到原版那一页（PDF 里是下一页）
+            pages = {p.indirect_reference.idnum: i for i, p in enumerate(r.pages)}
+            goto = [pages[a.get_object()["/A"]["/D"][0].idnum] for a in r.pages[0].get("/Annots", []) if a.get_object()["/A"]["/S"] == "/GoTo"]
+            self.assertEqual(goto, [ch["pages"][0] for ch in v["chapters"]], f"{c['slug']} 首页目录的链接")
+            h = open(os.path.join(vdir, v["downloads"]["html"]["file"]), encoding="utf-8").read()
+            self.assertEqual(h.count("译者声明（请先阅读）"), 2, c["slug"])
+            self.assertEqual(h.count('class="dl-banner"'), 1, c["slug"])
+            self.assertNotIn("关于本译本", h, c["slug"])
+            self.assertIn(f"译本版本：</strong>{v['version']}", h, c["slug"])
+
     @unittest.skipUnless(os.environ.get("SYSCARDS_SRC"), "设 SYSCARDS_SRC=<译文仓库克隆> 时逐页对比原文件")
-    def test_slimmed_pdfs_match_source(self):
+    def test_downloads_match_source(self):
         src = os.environ["SYSCARDS_SRC"]
         commit = subprocess.run(["git", "-C", src, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
         self.assertEqual(commit, self.zh["sourceCommit"], "译文仓库要切到导入时的提交")
@@ -281,22 +343,30 @@ class PublishedFiles(unittest.TestCase):
             v = c["versions"][c["latest"]]
             vdir = os.path.join(DIR, c["slug"], c["latest"])
             h = v["downloads"]["html"]
-            self.assertEqual(open(os.path.join(src, c["slug"], h["name"]), "rb").read(), open(os.path.join(vdir, h["file"]), "rb").read(),
-                             f"{c['slug']} HTML 逐字节原样")
+            orig = open(os.path.join(src, c["slug"], h["name"]), encoding="utf-8").read()
+            self.assertEqual(hashlib.sha256(orig.encode()).hexdigest(), h["source"]["sha256"])
+            mine = rel.strip_added(open(os.path.join(vdir, h["file"]), encoding="utf-8").read())
+            self.assertEqual(re.sub(r'<div class="note"><b>关于本译本：</b>[\s\S]*?</div>\n?', "", orig, count=1), mine,
+                             f"{c['slug']} HTML 去掉加的声明后，与原文件去掉「关于本译本」逐字节相同")
             pdf = v["downloads"]["pdf"]
             orig = os.path.join(src, c["slug"], pdf["name"])
-            if not pdf.get("slimmed"):
-                self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), pdf["sha256"], f"{c['slug']} 原样复制")
-                continue
-            self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), pdf["sourceSha256"])
+            self.assertEqual(hashlib.sha256(open(orig, "rb").read()).hexdigest(), pdf["sourceSha256"] if pdf.get("slimmed") else pdf["source"]["sha256"])
             mine = os.path.join(vdir, pdf["file"])
             a, b = pypdfium2.PdfDocument(orig), pypdfium2.PdfDocument(mine)
+            self.assertEqual(len(b), len(a) + 2)
             for i in range(len(a)):
-                self.assertEqual(a[i].render(scale=100 / 72).to_pil().tobytes(), b[i].render(scale=100 / 72).to_pil().tobytes(), f"{c['slug']} 第 {i + 1} 页像素")
-                self.assertEqual(a[i].get_textpage().get_text_range(), b[i].get_textpage().get_text_range(), f"{c['slug']} 第 {i + 1} 页文字")
+                # 原文页：PDF 坐标里原文仍是 (0, 0)–(612, 792)，下面 18pt 是加的页脚；只比原文部分
+                pa = a[i].render(scale=100 / 72).to_pil()
+                pb = b[i + 1].render(scale=100 / 72).to_pil()
+                self.assertEqual(pa.tobytes(), pb.crop((0, 0) + pa.size).tobytes(), f"{c['slug']} 第 {i + 1} 页像素")
+                # 页脚是另一个文字对象，pdfium 在原文文字末尾补一个分隔空格，比较时去掉
+                self.assertEqual(a[i].get_textpage().get_text_bounded(0, 0, 612, 792).rstrip(), b[i + 1].get_textpage().get_text_bounded(0, 0, 612, 792).rstrip(),
+                                 f"{c['slug']} 第 {i + 1} 页文字")
             ra, rb = pypdf.PdfReader(orig), pypdf.PdfReader(mine)
-            self.assertEqual(outline(ra), outline(rb), f"{c['slug']} 书签")
-            self.assertEqual([len(p.get("/Annots") or []) for p in ra.pages], [len(p.get("/Annots") or []) for p in rb.pages])
+            ob = [(d, t, n - 1) for d, t, n in outline(rb)]  # PDF 里每页往后挪了一页
+            self.assertEqual(outline(ra), ob[1:] if ob else ob, f"{c['slug']} 书签（有书签的多了最前面的「译者声明」）")
+            self.assertEqual([len(p.get("/Annots") or []) for p in ra.pages], [len(p.get("/Annots") or []) for p in rb.pages[1:-1]])
+
 
 if __name__ == "__main__":
     unittest.main()

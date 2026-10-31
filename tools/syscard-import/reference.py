@@ -31,9 +31,10 @@ def pdf_of(slug):
 
 
 def render(slug, page):
+    """原版第 page 页：下载用的 PDF 第一页是译者声明，所以是 PDF 的第 page + 1 页；只取原文的 612×792pt，不含底部的页脚"""
     _, pdf = pdf_of(slug)
     with pymupdf.open(pdf) as doc:
-        return doc[page - 1].get_pixmap(dpi=DPI).tobytes("png")
+        return doc[page].get_pixmap(dpi=DPI, clip=pymupdf.Rect(0, 0, 612, 792)).tobytes("png")
 
 
 def name(slug, page):

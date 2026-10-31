@@ -1,9 +1,10 @@
 // Anthropic 系统卡中文译本（tools/syscard-import/、layouts/syscards/、layouts/_partials/syscards/、layouts/_shortcodes/sc-*.html、
 // assets/css/extended/syscards.css）：用仓库里导入的全部系统卡（content/translations/system-cards/<卡>/<版本>/）检查
 //   - 构建结果：
-//     下载文件发布在版本目录的 files/ 下，大小和 sha256 与 front matter 一致、HTML 与 .html.raw 逐字节相同（原样提供）、
+//     下载文件发布在版本目录的 files/ 下，大小和 sha256 与 front matter 一致、HTML 与 .html.raw 逐字节相同、
+//     HTML 首末的译者声明和卡片首页相同（release.py 加的，同 S-1 的下载文件）、
 //     不超过 Cloudflare Pages 的 25 MiB、只发布一份、.raw 本身不发布；译文仓库不公开（页面上没有仓库链接）；
-//     栏目页：每份卡一条 PaperMod 条目（官网顺序、版本号、在线阅读/HTML/PDF 直链）；
+//     栏目页：每份卡一条 PaperMod 文章条目（官网顺序、标题、原版日期、页数，整条链到卡片首页）；
 //     卡片首页（和 S-1 译本首页同样的顺序）：完整声明、开始阅读最新版和英文原版、下载卡片、目录（列出每章和页码、
 //     标出含另行翻译的章）、全部版本；英文页同 S-1 英文页：声明写成段落，链到中文译本；版本页的简短声明里有本卡的特殊情况；
 //     译者声明：所有卡的条目和措辞相同，只换卡名、日期、页数、版本，和「本卡另行翻译的部分」那一条（facts）；
@@ -90,10 +91,15 @@ test("下载文件：发布在版本目录的 files/ 下，大小和 sha256 与 
   }
 });
 
-test("在线阅读的 HTML 原样提供：没有加统计脚本、网站图标、声明或 noindex", () => {
+test("在线阅读的 HTML 同 S-1 的下载文件：首末各一份和卡片首页相同的译者声明、noindex；不加统计脚本和网站图标", () => {
   for (const c of cards) {
     const html = read(url(c, "html"));
-    assert.ok(!html.includes("cloudflareinsights") && !/rel="?icon/.test(html) && !/noindex/.test(html), c.slug);
+    assert.ok(!html.includes("cloudflareinsights") && !/rel="?icon/.test(html), `${c.slug} 统计脚本、图标`);
+    assert.ok(/<meta name="?robots"? content="?noindex"?>/.test(html.slice(0, html.indexOf("</head>"))), `${c.slug} noindex`);
+    const site = text(fullNotice(read(home(c))));
+    const got = [...html.matchAll(/<aside class="?s1-notice"?[^>]*>[\s\S]*?<\/aside>/g)].map((m) => text(m[0]));
+    assert.deepEqual(got, [site, site], `${c.slug} 声明和网站上的一样，首末各一份`);
+    assert.ok(!html.includes("关于本译本"), `${c.slug} 译文仓库自带的说明换掉了`);
   }
 });
 
@@ -107,18 +113,20 @@ test("译文仓库不公开：栏目页、卡片首页、版本页、章节页�
 for (const lang of ["zh", "en"]) {
   const list = lang === "en" ? "/en" + P : P;
 
-  test(`${lang} 栏目页：每份卡一条，按官网顺序，版本号，链到卡片首页，在线阅读、HTML、PDF 直链`, () => {
+  test(`${lang} 栏目页：每份卡一条 PaperMod 文章条目（标题、原版发布日期、页数），按官网顺序，整条链到卡片首页`, () => {
     const html = read(list);
-    const rows = [...html.matchAll(/<article class="post-entry sc-entry" id=([^\s>]+)>([\s\S]*?)<\/article>/g)];
+    const rows = [...html.matchAll(/<article class="?post-entry"? id=([^\s>]+)>([\s\S]*?)<\/article>/g)];
     assert.deepEqual(rows.map((m) => m[1]), cards.map((c) => c.slug), "顺序");
     for (const [i, c] of cards.entries()) {
       const row = rows[i][2];
       const name = lang === "zh" ? c.zh.title.replace(/中文译本$/, "") : c.zh.titleEn;
-      assert.ok(attr(row, "href", home(c, lang)) && row.includes(`>${name}</a>`), `${c.slug} 链到卡片首页`);
-      assert.ok(row.includes(`>${c.v.version}<`), `${c.slug} 版本号`);
-      assert.ok(text(row).includes(lang === "zh" ? `原版 ${c.zh.released} 发布 · ${c.zh.pages} 页` : `Published ${c.zh.released} · ${c.zh.pages} pages`), `${c.slug} 日期和页数`);
-      assert.ok(attr(row, "href", ver(c)), `${c.slug} 在线阅读`);
-      assert.ok(attr(row, "href", url(c, "html")) && attr(row, "download", c.v.downloads.pdf.name), `${c.slug} 下载`);
+      // 同 PaperMod 的文章条目：标题是纯文字，整条由 entry-link 盖住，点哪里都进卡片首页
+      assert.match(row, new RegExp(`<h2 class="?entry-hint-parent"?>${name.replace(/[.]/g, "\\.")}</h2>`), `${c.slug} 标题`);
+      assert.match(row, /<a class="?entry-link"?/, `${c.slug} 整条可点`);
+      assert.deepEqual([...row.matchAll(/href="?([^" >]+)/g)].map((m) => m[1]), [`https://douseful.eu.org${home(c, lang)}`], `${c.slug} 只链到卡片首页`);
+      assert.match(row, new RegExp(`title=["']?${c.zh.released}T00:00:00`), `${c.slug} 原版发布日期`);
+      assert.ok(text(row).includes(lang === "zh" ? `· ${c.zh.pages} 页` : `· ${c.zh.pages} pages`), `${c.slug} 页数`);
+      assert.ok(!row.includes("s1-vtag") && !row.includes("HTML") && !row.includes("PDF"), `${c.slug} 列表里不放版本号和下载`);
     }
     assert.ok(!/<summary>[\s\S]*?<a\s[\s\S]*?<\/summary>/.test(html), "要点里不放链接");
     assert.equal(html.match(/mailto:leoycwan@gmail\.com/g)?.length, 2, "声明和权利行各一次");
