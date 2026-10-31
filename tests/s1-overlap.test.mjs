@@ -8,11 +8,13 @@
 // （Georgia → 字宽相同的 Gelasio，Times New Roman/Helvetica → Liberation，中文 → Noto CJK 子集，见那里的 README），
 // 本地和 CI 结果一致。再给译文文字块加 0.02em 字距，模拟比测量时略宽的字体。最新版本的冻结 HTML 在原字距和加宽后都必须 0 处重叠；
 // 反向验证：同样的检查在 v1.1 上要找出已知的 3 处（第 1 页两处、第 2 页标题一处），证明它查得出问题。
+// Chromium（≈Chrome）和 WebKit（≈Safari）都查：v1.1 的问题是在 Mac 的 Safari 上看到的。CI 里两个都必须有，
+// 本地没装 WebKit 时跳过（npx playwright install webkit）。与译文仓库的 pipeline/text/check_overlap.js 是同一套检查。
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { chromium } from "playwright";
+import { chromium, webkit } from "playwright";
 import { root } from "./helpers.mjs";
 
 const S1 = join(root, "content/translations/anthropic-s1");
@@ -31,15 +33,19 @@ const FACES = [
     [400, 700].map((w) => face(f, `noto-cjk/NotoSansCJK-${w === 700 ? "Bold" : "Regular"}-s1.woff2`, w, "normal"))),
 ].join("");
 
-let browser;
-// Linux 上字体微调（hinting）会把字宽取整，同一字体量出的行宽和 Mac（不取整）不同，CI 镜像默认就开着；
-// 关掉它，字宽与 Mac 一致，本地和 CI 结果也一致
-before(async () => { browser = await chromium.launch({ args: ["--font-render-hinting=none"] }); });
-after(async () => { await browser?.close(); });
+const ENGINES = ["chromium", "webkit"];
+const browsers = {};
+// Linux 上 Chromium 的字体微调（hinting）会把字宽取整，同一字体量出的行宽和 Mac（不取整）不同，CI 镜像默认就开着；
+// 关掉它，字宽与 Mac 一致，本地和 CI 结果也一致。WebKit 本来就按不取整的字宽排版（实测开关微调结果相同）
+before(async () => {
+  browsers.chromium = await chromium.launch({ args: ["--font-render-hinting=none"] });
+  browsers.webkit = await webkit.launch().catch((e) => { if (process.env.CI) throw e; return null; });
+});
+after(async () => { await Promise.all(Object.values(browsers).map((b) => b?.close())); });
 
 // 打开冻结的完整 HTML（只留前 maxPages 页），按 spacings 逐个加字距，返回每种字距下的重叠
-async function overlaps(file, spacings, maxPages = Infinity) {
-  const page = await browser.newPage({ viewport: { width: 1000, height: 1000 } });
+async function overlaps(engine, file, spacings, maxPages = Infinity) {
+  const page = await browsers[engine].newPage({ viewport: { width: 1000, height: 1000 } });
   await page.route("**/*", (r) => {
     const u = new URL(r.request().url());
     if (u.pathname === "/s1.html") return r.fulfill({ contentType: "text/html; charset=utf-8", body: readFileSync(file) });
@@ -53,6 +59,20 @@ async function overlaps(file, spacings, maxPages = Infinity) {
   await page.addStyleTag({ content: FACES + "div.zh{letter-spacing:var(--s1-test-spacing,0)}" +
     // 冻结文件给每页设了 content-visibility:auto，屏幕外的页不排版、量不到，测试时全部排出来
     "[style*='content-visibility']{content-visibility:visible!important}" });
+  // 有些文字块的字体只写了 Georgia, serif，里面却有汉字（如“150亿”）：这些汉字会退回机器上的字体。
+  // 给这类字体列表末尾补上固定的中文字体（serif 补宋体类，其余补黑体类），和译文仓库的 check_overlap.js 一致
+  const left = await page.evaluate(() => {
+    const CJK = /songti|stsong|noto|source han|simsun|pingfang|hiragino|yahei/i, HAN = /[\u2e80-\u9fff\uff00-\uffef\u3000-\u303f]/;
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const els = new Set();
+    for (let n; (n = w.nextNode());) if (HAN.test(n.data)) els.add(n.parentElement);
+    for (const el of els) {
+      const f = getComputedStyle(el).fontFamily;
+      if (!CJK.test(f)) el.style.fontFamily = f + (/\bserif\s*$/.test(f) && !/sans-serif\s*$/.test(f) ? ", 'Noto Serif CJK SC'" : ", 'Noto Sans CJK SC'");
+    }
+    return [...els].filter((el) => !CJK.test(getComputedStyle(el).fontFamily)).length;
+  });
+  assert.equal(left, 0, "有汉字没有固定的中文字体");
   // 先把所有替换字体都加载完，避免量到系统字体的字宽
   const failed = await page.evaluate(async () => {
     await Promise.allSettled([...document.fonts].map((f) => f.load()));
@@ -103,23 +123,29 @@ async function overlaps(file, spacings, maxPages = Infinity) {
 test("测试用的中文字体子集包含最新版本用到的全部字符", () => {
   const have = new Set(readFileSync(join(FONTS, "noto-cjk/chars.txt"), "utf8"));
   const text = readFileSync(frozen(LATEST), "utf8").replace(/data:[^"') ]+/g, "").replace(/<[^>]+>/g, "")
-    .replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, "");
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d)).replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&[a-z]+;/gi, "");
   const missing = [...new Set(text)].filter((c) => /[\u2e80-\u9fff\uff00-\uffef\u3000-\u303f]/.test(c) && !have.has(c));
   assert.deepEqual(missing, [], "按 tests/fixtures/fonts/README.md 重新生成字体子集");
 });
 
-test(`最新版本 ${LATEST} 的原版版式：文字不互相压住，字体略宽（+0.02em）时也不会`, async () => {
-  const r = await overlaps(frozen(LATEST), ["0", "0.02em"]);
-  assert.deepEqual(r["0"], []);
-  assert.deepEqual(r["0.02em"], []);
-});
+for (const engine of ENGINES) {
+  const skip = (t) => { if (browsers[engine]) return false; t.skip("本地没有安装 WebKit（npx playwright install webkit）"); return true; };
 
-test("反向验证：同样的检查在 v1.1 上找出封面抄送栏和第 2 页标题的重叠", async () => {
-  const r = await overlaps(frozen("v1.1"), ["0", "0.02em"], 3);
-  assert.deepEqual(r["0"], [], "v1.1 在测量用的字宽下本来不重叠（问题只在字体略宽时出现）");
-  const hits = r["0.02em"].join("\n");
-  assert.equal(r["0.02em"].length, 3, hits);
-  assert.match(hits, /第 1 页.*Scott Booth Anthropic, PBC/);
-  assert.match(hits, /第 1 页.*Calise Y\. Cheng/);
-  assert.match(hits, /第 2 页「Anthropic, PBC」/);
-});
+  test(`${engine}：最新版本 ${LATEST} 的原版版式：文字不互相压住，字体略宽（+0.02em）时也不会`, async (t) => {
+    if (skip(t)) return;
+    const r = await overlaps(engine, frozen(LATEST), ["0", "0.02em"]);
+    assert.deepEqual(r["0"], []);
+    assert.deepEqual(r["0.02em"], []);
+  });
+
+  test(`${engine}：反向验证，同样的检查在 v1.1 上找出封面抄送栏和第 2 页标题的重叠`, async (t) => {
+    if (skip(t)) return;
+    const r = await overlaps(engine, frozen("v1.1"), ["0", "0.02em"], 3);
+    assert.deepEqual(r["0"], [], "v1.1 在测量用的字宽下本来不重叠（问题只在字体略宽时出现）");
+    const hits = r["0.02em"].join("\n");
+    assert.equal(r["0.02em"].length, 3, hits);
+    assert.match(hits, /第 1 页.*Scott Booth Anthropic, PBC/);
+    assert.match(hits, /第 1 页.*Calise Y\. Cheng/);
+    assert.match(hits, /第 2 页「Anthropic, PBC」/);
+  });
+}

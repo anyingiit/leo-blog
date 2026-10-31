@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- 文字重叠检查覆盖 WebKit（≈Safari）：`tests/s1-overlap.test.mjs` 在 Chromium 和 WebKit 里各查一遍；`tests/site.test.mjs` 新增规则，逐行量文字位置的测试都必须两种内核都跑（S-1 v1.1 的重叠只在 Safari 上出现，只用 Chromium 的检查漏掉了）。
 - Mermaid 改由本站提供（`static/vendor/mermaid/11.17.2/`，文件和 npm 包逐字节相同），Mermaid 不再从 jsDelivr 加载（KaTeX 样式表仍在 jsDelivr）；下载量不变，分块仍按需加载，并设了长期缓存。
 - 短标签不再被挤得断行：S-1 版本表的版本号和「最新」、对应原文和采集日期、说明里的「第 N 页」，S-1 目录的「第 N 页」；新增 `tests/short-labels.test.mjs` 在手机到宽屏、Chromium 和 WebKit 上检查全站界面的短标签。
 - S-1 译本发布 v1.1.1（译文仓库 anthropic-s1-zh v1.1.1：封面「抄送」栏和第 2 页标题在字体略宽的电脑上文字重叠，只改版式），v1.0、v1.1 保留为历史版本；新增 `tests/s1-overlap.test.mjs` 检查原版版式的文字重叠；版本表下载链接不再从中间断行。

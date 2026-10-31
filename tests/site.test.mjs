@@ -384,6 +384,20 @@ test("Playwright 的 npm 版本与 CI 镜像一致（浏览器装在镜像里，
   }
 });
 
+// 文字排版（重叠、断行）在 Mac 的 Safari 和 Chrome 上可能不同：S-1 v1.1 封面抄送栏的重叠只在 Safari 上看到，
+// 当时的检查只用 Chromium，没查出来。以后凡是逐行量文字位置的测试（Range.getClientRects），都必须也在 WebKit 里跑，
+// 且 CI 里 WebKit 不能缺（本地没装可以跳过）。tests/theme 的 spec 由 playwright.config.mjs 自动在两种内核里跑，不在此列
+test("逐行量文字位置的测试都在 Chromium 和 WebKit 里跑（防止只在 Safari 出现的重叠、断行漏查）", () => {
+  const files = readdirSync(join(root, "tests")).filter((f) => f.endsWith(".test.mjs"));
+  const measuring = files.filter((f) => /getClientRects\(/.test(readFileSync(join(root, "tests", f), "utf8")));
+  assert.ok(measuring.includes("s1-overlap.test.mjs"), "测试前提：s1-overlap.test.mjs 逐行量文字位置");
+  for (const f of measuring) {
+    const src = readFileSync(join(root, "tests", f), "utf8");
+    assert.match(src, /chromium\.launch\(/, `${f} 没有启动 Chromium`);
+    assert.match(src, /webkit\.launch\([^)]*\)\.catch\(\(e\) => \{ if \(process\.env\.CI\) throw e;/, `${f} 要启动 WebKit，且 CI 里启动失败必须报错（照 s1-overlap.test.mjs 的写法）`);
+  }
+});
+
 // ── 网站图标（static/，tools/favicon/build.mjs 生成，docs/favicon.md）──────────────
 
 const ICONS = ["favicon.ico", "favicon-16x16.png", "favicon-32x32.png", "apple-touch-icon.png", "safari-pinned-tab.svg"];
