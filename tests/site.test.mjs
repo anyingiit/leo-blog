@@ -98,7 +98,7 @@ for (const [lang, prefix] of [["中文", ""], ["英文", "en/"]]) {
       assert.ok(entry, `短文栏目缺少 ${n.slug}`);
       // 短片的文章（front matter 有 film:）只放导语和封面（链接到文章，标着「短片 · 时长」），播放器和文字稿在文章页
       if (n.film) {
-        assert.match(entry, new RegExp(`<a class="?film-cover"? href="?${PROD}${prefix}notes/${n.slug}/"?`), `${n.slug} 的封面要链接到短片文章`);
+        assert.match(entry, new RegExp(`<a class="?film-cover"? href="?${(PROD + prefix + "notes/" + n.slug + "/").replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}"?`), `${n.slug} 的封面要链接到短片文章`);
         assert.ok(!entry.includes("film-frame") && !entry.includes('id="transcript"') && !entry.includes("id=transcript"), `${n.slug} 在栏目里不放播放器和文字稿`);
         continue;
       }

@@ -13,6 +13,8 @@ const SRC = join(root, "assets/films", NAME);
 const PAGE = { zh: "/notes/who-controls-anthropic/", en: "/en/notes/who-controls-anthropic/" };
 const PLAY = `films/${NAME}/play/`;
 const PROD = "https://douseful.eu.org/";
+// 拼进正则的字面量要转义（. / ? 等）
+const rx = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
 
 let site, server;
 const browsers = {};
@@ -44,7 +46,7 @@ test("播放器原样发布到 films/<名字>/play/，只在 <head> 插入 noind
   const src = readFileSync(join(SRC, "index.html"), "utf8");
   const head = out.slice(0, out.indexOf("</script>") + 9);
   assert.match(head, /<meta name="robots" content="noindex">/);
-  assert.match(head, new RegExp(`<link rel="canonical" href="${PROD}notes/who-controls-anthropic/">`));
+  assert.match(head, new RegExp(`<link rel="canonical" href="${rx(PROD)}notes/who-controls-anthropic/">`));
   assert.match(head, /html\{-webkit-text-size-adjust:100%;text-size-adjust:100%\}/);
   assert.match(head, /film:embed/, "桥接脚本能按博客的要求改 data-embed（iPhone 上铺满窗口）");
   assert.equal(out.replace(/<meta name="robots"[\s\S]*?<\/script>/, ""), src, "除了插入的部分，短片一字不改");
@@ -61,7 +63,7 @@ test("可下载的 MP4：中英文各一份，H.264 + AAC，单个文件不超�
     const html = read(PAGE[lang]);
     const card = html.match(/<div class="?s1-dl-cards film-dl"?>([\s\S]*?)<\/div>\s*<\/div>/)?.[1];
     assert.ok(card, `${lang} 页面有下载卡片`);
-    assert.match(card, new RegExp(`href=/?${PLAY.replace(/\//g, "\\/")}${file.replace(".", "\\.")} download="?${title}\\.mp4"?`));
+    assert.match(card, new RegExp(`href=/?${rx(PLAY + file)} download="?${rx(title)}\\.mp4"?`));
     assert.match(card, new RegExp(`<small>${Math.round(bytes / 2 ** 20)} MB</small>`), "写明大小");
   }
 });
@@ -70,7 +72,7 @@ test("文章页：播放器跳出正文栏，章节目录（PaperMod 的 details
   for (const lang of ["zh", "en"]) {
     const html = read(PAGE[lang]);
     assert.match(html, /<div class="?film-stage"? id="?film-stage"?>/);
-    assert.match(html, new RegExp(`<iframe class="?film-frame"? src="?/${PLAY}\\?${lang === "en" ? "lang=en&amp;embed=page" : "embed=page"}`));
+    assert.match(html, new RegExp(`<iframe class="?film-frame"? src="?/${rx(PLAY)}\\?${lang === "en" ? "lang=en&amp;embed=page" : "embed=page"}`));
     assert.doesNotMatch(html.match(/<iframe class="?film-frame[^>]*>/)[0], /loading=/, "播放器不延后加载");
     const toc = html.match(/<details class="?toc film-toc"? open>([\s\S]*?)<\/details>/)?.[1];
     assert.ok(toc, `${lang} 有展开的章节目录`);
@@ -93,11 +95,11 @@ test("短文时间线和「短片」次级栏目：短片文章只放导语和�
       for (let n = 1; ; n++) { const p = n === 1 ? list : `${list}page/${n}/`; if (!site.exists(`${p}index.html`)) break; html += read(p); }
       const entry = html.split(/<article class="?note-entry"?>/).find((e) => e.includes(`${PROD}${prefix}notes/who-controls-anthropic/`));
       assert.ok(entry, `${list} 里有短片文章`);
-      assert.match(entry, new RegExp(`<a class="?film-cover"? href="?${PROD}${prefix}notes/who-controls-anthropic/"?`));
+      assert.match(entry, new RegExp(`<a class="?film-cover"? href="?${rx(PROD + prefix)}notes/who-controls-anthropic/"?`));
       assert.ok(entry.includes(`<span class="film-badge">${badge}</span>`) || entry.includes(`<span class=film-badge>${badge}</span>`), `${list} 封面上写着 ${badge}`);
       assert.ok(!entry.includes("<iframe"), "列表里不放播放器");
     }
-    assert.match(read(`${prefix}notes/index.xml`), new RegExp(`<link>${PROD}${prefix}notes/who-controls-anthropic/</link>`), "短文 RSS 收录次级栏目里的文章");
+    assert.match(read(`${prefix}notes/index.xml`), new RegExp(`<link>${rx(PROD + prefix)}notes/who-controls-anthropic/</link>`), "短文 RSS 收录次级栏目里的文章");
   }
 });
 
@@ -111,7 +113,8 @@ async function open(t, engine, opts = {}, init) {
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
   const errors = [];
-  page.on("pageerror", (e) => errors.push(e.message));
+  // WebKit 对没有来源的沙箱 iframe 检查全屏权限时会报这一条（浏览器自己的提示，不是脚本错误）
+  page.on("pageerror", (e) => { if (!/^Permission policy 'Fullscreen' check failed/.test(e.message)) errors.push(e.message); });
   return { ctx, page, errors, done: async () => { assert.deepEqual(errors, []); await ctx.close(); } };
 }
 const film = (page) => page.frames().find((f) => f.url().includes(`/${PLAY}`));

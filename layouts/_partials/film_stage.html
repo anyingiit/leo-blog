@@ -19,7 +19,7 @@
 <span class="film-wbar-title">{{ $page.Title }}</span>
 <button type="button" class="film-wbar-exit">✕&nbsp;{{ i18n "film_exit" }}</button>
 </div>
-<iframe class="film-frame" src="{{ $play }}"{{ with $f.poster }} style="background-image:url({{ . }})"{{ end }} title="{{ $page.Title }}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay"></iframe>
+<iframe class="film-frame" src="{{ $play }}"{{ with $f.poster }} style="background-image:url({{ . }})"{{ end }} title="{{ $page.Title }}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation" allow="fullscreen; autoplay" allowfullscreen></iframe>
 <button type="button" class="film-start" aria-label="{{ i18n "film_play" }}" hidden></button>
 {{- with $f.poster }}<noscript><style>.film-stage iframe{display:none}</style><img class="film-still" src="{{ . }}" width="{{ $f.width }}" height="{{ $f.height }}" alt="{{ $page.Title }}"></noscript>{{ end }}
 </div>
