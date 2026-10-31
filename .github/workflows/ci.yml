@@ -168,7 +168,7 @@ jobs:
       # Hugo 处理过的图片（resources/_gen）跨运行复用：整站冷构建约 55 秒，其中几乎都是把文章配图转成 WebP，有缓存只要 2 秒。
       # Hugo 按源文件和处理参数给缓存文件命名，内容变了就重新生成；Hugo 版本（build.sh）或图片渲染钩子变了则整份缓存作废。
       # 每组的测试都构建正式站（含全部文章），缓存由第 1 组保存，其他组只读
-      - uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: hugo-cache
         with:
           path: resources/_gen
@@ -196,7 +196,7 @@ jobs:
       - name: Run regression tests
         run: node ci-shards.mjs "${{ matrix.shard }}" 5
 
-      - uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: ${{ !cancelled() && matrix.shard == 1 && steps.hugo-cache.outputs.cache-hit != 'true' }}
         with:
           path: resources/_gen

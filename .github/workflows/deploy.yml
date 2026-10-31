@@ -54,7 +54,7 @@ jobs:
           submodules: recursive
 
       # 和 CI 回归测试同一份 Hugo 图片缓存（只读）：有缓存时整站构建几秒，没有时约 1 分钟
-      - uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: env.HAS_TOKEN == 'true'
         with:
           path: resources/_gen
