@@ -1,6 +1,6 @@
 ---
-title: "学会怎么学：AI时代学数学的变化"
-slug: lex-learning-math-faster
+title: "学习数学和学习"
+slug: lex-learning-math
 date: 2026-10-31T13:00:00Z
 tags: [随笔]
 ---

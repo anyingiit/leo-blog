@@ -1,6 +1,6 @@
 ---
-title: "Learning How to Learn: How AI Changes Learning Math"
-slug: lex-learning-math-faster
+title: "Learning Math, and Learning"
+slug: lex-learning-math
 date: 2026-10-31T13:00:00Z
 tags: [Notes]
 ---
