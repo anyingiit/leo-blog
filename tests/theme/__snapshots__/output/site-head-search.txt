@@ -11,11 +11,11 @@
 <link crossorigin=anonymous rel=preload as=fetch href=../index.json>
 <script defer crossorigin=anonymous src=/assets/js/search.<hash>.js integrity="sha256-<hash>">
 </script>
-<link rel=icon href=http://blog.test/favicon.ico>
-<link rel=icon type=image/png sizes=16x16 href=http://blog.test/favicon-16x16.png>
-<link rel=icon type=image/png sizes=32x32 href=http://blog.test/favicon-32x32.png>
-<link rel=apple-touch-icon href=http://blog.test/apple-touch-icon.png>
-<link rel=mask-icon href=http://blog.test/safari-pinned-tab.svg>
+<link rel=icon href="http://blog.test/favicon.ico?v=e1a2a36e">
+<link rel=icon type=image/png sizes=16x16 href="http://blog.test/favicon-16x16.png?v=31779f56">
+<link rel=icon type=image/png sizes=32x32 href="http://blog.test/favicon-32x32.png?v=4a5aee7e">
+<link rel=apple-touch-icon href="http://blog.test/apple-touch-icon.png?v=8eb641ea">
+<link rel=mask-icon href="http://blog.test/safari-pinned-tab.svg?v=a6a3f5b5">
 <meta name=theme-color content="#2e2e33">
 <meta name=msapplication-TileColor content="#2e2e33">
 <link rel=alternate hreflang=zh href=http://blog.test/search/>
@@ -37,4 +37,4 @@
 <meta name=twitter:title content="搜索">
 <meta name=twitter:description content="搜索 Leoblog 的文章。">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"搜索","item":"http://blog.test/search/"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"搜索","name":"搜索","description":"搜索 Leoblog 的文章。","keywords":[],"articleBody":"","wordCount":"0","inLanguage":"zh","image":"http://blog.test/share.png","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","author":{"@type":"Person","name":"Leo"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/search/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"搜索","name":"搜索","description":"搜索 Leoblog 的文章。","keywords":[],"articleBody":"","wordCount":"0","inLanguage":"zh","image":"http://blog.test/share.png","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","author":{"@type":"Person","name":"Leo"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.test/search/"},"publisher":{"@type":"Organization","name":"Leoblog","logo":{"@type":"ImageObject","url":"http://blog.test/favicon.ico?v=e1a2a36e"}}}</script>

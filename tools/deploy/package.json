@@ -1,0 +1,8 @@
+{
+  "name": "leo-blog-deploy",
+  "private": true,
+  "description": "在 GitHub Actions 里把构建结果上传到 Cloudflare Pages（.github/workflows/deploy.yml，docs/deploy.md）",
+  "devDependencies": {
+    "wrangler": "4.150.0"
+  }
+}

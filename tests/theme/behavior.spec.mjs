@@ -1,6 +1,9 @@
 // 主题交互和兼容性：在每个项目（Chromium/WebKit × 电脑/平板/手机）里实际操作页面
 import { test, expect } from "@playwright/test";
-import { connect, settle, fullPage, repaint } from "./helpers.mjs";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { connect, settle, fullPage, repaint, cdn } from "./helpers.mjs";
 
 const SITE = "http://blog.test", EXAMPLE = "http://example.test";
 
@@ -16,6 +19,26 @@ async function open(browser, info, url, opts = {}) {
   await page.goto(url, { waitUntil: "load" });
   return { context, page, errors };
 }
+
+// Mermaid 由本站提供：读者打开带图表的页面时不向外站要任何 Mermaid 文件，分块都能取到，图表画得出来
+test("Mermaid 只从本站加载，图表画得出来", async ({ browser }, info) => {
+  const context = await browser.newContext({ ...info.project.use, colorScheme: "light" });
+  await connect(context);
+  const page = await context.newPage();
+  const errors = [], requested = [], bad = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("request", (r) => requested.push(r.url()));
+  page.on("requestfailed", (r) => bad.push(r.url()));
+  page.on("response", (r) => { if (r.status() >= 400) bad.push(r.url()); });
+  await page.goto(`${SITE}/posts/sample-post/`, { waitUntil: "load" });
+  await settle(page);
+  const files = requested.filter((u) => /mermaid|\/vendor\//.test(u));
+  expect(files.length).toBeGreaterThan(1); // 入口加分块
+  expect(files.filter((u) => !u.startsWith(`${SITE}/vendor/mermaid/`))).toEqual([]);
+  expect(bad.filter((u) => u.includes("mermaid"))).toEqual([]);
+  expect(errors).toEqual([]);
+  await expect(page.locator("pre.mermaid svg .node").first()).toBeVisible();
+});
 
 // 两个站点里所有截图页面：没有脚本错误，也没有横向滚动条（手机上最常见的版面问题）
 const all = [
@@ -370,4 +393,21 @@ test("能横滑的表格、代码块、公式有边缘阴影，放得下的没�
   expect(fit, "没有找到放得下的元素，没覆盖「不画阴影」").toBeGreaterThan(0);
   expect(wide, "没有找到能横滑的元素，没覆盖「画阴影」").toBeGreaterThan(0);
   await context.close();
+});
+
+// 外站样式表带 SRI（tests/security.test.mjs、docs/security.md）：哈希和本地副本（与线上同版本）一致，浏览器校验通过后才会应用。
+// 哈希写错或 CDN 上的文件被改过，浏览器会整张丢弃样式表，公式就退回成普通字体
+test("KaTeX 样式表的 SRI 校验通过，公式用 KaTeX 字体排版", async ({ browser }, info) => {
+  const { page, errors } = await open(browser, info, `${SITE}/notes/math-note/`);
+  const link = page.locator('link[href*="/katex@"][href$="/katex.min.css"]');
+  await expect(link).toHaveCount(1);
+  const integrity = await link.getAttribute("integrity");
+  const local = readFileSync(join(cdn[Object.keys(cdn).find((k) => k.includes("/katex@"))], "katex.min.css"));
+  expect(integrity).toBe("sha384-" + createHash("sha384").update(local).digest("base64"));
+  // 页面 load 之后样式表要么已应用，要么已被丢弃
+  const applied = await page.evaluate(() => [...document.styleSheets].some((s) => s.href?.endsWith("/katex.min.css")));
+  expect(applied, "样式表被浏览器丢弃了").toBe(true);
+  await settle(page);
+  expect(await page.locator(".katex").first().evaluate((e) => getComputedStyle(e).fontFamily)).toContain("KaTeX_Main");
+  expect(errors).toEqual([]);
 });

@@ -21,7 +21,7 @@
 | 文件 | 和 PaperMod 的差别 | 为什么 |
 |---|---|---|
 | `_partials/header.html` | PaperMod 原样拷贝，只改语言切换链接 | 用户要求切换到当前页的译文（PR #22，`docs/language-switch.md`） |
-| `_partials/extend_head.html` | 按需加载 KaTeX、Mermaid（PaperMod 提供的扩展点） | 公式和图表。Mermaid 锁定 11.17.2：浮动的 `@11` 会让截图基准随上游变化；用 `mermaid.run()` 而不是 `startOnLoad`：Safari 里有图片未加载完时图表不出现（PR #20） |
+| `_partials/extend_head.html` | 按需加载 KaTeX、Mermaid（PaperMod 提供的扩展点） | 公式和图表。Mermaid 放在本站 `static/vendor/mermaid/`，不依赖 jsDelivr（用户 2026-10-30 选定，安全审查问题 5）；锁定精确版本：浮动的 `@11` 会让截图基准随上游变化；用 `mermaid.run()` 而不是 `startOnLoad`：Safari 里有图片未加载完时图表不出现（PR #20） |
 | `_partials/extend_footer.html` | 图集灯箱、短文折叠、访问统计脚本（PaperMod 提供的扩展点） | 用户选定（PR #16）；访问统计不影响页面外观，只在正式站加载，下载文件不带（用户 2026-10-29 选定，PR #44） |
 | `_markup/render-*.html` | 提示框、Mermaid、公式、图片转 WebP | 站点上线时的功能；图片处理（PR #16） |
 | `notes/`、`s1/`、`bilingual/`、`_partials/s1/`、`_partials/bilingual/` | 本站栏目自己的模板 | 只作用于这些栏目的页面 |
