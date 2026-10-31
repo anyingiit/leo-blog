@@ -8,6 +8,7 @@
     文字可以选中、复制、在页内搜索；字体只在打开原版版式时才下载。
   字体里没有的字（PDF 的 ToUnicode 偶尔把一个字形映射到不相干的码位，比如两字线「——」映射成 U+054C）这一段留在底图上，不进文字层。
 """
+import base64
 import html
 import math
 import os
@@ -17,6 +18,7 @@ import unicodedata
 import pymupdf
 from fontTools import subset as ftsub
 from fontTools.ttLib import TTFont
+import uharfbuzz as hb
 
 # 流水线排入文字用的字体：PDF 里的字体名（去掉非字母、小写）→ 译文仓库 opus-5.5/pipeline/fonts/ 里的文件
 FONTS = {
@@ -35,6 +37,9 @@ def font_class(f):
     return "sc-" + re.sub(r"[^a-z0-9]", "", f.split(".")[0].lower())
 
 
+INLINE = 4096  # 只取一章用到的字后不超过这么大的字体直接写进页面（见 Fonts.write_chapter）
+
+
 class Fonts:
     """文字层的字体子集。西文字体（Lora、Poppins、Roboto Mono）小，全部卡共用一份；中文字体大（全部卡用到的字取子集也有
     0.1–0.5 MB 一个），按章取子集：每章只下载这一章用到的字（网页性能预算，tests/perf.test.mjs）"""
@@ -42,8 +47,9 @@ class Fonts:
     def __init__(self, src):
         self.dir = os.path.join(src, FONT_DIR)
         self.cmaps = {f: set(TTFont(os.path.join(self.dir, f)).getBestCmap()) for f in set(FONTS.values())}
-        self.used = {}  # 共用的字体 → 用到的字
-        self.chapter = {}  # 这一章的中文字体 → 用到的字（begin_chapter 清空）
+        self.hb = {}  # 字体 → (HarfBuzz 字体, 每 em 单位数)，算浏览器排出来的字距（advance）
+        self.used = {}  # 共用的字体 → 全部卡用到的字
+        self.chapter = {}  # 这一章的字体 → 用到的字（begin_chapter 清空）
 
     def file_for(self, pdf_font):
         return FONTS.get(re.sub(r"[^a-z]", "", pdf_font.lower()))
@@ -52,10 +58,34 @@ class Fonts:
         return all(ord(c) in self.cmaps[f] for c in text)
 
     def use(self, f, text):
-        (self.chapter if "CJK" in f else self.used).setdefault(f, set()).update(text)
+        self.chapter.setdefault(f, set()).update(text)
+        if "CJK" not in f:
+            self.used.setdefault(f, set()).update(text)
 
     def begin_chapter(self):
         self.chapter = {}
+
+    def layout(self, f, text, size, x0, xs):
+        """浏览器只给起点时排出的逐字横坐标和 PDF 的一样吗：返回 "plain"（按字体本身的字宽，不用字距调整）、
+        "kern"（再加字体的字距调整 kern），都不一样返回 None。一样时文字层只写起点，省掉逐字坐标（HTML 小很多），
+        浏览器排出来的位置相同（syscards.css 里文字层关掉连字和字距调整，"kern" 的行加 class sc-k 打开字距调整）"""
+        if f not in self.hb:
+            face = hb.Face(hb.Blob.from_file_path(os.path.join(self.dir, f)))
+            self.hb[f] = (hb.Font(face), face.upem)
+        font, upem = self.hb[f]
+        for name, feats in (("plain", {"kern": False, "liga": False, "clig": False, "calt": False}), ("kern", {"liga": False, "clig": False, "calt": False})):
+            buf = hb.Buffer()
+            buf.add_str(text)
+            buf.guess_segment_properties()
+            buf.cluster_level = hb.BufferClusterLevel.MONOTONE_CHARACTERS
+            hb.shape(font, buf, feats)
+            starts, x = {}, 0
+            for info, pos in zip(buf.glyph_infos, buf.glyph_positions):
+                starts.setdefault(info.cluster, x + pos.x_offset)
+                x += pos.x_advance
+            if all(i in starts and abs(x0 + starts[i] / upem * size - xs[i]) < 0.01 for i in range(len(text))):
+                return name
+        return None
 
     def _subset(self, f, chars, path):
         tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
@@ -84,21 +114,33 @@ class Fonts:
         return "\n".join(css) + "\n"
 
     def write_chapter(self, out_dir):
-        """这一章的中文字体：生成 out_dir/<字体>.woff2，返回放在原版版式开头的 <style>（网址写成占位 scfont:<文件名>，
-        模板换成发布后的地址，同底图的 scimg:）。没有用到中文字体时返回空串"""
-        if not self.chapter:
-            return ""
-        os.makedirs(out_dir, exist_ok=True)
+        """这一章的字体，返回放在原版版式开头的 <style>（没有要写的返回空串）：
+        - 只取这一章用到的字后不超过 INLINE 字节的字体（几 KB 的 Poppins、Lora 粗斜体、等宽中文等）直接写进 <style>（data: 网址），
+          不再单独请求；同名的共用 @font-face 在样式表里，这里的写在后面，浏览器用这里的
+        - 其余的中文字体生成 out_dir/<字体>.woff2，网址写成占位 scfont:<文件名>，模板换成发布后的地址（同底图的 scimg:）
+        - 其余的西文字体用共用的一份（write）"""
         css = []
         for f in sorted(self.chapter):
             name = f.split(".")[0] + ".woff2"
-            self._subset(f, self.chapter[f], os.path.join(out_dir, name))
-            css.append(self._face(f, f"scfont:{name}"))
-        return "<style>" + "\n".join(css) + "</style>"
+            path = os.path.join(out_dir, name)
+            os.makedirs(out_dir, exist_ok=True)
+            self._subset(f, self.chapter[f], path)
+            data = open(path, "rb").read()
+            if len(data) <= INLINE:
+                os.remove(path)
+                css.append(self._face(f, "data:font/woff2;base64," + base64.b64encode(data).decode()))
+            elif "CJK" in f:
+                css.append(self._face(f, f"scfont:{name}"))
+            else:
+                os.remove(path)
+        if os.path.isdir(out_dir) and not os.listdir(out_dir):
+            os.rmdir(out_dir)
+        return "<style>" + "\n".join(css) + "</style>" if css else ""
 
 
-def original_pages(pdf_path, pages, fonts, out_dir):
-    """把 PDF 的这些页（从 1 数）转成原版版式：底图写到 out_dir/pNNN.webp，返回每页的 HTML（s1-sheet）列表"""
+def original_pages(pdf_path, pages, fonts, out_dir, start_only=True):
+    """把 PDF 的这些页（从 1 数）转成原版版式：底图写到 out_dir/pNNN.webp，返回每页的 HTML（s1-sheet）列表。
+    start_only=False 时每行都写逐字坐标（reference.py 生成逐字位置的基准用）"""
     from PIL import Image
     doc = pymupdf.open(pdf_path)
     os.makedirs(out_dir, exist_ok=True)
@@ -129,12 +171,18 @@ def original_pages(pdf_path, pages, fonts, out_dir):
                         continue
                     fonts.use(f, txt)
                     x0, y = chars[0]["origin"]
+                    kern = ""
                     if (round(dx, 3), round(dy, 3)) == (1.0, 0.0):
-                        xs, tr = " ".join(f"{c['origin'][0]:.2f}" for c in chars), ""
+                        lay = start_only and fonts.layout(f, txt, s["size"], x0, [c["origin"][0] for c in chars])
+                        if lay:  # 浏览器从起点排出来和 PDF 一样（见 Fonts.layout），只写起点
+                            xs, tr = f"{x0:.2f}", ""
+                            kern = " sc-k" if lay == "kern" else ""
+                        else:
+                            xs, tr = " ".join(f"{c['origin'][0]:.2f}" for c in chars), ""
                     else:
                         xs, tr = f"{x0:.2f}", f' transform="rotate({math.degrees(math.atan2(dy, dx)):.1f} {x0:.2f} {y:.2f})"'
                     fill = "" if s["color"] == 0 else f' fill="#{s["color"]:06x}"'
-                    texts.append(f'<text x="{xs}" y="{y:.2f}" font-size="{s["size"]:.2f}" class="{font_class(f)}"{fill}{tr}>{html.escape(txt, quote=False)}</text>')
+                    texts.append(f'<text x="{xs}" y="{y:.2f}" font-size="{s["size"]:.2f}" class="{font_class(f)}{kern}"{fill}{tr}>{html.escape(txt, quote=False)}</text>')
         # 原版里的外部链接：在文字层上按 PDF 的链接区域放透明的可点区域（内部跳转在 PDF 里已经丢失，见译文仓库各卡 README）
         for ln in page.get_links():
             if ln.get("kind") == pymupdf.LINK_URI and ln.get("uri", "").startswith(("http://", "https://")):

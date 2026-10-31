@@ -107,6 +107,21 @@ test("在线阅读的 HTML 同 PDF 原文只有浅色：没有深色模式的样
   for (const c of cards) assert.ok(!/prefers-color-scheme|data-theme/.test(read(url(c, "html"))), `${c.slug} 有深色模式样式`);
 });
 
+test("templates/schema_json.html 是 PaperMod 原版加上一处改动（升级主题后要重新拷贝，否则这里失败）；系统卡章节页的结构化数据不带正文全文，其他文章照常带", () => {
+  const upstream = readFileSync(join(root, "themes/PaperMod/layouts/_partials/templates/schema_json.html"), "utf8");
+  const ours = readFileSync(join(root, "layouts/_partials/templates/schema_json.html"), "utf8");
+  const line = '  "articleBody": {{ .Content | safeJS | htmlUnescape | plainify }},\n';
+  assert.equal(upstream.split(line).length, 2, "PaperMod 的 articleBody 写法变了，按 docs/system-cards.md 重做");
+  assert.equal(ours.slice(ours.indexOf("\n") + 1), upstream.replace(line, `  {{- if ne .Type "syscards" }}\n${line}  {{- end }}\n`));
+  const ld = (p) => [...read(p).matchAll(/<script type="?application\/ld\+json"?>([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1])).find((j) => j["@type"] === "BlogPosting");
+  const c = cards[0];
+  const chapter = ld(chap(c, c.v.chapters[1]));
+  assert.ok(chapter && !("articleBody" in chapter) && chapter.headline, "系统卡章节页");
+  const post = readdirSync(join(root, "content/posts"), { withFileTypes: true }).find((e) => e.isDirectory() || e.name.endsWith(".md") && e.name !== "_index.md" && !e.name.endsWith(".en.md"));
+  const slug = post.name.replace(/\.md$/, "");
+  assert.ok(ld(`/posts/${slug}/`)?.articleBody, `其他文章（/posts/${slug}/）照常带 articleBody`);
+});
+
 test("译文仓库不公开：栏目页、卡片首页、版本页、章节页都没有 GitHub 链接或仓库名", () => {
   for (const p of [P, "/en" + P, ...cards.flatMap((c) => [home(c), home(c, "en"), ver(c), ...c.v.chapters.map((ch) => chap(c, ch))])]) {
     const m = main(read(p));
@@ -351,6 +366,29 @@ for (const engine of ENGINES) {
         assert.ok(bad.worst >= 30, `${f} 篡改（${css}）后最大块差只有 ${bad.worst.toFixed(1)}，比对不够灵敏`);
         await tag.evaluate((e) => e.remove());
       }
+    }
+    await s.done();
+  });
+
+  test(`${engine}：原版文字层每个字的横坐标和 PDF 相同（大多数行只写起点、由浏览器按字体排，tests/fixtures/syscards/positions.json）`, async (t) => {
+    const s = await open(t, engine, { viewport: { width: 1280, height: 900 } });
+    if (!s) return;
+    const want = JSON.parse(readFileSync(join(FIX, "positions.json"), "utf8"));
+    for (const [key, rows] of Object.entries(want)) {
+      const [, slug, n] = key.match(/^(.+)-p(\d+)$/);
+      const c = cards.find((x) => x.slug === slug);
+      await s.go(chap(c, c.v.chapters.find((x) => x.pages[0] <= +n && +n <= x.pages[1])));
+      await view(s.page, "original");
+      await s.page.evaluate(() => document.fonts.ready);
+      const got = await s.page.evaluate((n) => [...document.querySelectorAll(`svg[aria-label="原文第 ${n} 页"] text`)].map((el) =>
+        [el.textContent, [...Array(el.getNumberOfChars()).keys()].map((i) => el.getStartPositionOfChar(i).x), el.getAttribute("x").split(" ").length]), +n);
+      assert.deepEqual(got.map((r) => r[0]), rows.map((r) => r[0]), `${key} 文字层的行`);
+      const starts = got.filter((r) => r[1].length > 1 && r[2] === 1).length; // 多个字、只写了起点的行
+      let worst = { d: 0 };
+      rows.forEach(([text, xs], i) => xs.forEach((x, j) => { const d = Math.abs(got[i][1][j] - x); if (d > worst.d) worst = { d, text, j }; }));
+      // 0.05pt 约 0.07 CSS px（按原尺寸显示时），看不出来；省掉逐字坐标后排错的字通常差一个字宽（几 pt）
+      assert.ok(worst.d < 0.05, `${key}「${worst.text}」第 ${worst.j + 1} 个字差 ${worst.d.toFixed(2)}pt`);
+      assert.ok(starts > 0, `${key} 没有只写起点的行，这个测试没测到浏览器排字`);
     }
     await s.done();
   });

@@ -6,7 +6,7 @@
 PDF 去掉首末的声明页后逐页渲染像素、文字层（不含页脚）、链接相同。
 CI 里没有原文件，这一项跳过；无损瘦身由合成 PDF 的测试覆盖，加声明由合成 HTML 的测试和对每份下载文件的检查覆盖。
 """
-import glob, hashlib, importlib.util, json, os, re, subprocess, sys, tempfile, unittest
+import base64, glob, hashlib, importlib.util, json, os, re, subprocess, sys, tempfile, unittest
 
 import pikepdf, pypdf, pypdfium2
 
@@ -284,11 +284,16 @@ class PublishedFiles(unittest.TestCase):
                     pages = range(ch["pages"][0], ch["pages"][1] + 1)
                     self.assertEqual(re.findall(r'aria-label="原文第 (\d+) 页"', orig), [str(p) for p in pages], f"{c['slug']} {ch['slug']}")
                     self.assertEqual(sorted(os.listdir(os.path.join(d, "bg"))), [f"p{p:03d}.webp" for p in pages])
-                    # 中文字体按章取子集：用到的中文字体都在本章 fonts/ 下，@font-face 在 original.html 开头
-                    cjk = sorted(set(re.findall(r'class="(sc-noto[a-z]*cjk[a-z]*)"', orig)))
+                    # 中文字体按章取子集：用到的中文字体在本章 fonts/ 下或（几 KB 的）直接写在 original.html 开头的 <style> 里
+                    cjk = sorted(set(re.findall(r'class="(sc-noto[a-z]*cjk[a-z]*)[ "]', orig)))
                     faces = re.findall(r'font-family: "(sc-[a-z]+)"; src: url\(scfont:([\w-]+\.woff2)\)', orig)
-                    self.assertEqual(sorted(f for f, _ in faces), cjk, f"{c['slug']} {ch['slug']} 中文字体")
-                    self.assertEqual(sorted(n for _, n in faces), sorted(os.listdir(os.path.join(d, "fonts"))) if cjk else [], f"{c['slug']} {ch['slug']} fonts/")
+                    inline = re.findall(r'font-family: "(sc-[a-z]+)"; src: url\(data:font/woff2;base64,([A-Za-z0-9+/=]+)\)', orig)
+                    self.assertEqual(sorted({f for f, _ in faces + inline if "cjk" in f}), cjk, f"{c['slug']} {ch['slug']} 中文字体")
+                    self.assertEqual(sorted(n for _, n in faces), sorted(os.listdir(os.path.join(d, "fonts"))) if faces else [], f"{c['slug']} {ch['slug']} fonts/")
+                    for f, b64 in inline:
+                        self.assertLessEqual(len(base64.b64decode(b64)), chapters.INLINE, f"{c['slug']} {ch['slug']} {f}")
+                    # 只写起点的行（省掉逐字坐标）：浏览器按字体排出的位置要和 PDF 一样，Fonts.layout 在导入时逐行核对过
+                    self.assertRegex(orig, r'<text x="[\d.]+" y=', f"{c['slug']} {ch['slug']} 没有只写起点的行")
                 fns = os.path.join(DIR, c["slug"], name, "footnotes", "index.md")
                 if os.path.exists(fns):
                     defs = set(re.findall(r"\{\{< sc-fn (\d+) >\}\}", open(fns, encoding="utf-8").read()))
