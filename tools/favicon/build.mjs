@@ -2,10 +2,14 @@
 // 输出 PaperMod head.html 默认读取的 5 个文件名，放进 static/ 后全站生效，不需要改 hugo.yaml：
 //   favicon.ico（16/32/48）、favicon-16x16.png、favicon-32x32.png、apple-touch-icon.png（180，不透明）、safari-pinned-tab.svg
 // 另外生成站点默认分享图 share.png（1200×630，hugo.yaml 的 params.images，没有自己配图的页面分享时用它）
+// 同时把这 5 个文件复制一份到 icons/，文件名带内容 sha256 前 8 位（如 icons/favicon-32x32.4a5aee7e.png），
+// 页面里引用的是这份（hugo.yaml 的 params.assets.favicon*）：图标一改文件名就变，浏览器里按旧地址记下的
+// 「取不到」或旧图标都碰不到新地址。只加 ?v= 参数时，有的 iPhone Safari 仍不显示（docs/favicon.md「缓存」）。
 // 用法：cd tests && npm ci && node ../tools/favicon/build.mjs [输出目录，默认 static/]
 // 栅格化用 tests/ 里锁定版本的 Playwright Chromium，和 CI 的回归测试同一个浏览器
 import { createRequire } from "node:module";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -69,6 +73,17 @@ export async function render(outDir) {
   writeFileSync(join(outDir, "apple-touch-icon.png"), touch);
   writeFileSync(join(outDir, "safari-pinned-tab.svg"), MASK);
   writeFileSync(join(outDir, "share.png"), share);
+  const icons = join(outDir, "icons");
+  rmSync(icons, { recursive: true, force: true }); // 旧版本号的文件一起清掉
+  mkdirSync(icons);
+  for (const [name, data] of Object.entries({ "favicon.ico": ico([16, 32, 48].map((size) => ({ size, data: sizes[size] }))), "favicon-16x16.png": sizes[16], "favicon-32x32.png": sizes[32], "apple-touch-icon.png": touch, "safari-pinned-tab.svg": MASK })) {
+    const versioned = versionedName(name, data);
+    writeFileSync(join(icons, versioned), data);
+    console.log(`icons/${versioned}`);
+  }
 }
+
+// favicon-32x32.png → favicon-32x32.<sha256 前 8 位>.png
+export const versionedName = (name, data) => name.replace(/(\.[a-z]+)$/, `.${createHash("sha256").update(data).digest("hex").slice(0, 8)}$1`);
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) await render(process.argv[2] || join(root, "static"));
