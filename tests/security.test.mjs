@@ -52,7 +52,7 @@ export function missingSri(html) {
 // 行内 <script type=module> 里 import 外站模块（import 语句没法写 integrity）
 export function externalImports(html) {
   const found = [];
-  for (const [, body] of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
+  for (const [, body] of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\b[^>]*>/gi)) {
     for (const [, url] of body.matchAll(/\bimport\s*(?:[^'"()]*?\bfrom\s*)?\(?\s*["']([^"']+)["']/g)) {
       if (external(url)) found.push(url);
     }
@@ -211,4 +211,19 @@ test(".claude/settings.json 的插件市场都锁定到版本号（ref 是 vX.Y.
     if (!["github", "git"].includes(source.source)) continue; // 本地目录等不经网络
     assert.match(source.ref || "", /^v?\d+\.\d+\.\d+$/, `插件市场 ${name} 没有锁定版本：${JSON.stringify(source)}`);
   }
+});
+
+test("Python 依赖都在本目录 requirements.txt 里写明，不用 -r 引用别的文件；双语导入工具和 S-1 导入工具的 PDF 库版本相同", () => {
+  // -r 引用的文件改版本后 GitHub 依赖图不会重新解析引用它的文件，安全警报会一直停在旧版本上
+  const pins = (p) => Object.fromEntries(readFileSync(join(root, p), "utf8").split("\n")
+    .filter((l) => l.trim() && !l.trim().startsWith("#")).map((l) => {
+      assert.match(l, /^[A-Za-z0-9._-]+==[0-9][^\s]*$/, `${p}：每行一个用 == 锁定的包（不用 -r、>=）：${l}`);
+      return l.split("==");
+    }));
+  const reqs = execFileSync("git", ["ls-files", "*requirements*.txt"], { cwd: root, encoding: "utf8" }).split("\n").filter(Boolean);
+  assert.ok(reqs.length >= 3);
+  for (const p of reqs) pins(p);
+  const s1 = pins("tools/s1-import/requirements.txt");
+  const bi = pins("tools/bilingual-import/requirements.txt");
+  for (const name of ["pypdf", "pikepdf"]) assert.equal(bi[name], s1[name], `${name} 两处版本要相同`);
 });

@@ -150,7 +150,7 @@ def original_fragment(soup):
             if not el["class"]:
                 del el["class"]
     # 原版的样式只作用在原版页面里：给每条选择器加上 .bl-sheet 前缀
-    css = "\n".join(re.sub(r"<!--|-->", "", t) for t in styles)
+    css = "\n".join(re.sub(r"<!--|--!?>", "", t) for t in styles)
     css = re.sub(r"(^|})\s*([^{}@]+)\{", lambda m: m.group(1) + " " + ", ".join(".bl-sheet " + x.strip() for x in m.group(2).split(",")) + " {", css)
     html = "".join(str(c) for c in body.contents).strip()
     return (f"<style>{css.strip()}</style>\n" if css.strip() else "") + html + "\n"

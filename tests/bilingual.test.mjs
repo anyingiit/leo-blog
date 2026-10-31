@@ -155,7 +155,7 @@ for (const a of articles) {
     assert.match(zh, new RegExp(`hreflang="?en"? href="?${BASE}/en${p}"?|href="?${BASE}/en${p}"?[^>]*hreflang="?en`), "中文页要有英文页的 hreflang");
     // 原文全文不出现在英文页：任取原文第一段的前 60 个字符
     const first = pairs.split("\npairs:\n")[1].match(/en: (?:\|-?\n\s+)?(.{60})/)[1].replace(/\\/g, "");
-    assert.ok(zh.includes(first.replace(/&lt;/g, "&lt;")), "测试前提：中文页有这段原文");
+    assert.ok(zh.includes(first), "测试前提：中文页有这段原文");
     assert.ok(!en.includes(first), "英文页不应该有原文全文");
     assert.match(en, /href="?mailto:[^"\s>]+@/);
   });

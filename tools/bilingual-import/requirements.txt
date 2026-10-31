@@ -1,4 +1,7 @@
-# release.py 用 tools/s1-import 的 PDF 文字层修正和检查（pypdf、pikepdf）
--r ../s1-import/requirements.txt
+# release.py 用 tools/s1-import 的 PDF 文字层修正和检查（pypdf、pikepdf）。
+# 版本必须和 tools/s1-import/requirements.txt 相同（security.test.mjs 检查）；
+# 不用 -r 引用：GitHub 依赖图不会在被引用文件变化时重新解析，会留下过期的安全警报。
+pypdf==6.21.4
+pikepdf==10.17.0
 beautifulsoup4==4.15.0
 PyYAML==6.0.3
