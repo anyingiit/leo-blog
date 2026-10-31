@@ -19,9 +19,6 @@
 <meta name="description" content="Anthropic《Claude Opus 4.7 系统卡》简体中文译本">
 <style>
 :root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--line:#ddd;--code:#188038;--link:#1155cc;--th:#141413;--row:#f6f5f2;--accent:#c96442}
-:root:not([data-theme="light"]){}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141413;--fg:#e8e6e1;--mut:#9a968c;--line:#35332e;--code:#6cc06c;--link:#8ab4f8;--th:#2a2825;--row:#1d1b19}}
-:root[data-theme="dark"]{--bg:#141413;--fg:#e8e6e1;--mut:#9a968c;--line:#35332e;--code:#6cc06c;--link:#8ab4f8;--th:#2a2825;--row:#1d1b19}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Serif CJK SC","Noto Serif SC",Lora,Georgia,"Songti SC",serif;font-size:17px;line-height:1.85;-webkit-text-size-adjust:100%}
 .wrap{max-width:46rem;margin:0 auto;padding:3rem 16px 6rem}

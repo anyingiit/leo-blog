@@ -42,7 +42,7 @@ python3 tools/syscard-import/import.py ../anthropic-system-cards-zh --date <发�
 SYSCARDS_SRC=../anthropic-system-cards-zh python3 -m unittest discover -s tools/syscard-import -v   # 含下载文件与原文件对比
 ```
 
-`import.py` 整体重写 `content/translations/system-cards/` 下的 `_index.md`、`_index.en.md` 和每份卡的目录（卡片首页、版本页、每章的 `index.md`、`original.html`、`bg/`、`images/`），以及字体子集（正文不保留，说明文字改在模板或脚本里），最后运行 `release.py` 给下载文件加译者声明（会用 `build.sh` 构建一次站点）。每份卡的标题、日期、页数和声明用到的数字取自该卡 README 和 HTML 的 `<title>`；README 第一段或 2.2 节页码找不到时脚本报错停下，其余数字找不到就是 null，声明里那句不出现。顺序取自官网系统卡列表，列表里找不到某份卡时脚本报错停下。英文原版地址按官网规则 `https://www.anthropic.com/claude-<目录名，点换成横线>-system-card` 拼出，`--check-links` 联网逐个确认能打开。新增一份卡只要它在译文仓库里有自己的目录和 README，重新导入即可。
+`import.py` 整体重写 `content/translations/system-cards/` 下的 `_index.md`、`_index.en.md` 和每份卡的目录（卡片首页、版本页、每章的 `index.md`、`original.html`、`bg/`、`images/`），以及字体子集（正文不保留，说明文字改在模板或脚本里），最后运行 `release.py` 给下载文件加译者声明（会用 `build.sh` 构建一次站点）。只换了译文仓库的某个下载文件（比如只改了 HTML）时，不必整体重新导入：把新文件放进 `files/`，front matter 里该文件的 `bytes`、`sha256` 改成新文件的、去掉它的 `source`，再单独运行 `release.py`，它只处理没有 `source` 的文件。每份卡的标题、日期、页数和声明用到的数字取自该卡 README 和 HTML 的 `<title>`；README 第一段或 2.2 节页码找不到时脚本报错停下，其余数字找不到就是 null，声明里那句不出现。顺序取自官网系统卡列表，列表里找不到某份卡时脚本报错停下。英文原版地址按官网规则 `https://www.anthropic.com/claude-<目录名，点换成横线>-system-card` 拼出，`--check-links` 联网逐个确认能打开。新增一份卡只要它在译文仓库里有自己的目录和 README，重新导入即可。
 
 ## 测试
 

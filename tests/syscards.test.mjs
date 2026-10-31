@@ -103,6 +103,10 @@ test("在线阅读的 HTML 同 S-1 的下载文件：首末各一份和卡片首
   }
 });
 
+test("在线阅读的 HTML 同 PDF 原文只有浅色：没有深色模式的样式（prefers-color-scheme、data-theme）", () => {
+  for (const c of cards) assert.ok(!/prefers-color-scheme|data-theme/.test(read(url(c, "html"))), `${c.slug} 有深色模式样式`);
+});
+
 test("译文仓库不公开：栏目页、卡片首页、版本页、章节页都没有 GitHub 链接或仓库名", () => {
   for (const p of [P, "/en" + P, ...cards.flatMap((c) => [home(c), home(c, "en"), ver(c), ...c.v.chapters.map((ch) => chap(c, ch))])]) {
     const m = main(read(p));
@@ -358,6 +362,19 @@ for (const engine of ENGINES) {
     const bg = await s.page.evaluate(() => getComputedStyle(document.querySelector(".s1-dl-card")).backgroundColor);
     assert.ok(bg.match(/\d+/g).slice(0, 3).reduce((a, b) => a + +b, 0) < 3 * 80, `深色模式卡片背景 ${bg}`);
     await s.done();
+  });
+
+  test(`${engine}：系统设成深色时，在线阅读的 HTML 仍是浅色（和浅色模式下的页面背景、文字颜色相同）`, async (t) => {
+    const c = cards.reduce((a, b) => (a.v.downloads.html.bytes <= b.v.downloads.html.bytes ? a : b)); // 最小的一份，省时间
+    const colors = {};
+    for (const scheme of ["light", "dark"]) {
+      const s = await open(t, engine, { viewport: { width: 1280, height: 800 }, colorScheme: scheme });
+      if (!s) return;
+      await s.go(url(c, "html"));
+      colors[scheme] = await s.page.evaluate(() => [document.body, document.querySelector("h1, p")].map((el) => { const st = getComputedStyle(el); return [st.backgroundColor, st.color]; }));
+      await s.done();
+    }
+    assert.deepEqual(colors.dark, colors.light, `${c.slug}`);
   });
 
   test(`${engine}：Cloudflare 邮件地址混淆下没有脚本错误，下架邮箱照常解开`, async (t) => {
