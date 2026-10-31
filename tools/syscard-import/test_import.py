@@ -287,14 +287,7 @@ class PublishedFiles(unittest.TestCase):
                     # 中文字体按章取子集：用到的中文字体都在本章 fonts/ 下，@font-face 在 original.html 开头
                     cjk = sorted(set(re.findall(r'class="(sc-noto[a-z]*cjk[a-z]*)"', orig)))
                     faces = re.findall(r'font-family: "(sc-[a-z]+)"; src: url\(scfont:([\w-]+\.woff2)\)', orig)
-                    self.assertEqual(sorted({f for f, _ in faces}), cjk, f"{c['slug']} {ch['slug']} 中文字体")
-                    # 字多的字体分两份（开头几页的字标 unicode-range，其余的字在 -2.woff2），两份合起来就是本章用到的字
-                    for f in cjk:
-                        parts = [n for fam, n in faces if fam == f]
-                        self.assertIn(len(parts), (1, 2), f"{c['slug']} {ch['slug']} {f}")
-                        if len(parts) == 2:
-                            self.assertEqual(sorted(parts), sorted([parts[0].replace("-2.woff2", ".woff2"), parts[0]]) if parts[0].endswith("-2.woff2") else sorted(parts))
-                            self.assertEqual(len(re.findall(rf'font-family: "{f}"; src: url\([^)]+\) format\("woff2"\); unicode-range: U\+', orig)), 2, f"{c['slug']} {ch['slug']} {f} unicode-range")
+                    self.assertEqual(sorted(f for f, _ in faces), cjk, f"{c['slug']} {ch['slug']} 中文字体")
                     self.assertEqual(sorted(n for _, n in faces), sorted(os.listdir(os.path.join(d, "fonts"))) if cjk else [], f"{c['slug']} {ch['slug']} fonts/")
                 fns = os.path.join(DIR, c["slug"], name, "footnotes", "index.md")
                 if os.path.exists(fns):

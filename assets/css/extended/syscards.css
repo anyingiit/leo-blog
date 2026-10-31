@@ -8,8 +8,6 @@
 .sc-sheet { position: relative; margin: 10px auto; background: #fff; overflow: hidden; }
 .sc-sheet .sc-bg, .sc-sheet svg { position: absolute; inset: 0; width: 100% !important; height: 100% !important; margin: 0; }
 .sc-sheet svg text { white-space: pre; }
-/* 不在屏幕附近的原版页先不排版（大小照样占着）：打开章节时只下载屏幕上那几页的底图和字体（中文字体分两份，见 chapters.py Fonts.write_chapter） */
-.sc-sheet { content-visibility: auto; } /* 页的大小（contain-intrinsic-size）写在每页的 style 里 */
 /* s1.js 运行前的重排版（single.html 的内联脚本）：不排版，先占一屏高，页脚不会先露出来再被原版版式推下去 */
 .sc-pre .s1-reflow { content-visibility: hidden; contain-intrinsic-block-size: 100vh; }
 .sc-sheet svg ::selection { fill: #fff; background: #3367d6; }

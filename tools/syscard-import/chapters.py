@@ -35,20 +35,6 @@ def font_class(f):
     return "sc-" + re.sub(r"[^a-z0-9]", "", f.split(".")[0].lower())
 
 
-FIRST_PAGES = 3  # 打开章节时屏幕上和附近的原版页（电脑 1280×800 上第一页加第二页的上半，浏览器还会提前排版下一屏）
-
-
-def unicode_range(chars):
-    """字的集合 → CSS unicode-range（连续的码位合并成一段）"""
-    cps, out = sorted(ord(c) for c in chars), []
-    for cp in cps:
-        if out and out[-1][1] == cp - 1:
-            out[-1][1] = cp
-        else:
-            out.append([cp, cp])
-    return ",".join(f"U+{a:X}" if a == b else f"U+{a:X}-{b:X}" for a, b in out)
-
-
 class Fonts:
     """文字层的字体子集。西文字体（Lora、Poppins、Roboto Mono）小，全部卡共用一份；中文字体大（全部卡用到的字取子集也有
     0.1–0.5 MB 一个），按章取子集：每章只下载这一章用到的字（网页性能预算，tests/perf.test.mjs）"""
@@ -58,8 +44,6 @@ class Fonts:
         self.cmaps = {f: set(TTFont(os.path.join(self.dir, f)).getBestCmap()) for f in set(FONTS.values())}
         self.used = {}  # 共用的字体 → 用到的字
         self.chapter = {}  # 这一章的中文字体 → 用到的字（begin_chapter 清空）
-        self.first = {}  # 其中开头 FIRST_PAGES 页用到的字
-        self.page = 0  # 正在转的是本章第几页（从 0 数，original_pages 设置）
 
     def file_for(self, pdf_font):
         return FONTS.get(re.sub(r"[^a-z]", "", pdf_font.lower()))
@@ -69,11 +53,9 @@ class Fonts:
 
     def use(self, f, text):
         (self.chapter if "CJK" in f else self.used).setdefault(f, set()).update(text)
-        if "CJK" in f and self.page < FIRST_PAGES:
-            self.first.setdefault(f, set()).update(text)
 
     def begin_chapter(self):
-        self.chapter, self.first, self.page = {}, {}, 0
+        self.chapter = {}
 
     def _subset(self, f, chars, path):
         tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
@@ -87,10 +69,9 @@ class Fonts:
         tt.save(path)
 
     @staticmethod
-    def _face(f, url, chars=None):
+    def _face(f, url):
         fam = font_class(f)
-        rng = f" unicode-range: {unicode_range(chars)};" if chars else ""
-        return f'@font-face {{ font-family: "{fam}"; src: url({url}) format("woff2");{rng} font-display: block; }}'
+        return f'@font-face {{ font-family: "{fam}"; src: url({url}) format("woff2"); font-display: block; }}\n.{fam} {{ font-family: "{fam}"; }}'
 
     def write(self, out_dir):
         """共用字体：生成 out_dir/<字体>.woff2，返回 CSS（@font-face 和对应的 class）"""
@@ -99,30 +80,20 @@ class Fonts:
         for f in sorted(self.used):
             name = f.split(".")[0] + ".woff2"
             self._subset(f, self.used[f], os.path.join(out_dir, name))
-            css.append(self._face(f, f"fonts/{name}") + f'\n.{font_class(f)} {{ font-family: "{font_class(f)}"; }}')
+            css.append(self._face(f, f"fonts/{name}"))
         return "\n".join(css) + "\n"
 
     def write_chapter(self, out_dir):
         """这一章的中文字体：生成 out_dir/<字体>.woff2，返回放在原版版式开头的 <style>（网址写成占位 scfont:<文件名>，
-        模板换成发布后的地址，同底图的 scimg:）。没有用到中文字体时返回空串。
-        长章的字多，一份子集可达 0.4 MB，所以再分两份：开头 FIRST_PAGES 页用到的字（<字体>.woff2，标 unicode-range）和
-        其余的字（<字体>-2.woff2）。同一字体名下，浏览器只下载要显示的字所在的那一份；原版页不在屏幕附近时不排版
-        （syscards.css 的 content-visibility），打开章节时只下载第一份"""
+        模板换成发布后的地址，同底图的 scimg:）。没有用到中文字体时返回空串"""
         if not self.chapter:
             return ""
         os.makedirs(out_dir, exist_ok=True)
         css = []
         for f in sorted(self.chapter):
-            stem, first = f.split(".")[0], self.first.get(f, set())
-            rest = self.chapter[f] - first
-            if rest:  # 先写其余的字，再写开头几页的字：unicode-range 重叠时后写的优先
-                self._subset(f, rest, os.path.join(out_dir, stem + "-2.woff2"))
-                css.append(self._face(f, f"scfont:{stem}-2.woff2", rest))
-            if first:
-                self._subset(f, first, os.path.join(out_dir, stem + ".woff2"))
-                css.append(self._face(f, f"scfont:{stem}.woff2", first if rest else None))
-            fam = font_class(f)
-            css.append(f'.{fam} {{ font-family: "{fam}"; }}')
+            name = f.split(".")[0] + ".woff2"
+            self._subset(f, self.chapter[f], os.path.join(out_dir, name))
+            css.append(self._face(f, f"scfont:{name}"))
         return "<style>" + "\n".join(css) + "</style>"
 
 
@@ -132,8 +103,7 @@ def original_pages(pdf_path, pages, fonts, out_dir):
     doc = pymupdf.open(pdf_path)
     os.makedirs(out_dir, exist_ok=True)
     sheets = []
-    for i, pno in enumerate(pages):
-        fonts.page = i
+    for pno in pages:
         page = doc[pno - 1]
         raw = page.get_text("rawdict", flags=pymupdf.TEXT_PRESERVE_WHITESPACE | pymupdf.TEXT_PRESERVE_LIGATURES)
         texts = []
@@ -177,7 +147,7 @@ def original_pages(pdf_path, pages, fonts, out_dir):
         Image.frombytes("RGB", (pix.width, pix.height), pix.samples).save(os.path.join(out_dir, name), quality=80, method=6)
         w, h = page.rect.width, page.rect.height
         sheets.append(
-            f'<div class="s1-sheet sc-sheet" style="width:{w:g}pt;height:{h:g}pt;contain-intrinsic-size:{w:g}pt {h:g}pt">'
+            f'<div class="s1-sheet sc-sheet" style="width:{w:g}pt;height:{h:g}pt">'
             f'<img class="sc-bg" src="scimg:{name}" alt="" width="{pix.width}" height="{pix.height}">'
             f'<svg viewBox="0 0 {w:g} {h:g}" xmlns="http://www.w3.org/2000/svg" aria-label="原文第 {pno} 页">{"".join(texts)}</svg></div>')
     return sheets
