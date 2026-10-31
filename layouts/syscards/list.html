@@ -1,6 +1,6 @@
 {{- /*
   Anthropic 系统卡中文译本的栏目页、每份卡的首页和版本页（tools/syscard-import/import.py 生成），和 S-1 译本同一套结构和样式：
-  - 栏目页（content/translations/system-cards/_index.md）：简短声明，每份卡一条 PaperMod 文章条目（标题、原版发布日期和页数），顺序同 Anthropic 官网系统卡列表（weight）
+  - 栏目页（content/translations/system-cards/_index.md）：简短声明，每份卡一条 PaperMod 文章条目（标题、原版发布日期和页数；没有摘要，同 PaperMod 无摘要的条目），顺序同 Anthropic 官网系统卡列表（weight）
   - 卡片首页（<卡>/_index.md）：和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版和英文原版、下载卡片、最新版目录、全部版本；
     英文页同 S-1 英文页：标题、说明（声明各条写成段落）和中文译本的链接
   - 版本页（<卡>/<版本>/_index.md）：该版本的目录（同 S-1 版本页）
@@ -72,6 +72,8 @@
   {{- $released := time.AsTime .Params.released }}
   <article class="post-entry" id="{{ path.Base .RelPermalink }}">
     <header class="entry-header"><h2 class="entry-hint-parent">{{ $name }}</h2></header>
+    {{- /* 卡片没有摘要：同 PaperMod list.html 对无摘要文章的输出（空的 entry-content），标题和日期之间留出同样的间距（用户 2026-10-31：太紧） */}}
+    <div class="entry-content"><p></p></div>
     <footer class="entry-footer"><span title="{{ $released.Format "2006-01-02T15:04:05-07:00" }}">{{ $released | time.Format (default ":date_long" site.Params.DateFormat) }}</span>&nbsp;·&nbsp;{{ if $en }}{{ .Params.pages }} pages{{ else }}{{ .Params.pages }}&nbsp;页{{ end }}</footer>
     <a class="entry-link" aria-label="{{ if $en }}post link to {{ end }}{{ $name }}" href="{{ .Permalink }}"></a>
   </article>

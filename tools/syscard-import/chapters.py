@@ -66,14 +66,14 @@ class Fonts:
         self.chapter = {}
 
     def layout(self, f, text, size, x0, xs):
-        """浏览器只给起点时排出的逐字横坐标和 PDF 的一样吗：返回 "plain"（按字体本身的字宽，不用字距调整）、
-        "kern"（再加字体的字距调整 kern），都不一样返回 None。一样时文字层只写起点，省掉逐字坐标（HTML 小很多），
-        浏览器排出来的位置相同（syscards.css 里文字层关掉连字和字距调整，"kern" 的行加 class sc-k 打开字距调整）"""
+        """浏览器只给起点时排出的逐字横坐标和 PDF 的一样吗：PDF 里每个字都按字体本身的字宽（不用字距调整、连字）排时是。
+        一样时文字层只写起点，省掉逐字坐标（HTML 小很多），浏览器排出来的位置相同（syscards.css 里文字层关掉连字和字距调整）。
+        用了字距调整的行仍写逐字坐标：WebKit 的 SVG 文字按字距调整排出来和 HarfBuzz 不同（差到 0.4pt）"""
         if f not in self.hb:
             face = hb.Face(hb.Blob.from_file_path(os.path.join(self.dir, f)))
             self.hb[f] = (hb.Font(face), face.upem)
         font, upem = self.hb[f]
-        for name, feats in (("plain", {"kern": False, "liga": False, "clig": False, "calt": False}), ("kern", {"liga": False, "clig": False, "calt": False})):
+        for feats in ({"kern": False, "liga": False, "clig": False, "calt": False},):
             buf = hb.Buffer()
             buf.add_str(text)
             buf.guess_segment_properties()
@@ -84,8 +84,8 @@ class Fonts:
                 starts.setdefault(info.cluster, x + pos.x_offset)
                 x += pos.x_advance
             if all(i in starts and abs(x0 + starts[i] / upem * size - xs[i]) < 0.01 for i in range(len(text))):
-                return name
-        return None
+                return True
+        return False
 
     def _subset(self, f, chars, path):
         tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
@@ -171,18 +171,15 @@ def original_pages(pdf_path, pages, fonts, out_dir, start_only=True):
                         continue
                     fonts.use(f, txt)
                     x0, y = chars[0]["origin"]
-                    kern = ""
                     if (round(dx, 3), round(dy, 3)) == (1.0, 0.0):
-                        lay = start_only and fonts.layout(f, txt, s["size"], x0, [c["origin"][0] for c in chars])
-                        if lay:  # 浏览器从起点排出来和 PDF 一样（见 Fonts.layout），只写起点
-                            xs, tr = f"{x0:.2f}", ""
-                            kern = " sc-k" if lay == "kern" else ""
+                        if start_only and fonts.layout(f, txt, s["size"], x0, [c["origin"][0] for c in chars]):
+                            xs, tr = f"{x0:.2f}", ""  # 浏览器从起点排出来和 PDF 一样（见 Fonts.layout），只写起点
                         else:
                             xs, tr = " ".join(f"{c['origin'][0]:.2f}" for c in chars), ""
                     else:
                         xs, tr = f"{x0:.2f}", f' transform="rotate({math.degrees(math.atan2(dy, dx)):.1f} {x0:.2f} {y:.2f})"'
                     fill = "" if s["color"] == 0 else f' fill="#{s["color"]:06x}"'
-                    texts.append(f'<text x="{xs}" y="{y:.2f}" font-size="{s["size"]:.2f}" class="{font_class(f)}{kern}"{fill}{tr}>{html.escape(txt, quote=False)}</text>')
+                    texts.append(f'<text x="{xs}" y="{y:.2f}" font-size="{s["size"]:.2f}" class="{font_class(f)}"{fill}{tr}>{html.escape(txt, quote=False)}</text>')
         # 原版里的外部链接：在文字层上按 PDF 的链接区域放透明的可点区域（内部跳转在 PDF 里已经丢失，见译文仓库各卡 README）
         for ln in page.get_links():
             if ln.get("kind") == pymupdf.LINK_URI and ln.get("uri", "").startswith(("http://", "https://")):

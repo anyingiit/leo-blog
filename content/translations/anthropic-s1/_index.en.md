@@ -1,6 +1,7 @@
 ---
 title: "Anthropic S-1 — Unofficial Chinese Translation"
 description: "An unofficial, AI-produced Chinese translation of the S-1 registration statement Anthropic, PBC filed with the US SEC."
+summary: "An unofficial, AI-produced Chinese translation of the S-1 registration statement Anthropic, PBC filed with the US SEC."
 ShowReadingTime: false
 ShowWordCount: false
 hideAuthor: true  # 站点作者（hugo.yaml params.author）不显示在译文栏目列表的日期那一行

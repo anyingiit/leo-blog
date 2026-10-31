@@ -146,9 +146,21 @@ for (const lang of ["zh", "en"]) {
       assert.match(row, new RegExp(`title=["']?${c.zh.released}T00:00:00`), `${c.slug} 原版发布日期`);
       assert.ok(text(row).includes(lang === "zh" ? `· ${c.zh.pages} 页` : `· ${c.zh.pages} pages`), `${c.slug} 页数`);
       assert.ok(!row.includes("s1-vtag") && !row.includes("HTML") && !row.includes("PDF"), `${c.slug} 列表里不放版本号和下载`);
+      // 没有摘要：同 PaperMod list.html 对无摘要文章的输出，标题和日期之间留出 entry-content 的间距（用户 2026-10-31：原来太紧）
+      assert.match(row, /<\/header>\s*<div class="?entry-content"?><p><\/p><\/div>\s*<footer/, `${c.slug} 空的摘要块`);
     }
     assert.ok(!/<summary>[\s\S]*?<a\s[\s\S]*?<\/summary>/.test(html), "要点里不放链接");
     assert.equal(html.match(/mailto:leoycwan@gmail\.com/g)?.length, 2, "声明和权利行各一次");
+  });
+
+  test(`${lang}「译文」栏目列表：S-1 和系统卡两条同其他译文一样有一行灰色摘要（PaperMod 显示 summary）`, () => {
+    const html = read(lang === "en" ? "/en/translations/" : "/translations/");
+    for (const slug of ["anthropic-s1", "system-cards"]) {
+      const row = [...html.matchAll(/<article class="?post-entry"?>([\s\S]*?)<\/article>/g)].map((m) => m[1]).find((r) => r.includes(`/translations/${slug}/`));
+      assert.ok(row, `${slug} 在列表里`);
+      const summary = text(row.match(/<div class="?entry-content"?>([\s\S]*?)<\/div>/)?.[1] ?? "");
+      assert.ok(summary.length > 20, `${slug} 摘要：${summary}`);
+    }
   });
 
   test(`${lang} 卡片首页：${lang === "zh" ? "和 S-1 译本首页同样的顺序：完整声明、开始阅读最新版、下载卡片、目录、全部版本" : "同 S-1 英文页：声明写成段落，链到中文译本"}`, () => {

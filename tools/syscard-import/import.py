@@ -313,10 +313,13 @@ def main():
     write_page(os.path.join(OUT, "_index.md"), dict(
         title="Anthropic 系统卡中文译本",
         description=f"Anthropic 发布的 {len(cards)} 份 Claude 模型系统卡（System Card）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
+        # 「译文」栏目列表（PaperMod）显示 summary，同其他译文条目有一行灰色摘要；栏目页没有正文，所以写在这里
+        summary=f"Anthropic 发布的 {len(cards)} 份 Claude 模型系统卡（System Card）的非官方中文译本，AI 翻译，可在线阅读，也可下载 HTML 和 PDF。",
         **common))
     write_page(os.path.join(OUT, "_index.en.md"), dict(
         title="Anthropic System Cards — Unofficial Chinese Translations",
         description=f"Unofficial, AI-produced Chinese translations of {len(cards)} Claude model system cards published by Anthropic.",
+        summary=f"Unofficial, AI-produced Chinese translations of {len(cards)} Claude model system cards published by Anthropic.",
         **common))
     print(f"导入 {len(cards)} 份系统卡，译文仓库提交 {commit[:7]}（{commit_date}）")
     # 下载文件加译者声明：声明的文字取自网站卡片首页，所以要在上面的页面都写好之后

@@ -1,6 +1,8 @@
 ---
 title: "Anthropic S-1 非官方中文译本"
 description: "Anthropic, PBC 向美国 SEC 提交的 S-1 注册声明全文的非官方中文译本，AI 翻译，保留原版版式。"
+summary: "Anthropic, PBC 向美国 SEC 提交的 S-1 注册声明全文的非官方中文译本，AI 翻译，保留原版版式。"
+# 「译文」栏目列表（PaperMod）显示 summary：栏目页没有正文，不写就只有标题和日期
 type: s1
 latest: v1.1.1
 cascade:
