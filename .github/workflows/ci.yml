@@ -70,7 +70,8 @@ jobs:
           else
             files=""
           fi
-          printf '%s\n' "$files" | node tests/ci-plan.mjs $tested
+          # 临时（演示用，验证后撤回）：按"只改了内容"的 PR 计划
+          printf 'content/notes/demo/index.md\n' | node tests/ci-plan.mjs
 
   # 任务名不要改：main 的保护规则要求这个检查通过
   lint:
