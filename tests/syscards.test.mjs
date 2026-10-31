@@ -397,7 +397,8 @@ for (const engine of ENGINES) {
       assert.deepEqual(got.map((r) => r[0]), rows.map((r) => r[0]), `${key} 文字层的行`);
       const starts = got.filter((r) => r[1].length > 1 && r[2] === 1).length; // 多个字、只写了起点的行
       let worst = { d: 0 };
-      rows.forEach(([text, xs], i) => xs.forEach((x, j) => { const d = Math.abs(got[i][1][j] - x); if (d > worst.d) worst = { d, text, j }; }));
+      // null：连字的后几个字（和连字的第一个字共用一个字形，没有自己的位置）
+      rows.forEach(([text, xs], i) => xs.forEach((x, j) => { if (x === null) return; const d = Math.abs(got[i][1][j] - x); if (d > worst.d) worst = { d, text, j }; }));
       // 0.05pt 约 0.07 CSS px（按原尺寸显示时），看不出来；省掉逐字坐标后排错的字通常差一个字宽（几 pt）
       assert.ok(worst.d < 0.05, `${key}「${worst.text}」第 ${worst.j + 1} 个字差 ${worst.d.toFixed(2)}pt`);
       assert.ok(starts > 0, `${key} 没有只写起点的行，这个测试没测到浏览器排字`);

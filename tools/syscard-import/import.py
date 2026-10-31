@@ -227,6 +227,7 @@ def main():
             shutil.rmtree(os.path.join(OUT, d))
     os.makedirs(OUT, exist_ok=True)
     fonts = chapters.Fonts(a.src)
+    background = []  # 留在底图上、没进文字层的流水线文字（chapters._resolve 排不出和 PDF 同样字形的段）
     for weight, c in enumerate(cards, 1):
         d = c["slug"]
         v = versions[d]
@@ -300,8 +301,18 @@ def main():
             title=f"{c['titleEn']} — Unofficial Chinese Translation",
             description=f"An unofficial, AI-produced Chinese translation of Anthropic's {c['titleEn']} ({c['pages']} pages).",
             **fm))
-        print(f"{d}: {ver}，{len(chs)} 章，{c['pages']} 页")
+        left = [dict(card=d, page=pno, font=f, text=t) for pno, f, t in fonts.left]
+        hidden = [dict(card=d, page=pno, font=f, text=t, hidden=True) for pno, f, t in fonts.hidden]
+        background.extend(left + hidden)
+        fonts.left, fonts.hidden = [], []
+        print(f"{d}: {ver}，{len(chs)} 章，{c['pages']} 页；留在底图上的流水线文字 {len(left)} 段"
+              + (f"，PDF 里被盖住、看不见的 {len(hidden)} 段" if hidden else ""))
 
+    if not a.only:
+        # 记下来，test_import.py 核对只有已知的几段（换了字体或 PDF 后多出来的会被发现）
+        with open(os.path.join(HERE, "background-text.json"), "w", encoding="utf-8") as fp:
+            json.dump(background, fp, ensure_ascii=False, indent=1)
+            fp.write("\n")
     fdir = os.path.join(REPO, "static/translations/system-cards/fonts")
     shutil.rmtree(fdir, ignore_errors=True)
     css = fonts.write(fdir).replace("url(fonts/", "url(/translations/system-cards/fonts/")

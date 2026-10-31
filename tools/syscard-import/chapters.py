@@ -6,10 +6,14 @@
   - 底图：去掉流水线排入的文字（中文和沿用英文的字体，见 FONTS）后渲染成 WebP，留下原版的图、线、色块和流水线没动过的原文文字；
   - 文字层：一个 SVG，每段文字一个 <text>，每个字的横坐标取自 PDF（x 列表），字体是流水线排版用的同一套字体（西文按全部卡、中文按章用到的字取子集）。
     文字可以选中、复制、在页内搜索；字体只在打开原版版式时才下载。
-  字体里没有的字（PDF 的 ToUnicode 偶尔把一个字形映射到不相干的码位，比如两字线「——」映射成 U+054C）这一段留在底图上，不进文字层。
+  字体是译文仓库 shared-pipeline/fonts/ 里全部卡共用的那套（取全部卡用到的字，和 PDF 里的字形逐个核对过，见那里的 check_fonts.py）。
+  PDF 的 ToUnicode 里没写文字的字形（连字「——」、fi、fl，按上下文换的 colon.case 等，PyMuPDF 读成 U+FFFD）：按 PDF 嵌入的
+  字体自己的 cmap 和 GSUB 反查出文字，用网页字体按浏览器的排法（这一段打开连字和上下文替换）排出来的字形和 PDF 画的相同时才进文字层；
+  零宽空格和 .notdef（什么也没画）去掉。仍排不出同样字形的段留在底图上（import.py 打印个数）。
 """
 import base64
 import html
+import itertools
 import math
 import os
 import re
@@ -20,7 +24,7 @@ from fontTools import subset as ftsub
 from fontTools.ttLib import TTFont
 import uharfbuzz as hb
 
-# 流水线排入文字用的字体：PDF 里的字体名（去掉非字母、小写）→ 译文仓库 opus-5.5/pipeline/fonts/ 里的文件
+# 流水线排入文字用的字体：PDF 里的字体名（去掉非字母、小写）→ 译文仓库 shared-pipeline/fonts/ 里的文件
 FONTS = {
     "loraregular": "Lora-Regular.ttf", "lorabold": "Lora-Bold.ttf", "loraitalic": "Lora-Italic.ttf",
     "lorabolditalic": "Lora-BoldItalic.ttf", "lorasemibold": "Lora-Bold.ttf",
@@ -29,12 +33,86 @@ FONTS = {
     "notosanscjkscmedium": "NotoSansCJKSCMedium.otf", "notosansmonocjkscregular": "NotoSansMonoCJKSC.otf",
     "poppinsmedium": "Poppins-Medium.ttf", "poppinssemibold": "Poppins-SemiBold.ttf", "robotomonoregular": "RobotoMono-Regular.ttf",
 }
-FONT_DIR = "opus-5.5/pipeline/fonts"
+FONT_DIR = "shared-pipeline/fonts"
 SCALE = 3  # 底图 3 倍（612pt 宽的页 → 1836px）：文字在 SVG 里本来就清晰，表格线和图表在 2x 屏上也不发软（2 倍时会）
 
 
 def font_class(f):
     return "sc-" + re.sub(r"[^a-z0-9]", "", f.split(".")[0].lower())
+
+
+PLAIN = {"kern": False, "liga": False, "clig": False, "calt": False}  # 文字层平常的排法（syscards.css 关掉连字和字距调整）
+LIGA = {"kern": False, "liga": True, "clig": True, "calt": True}  # .sc-liga：含连字或上下文替换字形的段
+
+
+def _outline(gs, name):
+    from fontTools.pens.recordingPen import DecomposingRecordingPen
+    pen = DecomposingRecordingPen(gs)
+    gs[name].draw(pen)
+    return pen.value, gs[name].width
+
+
+def glyph_texts(tt, cmap=None):
+    """字形名 → 文字：cmap，再沿 GSUB 的单替换、多选一、连字反推（取最短的文字）"""
+    out = {}
+    for u, g in sorted((cmap or tt.getBestCmap()).items()):
+        out.setdefault(g, chr(u))
+    changed = "GSUB" in tt
+    while changed:
+        changed = False
+        for lk in tt["GSUB"].table.LookupList.Lookup:
+            for st in lk.SubTable:
+                st = getattr(st, "ExtSubTable", st)
+                pairs = [([a], b) for a, b in (getattr(st, "mapping", None) or {}).items() if isinstance(b, str)]
+                pairs += [([a], b) for a, alts in (getattr(st, "alternates", None) or {}).items() for b in alts]
+                pairs += [([a] + l.Component, l.LigGlyph) for a, ls in (getattr(st, "ligatures", None) or {}).items() for l in ls]
+                for src, dst in pairs:
+                    if all(x in out for x in src):
+                        t = "".join(out[x] for x in src)
+                        if dst not in out or len(t) < len(out[dst]):
+                            out[dst] = t
+                            changed = True
+    return out
+
+
+class PdfGlyphs:
+    """PDF 里流水线排入的字体（PyMuPDF 嵌入，名字不带子集前缀；英文原版自己的字体带）：按字形号取字形和反查的文字"""
+
+    def __init__(self, doc):
+        self.doc, self.fonts, self.cmaps = doc, {}, {}
+
+    def _font(self, xref):
+        if xref not in self.fonts:
+            self.fonts[xref] = None
+            name, ext, typ, buf = self.doc.extract_font(xref)
+            if buf and "+" not in name:
+                import io
+                try:
+                    tt = TTFont(io.BytesIO(buf))
+                    self.fonts[xref] = (tt["name"].getDebugName(6), tt, tt.getGlyphSet(), tt.getGlyphOrder())
+                except Exception:
+                    pass
+        return self.fonts[xref]
+
+    def lookup(self, page, ps, gid):
+        """这一页上叫 ps 的流水线字体里第 gid 个字形：(文字, 轮廓)；找不到返回 None"""
+        for f in page.get_fonts():
+            info = self._font(f[0])
+            if info and info[0] == ps and gid < len(info[3]):
+                o = _outline(info[2], info[3][gid])
+                if o[0]:
+                    if len(info) == 4:
+                        # 每次嵌入只带这一次用到的字的 cmap，连字的组成字可能不在里面：同名的各次嵌入合起来反查
+                        if ps not in self.cmaps:
+                            self.cmaps[ps] = {}
+                            for x in sorted({g[0] for p in self.doc for g in p.get_fonts()}):
+                                other = self._font(x)
+                                if other and other[0] == ps:
+                                    self.cmaps[ps].update(other[1].getBestCmap())
+                        info += (glyph_texts(info[1], self.cmaps[ps]),)
+                        self.fonts[f[0]] = info
+                    return info[4].get(info[3][gid]), o
+        return None
 
 
 INLINE = 4096  # 只取一章用到的字后不超过这么大的字体直接写进页面（见 Fonts.write_chapter）
@@ -48,8 +126,11 @@ class Fonts:
         self.dir = os.path.join(src, FONT_DIR)
         self.cmaps = {f: set(TTFont(os.path.join(self.dir, f)).getBestCmap()) for f in set(FONTS.values())}
         self.hb = {}  # 字体 → (HarfBuzz 字体, 每 em 单位数)，算浏览器排出来的字距（advance）
+        self.outlines = {}  # 字体 → (字形轮廓, 字形顺序)
         self.used = {}  # 共用的字体 → 全部卡用到的字
         self.chapter = {}  # 这一章的字体 → 用到的字（begin_chapter 清空）
+        self.left = []  # 留在底图上的流水线文字段：(页, PDF 字体, 文字)
+        self.hidden = []  # PDF 里被盖住、看不见的流水线文字段（不进文字层）
 
     def file_for(self, pdf_font):
         return FONTS.get(re.sub(r"[^a-z]", "", pdf_font.lower()))
@@ -65,37 +146,63 @@ class Fonts:
     def begin_chapter(self):
         self.chapter = {}
 
-    def layout(self, f, text, size, x0, xs):
-        """浏览器只给起点时排出的逐字横坐标和 PDF 的一样吗：PDF 里每个字都按字体本身的字宽（不用字距调整、连字）排时是。
-        一样时文字层只写起点，省掉逐字坐标（HTML 小很多），浏览器排出来的位置相同（syscards.css 里文字层关掉连字和字距调整）。
-        用了字距调整的行仍写逐字坐标：WebKit 的 SVG 文字按字距调整排出来和 HarfBuzz 不同（差到 0.4pt）"""
+    def shaper(self, f):
         if f not in self.hb:
             face = hb.Face(hb.Blob.from_file_path(os.path.join(self.dir, f)))
             self.hb[f] = (hb.Font(face), face.upem)
-        font, upem = self.hb[f]
-        for feats in ({"kern": False, "liga": False, "clig": False, "calt": False},):
+        return self.hb[f]
+
+    def glyphs(self, f, text, liga):
+        """浏览器排这段文字用的字形（名字）和每个字形起点所在的字：不分语言（网页字体只留 dflt，见 _subset），
+        liga 时打开连字和上下文替换（.sc-liga）"""
+        font, upem = self.shaper(f)
+        if f not in self.outlines:
+            tt = TTFont(os.path.join(self.dir, f))
+            self.outlines[f] = (tt.getGlyphSet(), tt.getGlyphOrder())
+        buf = hb.Buffer()
+        buf.add_str(text)
+        buf.guess_segment_properties()
+        buf.language = "und"  # 不分语言（dflt），同 PDF 排版和网页字体
+        buf.cluster_level = hb.BufferClusterLevel.MONOTONE_CHARACTERS
+        hb.shape(font, buf, LIGA if liga else PLAIN)
+        order = self.outlines[f][1]
+        return [(order[i.codepoint], i.cluster) for i in buf.glyph_infos]
+
+    def outline(self, f, name):
+        gs = self.outlines[f][0]
+        return _outline(gs, name)
+
+    def layout(self, f, text, size, x0, xs, liga=False, idx=None):
+        """浏览器只给起点时排出的逐字横坐标和 PDF 的一样吗：PDF 里每个字都按字体本身的字宽（不用字距调整、连字）排时是。
+        一样时文字层只写起点，省掉逐字坐标（HTML 小很多），浏览器排出来的位置相同（syscards.css 里文字层关掉连字和字距调整）。
+        用了字距调整的行仍写逐字坐标：WebKit 的 SVG 文字按字距调整排出来和 HarfBuzz 不同（差到 0.4pt）"""
+        font, upem = self.shaper(f)
+        for feats in (LIGA if liga else PLAIN,):
             buf = hb.Buffer()
             buf.add_str(text)
             buf.guess_segment_properties()
+            buf.language = "und"
             buf.cluster_level = hb.BufferClusterLevel.MONOTONE_CHARACTERS
             hb.shape(font, buf, feats)
             starts, x = {}, 0
             for info, pos in zip(buf.glyph_infos, buf.glyph_positions):
                 starts.setdefault(info.cluster, x + pos.x_offset)
                 x += pos.x_advance
-            if all(i in starts and abs(x0 + starts[i] / upem * size - xs[i]) < 0.01 for i in range(len(text))):
+            idx = range(len(text)) if idx is None else idx  # 各个 PDF 字形从第几个字开始（连字的后几个字没有自己的位置）
+            if all(i in starts and abs(x0 + starts[i] / upem * size - x) < 0.01 for i, x in zip(idx, xs)):
                 return True
         return False
 
     def _subset(self, f, chars, path):
         tt = TTFont(os.path.join(self.dir, f), recalcTimestamp=False)  # 保留原字体的时间戳，重新导入结果不变
-        # 页面是 lang="zh"：HarfBuzz（Chromium、WebKit 非 Apple 平台）取 ZHS，不认语言的引擎用 dflt。思源的 locl 还给
-        # JAN/KOR/ZHT/ZHH 各带几百个字形变体，按 "*" 取子集会全部跟进来（宋体常规 1785 个字形里 717 个），页面上永远画不出来：
-        # 只留 ZHS 和各文种的 dflt（两个引擎逐页渲染与全保留时像素相同）
+        # 只留各文种的默认语言（dflt）：PDF 排版（PyMuPDF）不指定语言，用的是 dflt；页面是 lang="zh"，HarfBuzz（Chromium、
+        # WebKit 非 Apple 平台）会取 ZHS 的 locl，把汉字旁边的「—」「——」换成居中的全角字形（PDF 里是偏下的西文破折号），
+        # 字宽也不同。去掉各语言后浏览器只能用 dflt，和 PDF 一样。思源的 locl 还给 JAN/KOR/ZHT/ZHH 各带几百个字形变体，
+        # 按 "*" 取子集会全部跟进来，去掉后也不再带
         for tag in ("GSUB", "GPOS"):
             if "CJK" in f and tag in tt:
                 for sr in tt[tag].table.ScriptList.ScriptRecord:
-                    sr.Script.LangSysRecord = [r for r in sr.Script.LangSysRecord if r.LangSysTag == "ZHS "]
+                    sr.Script.LangSysRecord = []
                     sr.Script.LangSysCount = len(sr.Script.LangSysRecord)
         o = ftsub.Options()
         o.flavor = "woff2"
@@ -154,9 +261,15 @@ def original_pages(pdf_path, pages, fonts, out_dir, start_only=True):
     doc = pymupdf.open(pdf_path)
     os.makedirs(out_dir, exist_ok=True)
     sheets = []
+    pdfg = PdfGlyphs(doc)
     for pno in pages:
         page = doc[pno - 1]
+        trace = {}  # (x, y) → 字形号（ToUnicode 里没有文字的字、ToUnicode 给了几个字的连字，要按字形号反查轮廓）
+        for sp in page.get_texttrace():
+            for u, gid, (ox, oy), _ in sp["chars"]:
+                trace[(round(ox, 2), round(oy, 2))] = gid
         raw = page.get_text("rawdict", flags=pymupdf.TEXT_PRESERVE_WHITESPACE | pymupdf.TEXT_PRESERVE_LIGATURES)
+        bboxlog = page.get_bboxlog()
         texts = []
         for b in raw["blocks"]:
             if b["type"] != 0:
@@ -165,30 +278,48 @@ def original_pages(pdf_path, pages, fonts, out_dir, start_only=True):
                 dx, dy = line["dir"]
                 for s in line["spans"]:
                     f = fonts.file_for(s["font"])
-                    chars = s["chars"]
-                    txt = "".join(c["c"] for c in chars)
-                    if not f or not chars or not fonts.covers(f, txt):
+                    if not f or not s["chars"]:
+                        continue  # 英文原版自己的字体：留在底图上
+                    if _hidden(doc, pno, s["bbox"], bboxlog):
+                        fonts.hidden.append((pno, s["font"], "".join(c["c"] for c in s["chars"])))
+                        continue  # PDF 里被后画的图片等盖住、看不见的字：文字层画在最上面会露出来，不放进去（留在底图上，照样看不见）
+                    items = _resolve(page, s, f, fonts, pdfg, trace)
+                    if items is None:
+                        fonts.left.append((pno, s["font"], "".join(c["c"] for c in s["chars"])))
                         continue  # 留在底图上
-                    page.add_redact_annot(s["bbox"])
                     # 空格不画东西，但网站压缩 HTML 时会去掉首尾的空格、把连续空格并成一个，字和横坐标就对不上了：
                     # 去掉首尾空格，连续空格只留第一个（复制出来的英文单词之间仍有空格）
-                    chars = [c for i, c in enumerate(chars) if not (c["c"].isspace() and (i == 0 or chars[i - 1]["c"].isspace()))]
-                    while chars and chars[-1]["c"].isspace():
-                        chars.pop()
-                    txt = "".join(c["c"] for c in chars)
+                    items = [c for i, c in enumerate(items) if not (c["c"].isspace() and (i == 0 or items[i - 1]["c"].isspace()))]
+                    while items and items[-1]["c"].isspace():
+                        items.pop()
+                    txt = "".join(c["c"] for c in items)
                     if not txt:
+                        page.add_redact_annot(s["bbox"])  # 只有空格（什么也没画）
                         continue
-                    fonts.use(f, txt)
-                    x0, y = chars[0]["origin"]
+                    liga = any("want" in c for c in items)
+                    x0, y = items[0]["origin"]
+                    xs_pdf = [c["origin"][0] for c in items]
+                    idx = list(itertools.accumulate([0] + [len(c["c"]) for c in items[:-1]]))
+                    body, cls = html.escape(txt, quote=False), font_class(f) + (" sc-liga" if liga else "")
                     if (round(dx, 3), round(dy, 3)) == (1.0, 0.0):
-                        if start_only and fonts.layout(f, txt, s["size"], x0, [c["origin"][0] for c in chars]):
+                        if start_only and fonts.layout(f, txt, s["size"], x0, xs_pdf, liga, idx):
                             xs, tr = f"{x0:.2f}", ""  # 浏览器从起点排出来和 PDF 一样（见 Fonts.layout），只写起点
+                        elif liga:
+                            # 逐字坐标的行里有连字或靠上下文才换的字形：分段写（见 _chunks）
+                            chunks = _chunks(items, f, s["size"], fonts)
+                            if chunks is None:
+                                fonts.left.append((pno, s["font"], txt))
+                                continue  # 排不出和 PDF 同样的字形和位置：留在底图上
+                            xs, tr = f"{x0:.2f}", ""
+                            body = "".join(_tspans(chunks, f, fonts))
                         else:
-                            xs, tr = " ".join(f"{c['origin'][0]:.2f}" for c in chars), ""
+                            xs, tr = " ".join(f"{x:.2f}" for x in xs_pdf), ""
                     else:
                         xs, tr = f"{x0:.2f}", f' transform="rotate({math.degrees(math.atan2(dy, dx)):.1f} {x0:.2f} {y:.2f})"'
+                    page.add_redact_annot(s["bbox"])
+                    fonts.use(f, txt + ("\u00a0" if "<tspan" in body else ""))
                     fill = "" if s["color"] == 0 else f' fill="#{s["color"]:06x}"'
-                    texts.append(f'<text x="{xs}" y="{y:.2f}" font-size="{s["size"]:.2f}" class="{font_class(f)}"{fill}{tr}>{html.escape(txt, quote=False)}</text>')
+                    texts.append(f'<text x="{xs}" y="{y:.2f}" font-size="{s["size"]:.2f}" class="{cls}"{fill}{tr}>{body}</text>')
         # 原版里的外部链接：在文字层上按 PDF 的链接区域放透明的可点区域（内部跳转在 PDF 里已经丢失，见译文仓库各卡 README）
         for ln in page.get_links():
             if ln.get("kind") == pymupdf.LINK_URI and ln.get("uri", "").startswith(("http://", "https://")):
@@ -205,6 +336,133 @@ def original_pages(pdf_path, pages, fonts, out_dir, start_only=True):
             f'<img class="sc-bg" src="scimg:{name}" alt="" width="{pix.width}" height="{pix.height}">'
             f'<svg viewBox="0 0 {w:g} {h:g}" xmlns="http://www.w3.org/2000/svg" aria-label="原文第 {pno} 页">{"".join(texts)}</svg></div>')
     return sheets
+
+
+def _hidden(doc, pno, bbox, bboxlog):
+    """这段文字在 PDF 里被后画的东西盖住、看不见吗：画的顺序里，这段文字之后有图片、色块或渐变和它相交时，
+    把这一页单独拿出来去掉这段文字再渲染这一块，和原来逐像素相同就是看不见"""
+    r = pymupdf.Rect(bbox)
+    last = max((i for i, (t, b) in enumerate(bboxlog) if "text" in t and pymupdf.Rect(b).intersects(r)), default=None)
+    if last is None or not any(t in ("fill-image", "fill-shade", "fill-path") and pymupdf.Rect(b).intersects(r)
+                               for t, b in bboxlog[last + 1:]):
+        return False
+    one = pymupdf.open()
+    one.insert_pdf(doc, from_page=pno - 1, to_page=pno - 1)
+    clip = r + (-2, -2, 2, 2)
+    before = one[0].get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip).samples
+    one[0].add_redact_annot(r)
+    one[0].apply_redactions(images=pymupdf.PDF_REDACT_IMAGE_NONE, graphics=pymupdf.PDF_REDACT_LINE_ART_NONE, text=pymupdf.PDF_REDACT_TEXT_REMOVE)
+    return one[0].get_pixmap(matrix=pymupdf.Matrix(3, 3), clip=clip).samples == before
+
+
+def _resolve(page, s, f, fonts, pdfg, trace):
+    """一段文字（PDF 的一个 span）在文字层里写成哪些字：[{c: 文字, origin: PDF 里的起点, want?: PDF 画的字形}]，
+    每项对应 PDF 画的一个字形（连字的 c 有几个字）；排不出和 PDF 同样的字形时返回 None（这段留在底图上）"""
+    items = []
+    rk = [(round(c["origin"][0], 2), round(c["origin"][1], 2)) for c in s["chars"]]
+    lig = [k + 1 < len(rk) and rk[k] == rk[k + 1] and not c["c"].isspace() for k, c in enumerate(s["chars"])]
+    for k, c in enumerate(s["chars"]):
+        if c["c"] == "\u200b":
+            continue  # 零宽空格：什么也没画
+        key = (round(c["origin"][0], 2), round(c["origin"][1], 2))
+        if c["c"] != "\ufffd" and lig[k] and items and "want" not in items[-1] and not items[-1]["c"].isspace():
+            # PDF 画的一个连字字形，ToUnicode 给了几个字（fi 等）：PyMuPDF 把后面的字放在连字末尾（和下一个字同一个起点）。
+            # 浏览器也要排成一个连字，字宽和 PDF 里这个字形占的宽度相同
+            items[-1]["c"] += c["c"]
+            items[-1]["lig_end"] = s["chars"][k + 1]["origin"][0]
+            continue
+        if c["c"] != "\ufffd":
+            items.append(dict(c=c["c"], origin=c["origin"]))
+            continue
+        gid = trace.get(key)
+        if gid == 0:
+            continue  # .notdef：PDF 排版时字体里没有的字（emoji），什么也没画
+        r = None if gid is None else pdfg.lookup(page, s["font"], gid)
+        if not r or not r[0]:
+            return None
+        items.append(dict(c=r[0], origin=c["origin"], want=r[1]))
+    txt = "".join(c["c"] for c in items)
+    if not txt or not fonts.covers(f, txt):
+        return None if txt else items
+    for c in items:
+        if "lig_end" in c:
+            g = fonts.glyphs(f, c["c"], True)
+            if len(g) != 1:
+                return None
+            c["want"] = fonts.outline(f, g[0][0])
+            if abs(c["want"][1] / fonts.shaper(f)[1] * s["size"] - (c.pop("lig_end") - c["origin"][0])) > 0.05:
+                return None
+    if any("want" in c for c in items):
+        # 浏览器排这段（打开连字和上下文替换）的字形要和 PDF 一一对应：反查出的字形轮廓相同，其余字形不变。
+        # alone：这个字单独排（逐字坐标的行每个坐标各排各的，没有上下文）也是同样的字形
+        glyphs = fonts.glyphs(f, txt, True)
+        plain = fonts.glyphs(f, txt, False)
+        if len(glyphs) != len(items):
+            return None
+        for c, (g, _), (p, _) in zip(items, glyphs, plain if len(plain) == len(items) else glyphs):
+            if "want" in c:
+                if fonts.outline(f, g) != c["want"]:
+                    return None
+                alone = fonts.glyphs(f, c["c"], True)
+                c["alone"] = len(alone) == 1 and fonts.outline(f, alone[0][0]) == c["want"]
+            elif g != p:
+                return None
+    return items
+
+
+def _chunks(items, f, size, fonts):
+    """逐字坐标的行切成几段，每段一个 <tspan>：连续的普通字一段（每个字一个坐标）；连字、靠上下文才换的字形和它的上下文
+    一段，只给起点（每个坐标起一段、各排各的，连字会拆开、上下文会丢）。这一段由浏览器排出来的字形和位置要和 PDF 相同，
+    找不到这样的一段时返回 None（整段留在底图上）"""
+    out, k = [], 0
+    while k < len(items):
+        c = items[k]
+        if "want" not in c or (c["alone"] and len(c["c"]) == 1):
+            if out and out[-1][0] == "run":
+                out[-1][1].append(c)
+            else:
+                out.append(("run", [c]))
+            k += 1
+            continue
+        for a, b in ((k, k + 1), (k - 1, k + 1), (k, k + 2), (k - 1, k + 2), (k - 2, k + 1), (k, k + 3)):
+            if a < 0 or b > len(items) or (a < k and (not out or out[-1][0] != "run" or not out[-1][1])):
+                continue
+            part = items[a:b]
+            txt = "".join(x["c"] for x in part)
+            glyphs, plain = fonts.glyphs(f, txt, True), fonts.glyphs(f, txt, False)
+            if len(glyphs) != len(part):
+                continue
+            if any(("want" in x and fonts.outline(f, g) != x["want"]) or ("want" not in x and len(plain) == len(part) and g != p[0])
+                   for x, (g, _), p in zip(part, glyphs, plain if len(plain) == len(part) else glyphs)):
+                continue
+            idx = list(itertools.accumulate([0] + [len(x["c"]) for x in part[:-1]]))
+            if not fonts.layout(f, txt, size, part[0]["origin"][0], [x["origin"][0] for x in part], True, idx):
+                continue
+            if a < k:
+                out[-1][1][-(k - a):] = []
+                if not out[-1][1]:
+                    out.pop()
+            out.append(("group", part))
+            k = b
+            break
+        else:
+            return None
+    return out
+
+
+def _tspans(chunks, f, fonts):
+    """分段写成 <tspan>。网站压缩 HTML 时会去掉紧挨着标签的空格（<tspan> 首尾、标签之间），所以段首段尾的空格写成
+    不换行空格（U+00A0，同宽、不画东西，复制出来也是空格样的字符；浏览器页内搜索把它当空格）。
+    连字段只给第一个字坐标，后面的字和它同属一段文字，浏览器才会排成连字"""
+    out = []
+    for kind, part in chunks:
+        txt = "".join(c["c"] for c in part)
+        for i in (0, len(txt) - 1):
+            if txt[i] == " " and fonts.covers(f, "\u00a0"):
+                txt = txt[:i] + "\u00a0" + txt[i + 1:]
+        xs = part if kind == "run" else part[:1]
+        out.append('<tspan x="' + " ".join(f"{c['origin'][0]:.2f}" for c in xs) + '">' + html.escape(txt, quote=False) + "</tspan>")
+    return out
 
 
 RE_PAGE = re.compile(r"^<!-- p\.(\d+) -->$")

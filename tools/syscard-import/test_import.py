@@ -26,6 +26,21 @@ sys.path.insert(0, HERE)
 import chapters, reference  # noqa: E402
 
 
+# 留在底图上、没进文字层的流水线文字（import.py 写的 background-text.json）：(卡, 页) → 原因
+KNOWN_BACKGROUND = {
+    # 2.2 节译注里「GPT‑6」的 6：PyMuPDF 按西文默认语言的 locl 换了字形，只在前后有西文字母时才换；这一行是两端对齐的逐字坐标，
+    # 每个坐标各排各的，浏览器排不出这个字形（chapters._chunks 试过带上下文的几种分段，位置都对不上）
+    ("opus-5.5", 16): "GPT‑6 的 6 是按上下文换的字形",
+}
+# PDF 里被后画的图片等盖住、看不见的字（chapters._hidden）：不进文字层（文字层在最上面，放进去会露出来）
+KNOWN_HIDDEN = {
+    ("fable-5-mythos-5", 129): "图里的编号 1. 2.",
+    ("fable-5-mythos-5", 130): "图里的编号 3.",
+    ("mythos-preview", 111): "图里的编号 42.",
+    ("opus-4.7", 229): "页码被整页图盖住",
+}
+
+
 def front_matter(name):
     text = open(os.path.join(DIR, name), encoding="utf-8").read().split("\n---\n")[0]
     return {l.split(": ", 1)[0]: json.loads(l.split(": ", 1)[1]) for l in text.split("\n")[1:]}
@@ -293,11 +308,16 @@ class PublishedFiles(unittest.TestCase):
                     self.assertEqual(sorted(n for _, n in faces), sorted(os.listdir(os.path.join(d, "fonts"))) if faces else [], f"{c['slug']} {ch['slug']} fonts/")
                     for f, b64 in inline:
                         self.assertLessEqual(len(base64.b64decode(b64)), chapters.INLINE, f"{c['slug']} {ch['slug']} {f}")
-                    # 中文字体只留简体（ZHS）和默认的字形变体：页面是 lang="zh"，日韩繁的 locl 变体画不出来，留着每章多 250 KB
+                    # 中文字体只留各文种的默认语言（dflt）：PDF 排版不指定语言，浏览器按页面的 lang="zh" 取 ZHS 会把汉字旁的
+                    # 「—」「——」换成和 PDF 不同的字形（chapters.Fonts._subset）；日韩繁的 locl 变体也不再带
                     for f, data in [(f, open(os.path.join(d, "fonts", n), "rb").read()) for f, n in faces if "cjk" in f] + [(f, base64.b64decode(b)) for f, b in inline if "cjk" in f]:
                         tt = TTFont(io.BytesIO(data))
                         langs = {r.LangSysTag for t in ("GSUB", "GPOS") if t in tt for sr in tt[t].table.ScriptList.ScriptRecord for r in sr.Script.LangSysRecord}
-                        self.assertLessEqual(langs, {"ZHS "}, f"{c['slug']} {ch['slug']} {f} 带了其他语言的字形变体")
+                        self.assertEqual(langs, set(), f"{c['slug']} {ch['slug']} {f} 带了按语言换的字形变体")
+                    # 文字层里没有 PDF 读不出文字的字（U+FFFD：连字等，要按字形反查）和零宽空格（什么也没画）
+                    layer = "".join(re.findall(r"<svg[\s\S]*?</svg>", orig))
+                    self.assertNotIn("\ufffd", layer, f"{c['slug']} {ch['slug']} 文字层有 U+FFFD")
+                    self.assertNotIn("\u200b", layer, f"{c['slug']} {ch['slug']} 文字层有零宽空格")
                     # 只写起点的行（省掉逐字坐标）：浏览器按字体排出的位置要和 PDF 一样，Fonts.layout 在导入时逐行核对过
                     self.assertRegex(orig, r'<text x="[\d.]+" y=', f"{c['slug']} {ch['slug']} 没有只写起点的行")
                 fns = os.path.join(DIR, c["slug"], name, "footnotes", "index.md")
@@ -309,6 +329,16 @@ class PublishedFiles(unittest.TestCase):
                     self.assertTrue(defs, f"{c['slug']} 脚注一章没有脚注")
                     # 原文有极少数脚注只有引用没有定义（编号跳号），只要求有定义的都被引用或引用都能找到大多数定义
                     self.assertGreaterEqual(len(refs & defs), 0.9 * len(refs), f"{c['slug']} 脚注引用找不到定义")
+
+    def test_background_text_known(self):
+        """留在底图上、没进文字层的流水线文字（import.py 写的 background-text.json）只有已知的这几段：
+        换了字体、PDF 或导入工具后多出来的（比如字体缺字）会在这里被发现"""
+        every = json.load(open(os.path.join(HERE, "background-text.json"), encoding="utf-8"))
+        for known, xs, why in ((KNOWN_BACKGROUND, [x for x in every if not x.get("hidden")], "排不出同样字形（chapters._resolve）"),
+                               (KNOWN_HIDDEN, [x for x in every if x.get("hidden")], "被盖住（chapters._hidden）")):
+            unknown = [x for x in xs if (x["card"], x["page"]) not in known]
+            self.assertEqual(unknown, [], "新的留在底图上的文字：" + why)
+            self.assertEqual(sorted({(x["card"], x["page"]) for x in xs}), sorted(known), "已知的几段已经不在底图上了：从已知列表去掉")
 
     def test_reference_images_are_current(self):
         """tests/fixtures/syscards/ 的像素基准就是现在这份 PDF 渲染出来的（换了 PDF 要重新跑 reference.py）"""

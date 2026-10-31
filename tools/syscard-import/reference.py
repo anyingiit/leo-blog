@@ -25,8 +25,9 @@ REPO = os.path.dirname(os.path.dirname(HERE))
 CONTENT = os.path.join(REPO, "content", "translations", "system-cards")
 OUT = os.path.join(REPO, "tests", "fixtures", "syscards")
 DPI = 96
-# 有代表性的页：封面（大图）、表格和图注、2.2 节的金色译注（另行翻译的部分）、整页图表
-PAGES = [("haiku-5.5", 1), ("haiku-5.5", 12), ("opus-5.5", 16), ("opus-5.5", 40)]
+# 有代表性的页：封面（大图）、表格和图注、2.2 节的金色译注（另行翻译的部分）、整页图表；
+# 连字和上下文替换：haiku-5.5 第 20 页（「——」连字、Lora 的 fi）、opus-4.7 第 210 页（参考文献里数字间的 colon.case，分段写的行）
+PAGES = [("haiku-5.5", 1), ("haiku-5.5", 12), ("haiku-5.5", 20), ("opus-4.7", 210), ("opus-5.5", 16), ("opus-5.5", 40)]
 
 
 def pdf_of(slug):
@@ -57,9 +58,20 @@ def positions(src):
             _, pdf = pdf_of(slug)
             sheet = chapters.original_pages(pdf, [page + 1], fonts, tmp, start_only=False)[0]  # 下载用的 PDF 第一页是译者声明
             rows = []
-            for xs, y, txt in re.findall(r'<text x="([^"]+)" y="([^"]+)"[^>]*>([^<]*)</text>', sheet):
-                if float(y) <= 792:  # 下载用的 PDF 底部另加的页脚不算
-                    rows.append([html.unescape(txt), [float(v) for v in xs.split()]])
+            for xs, y, body in re.findall(r'<text x="([^"]+)" y="([^"]+)"[^>]*>(.*?)</text>', sheet):
+                if float(y) > 792:  # 下载用的 PDF 底部另加的页脚不算
+                    continue
+                if "<tspan" not in body:
+                    rows.append([html.unescape(body), [float(v) for v in xs.split()]])
+                    continue
+                # 分段写的行（chapters._chunks）：普通的段每个字一个坐标；连字和上下文那段只给起点，其余字的位置记 null（不核对）
+                text, pos = "", []
+                for txs, t in re.findall(r'<tspan x="([^"]+)">([^<]*)</tspan>', body):
+                    t = html.unescape(t)
+                    v = [float(x) for x in txs.split()]
+                    text += t
+                    pos += v + [None] * (len(t) - len(v))
+                rows.append([text, pos])
             out[name(slug, page)[:-4]] = rows
     return out
 

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- 系统卡原版版式：原来留在底图里、选不中也搜不到的 6237 段文字（字体缺字、「——」和 fi 等连字编码丢失、零宽空格）改由文字层绘制，只剩 1 段；字体改用译文仓库 `shared-pipeline/fonts/`（全部卡用到的字），中文字体只留默认语言的字形，「—」和 PDF 相同；底图合计小约三成。
 - Mermaid 改由本站提供（`static/vendor/mermaid/11.17.2/`，文件和 npm 包逐字节相同），Mermaid 不再从 jsDelivr 加载（KaTeX 样式表仍在 jsDelivr）；下载量不变，分块仍按需加载，并设了长期缓存。
 - 短标签不再被挤得断行：S-1 版本表的版本号和「最新」、对应原文和采集日期、说明里的「第 N 页」，S-1 目录的「第 N 页」；新增 `tests/short-labels.test.mjs` 在手机到宽屏、Chromium 和 WebKit 上检查全站界面的短标签。
 - S-1 译本发布 v1.1.1（译文仓库 anthropic-s1-zh v1.1.1：封面「抄送」栏和第 2 页标题在字体略宽的电脑上文字重叠，只改版式），v1.0、v1.1 保留为历史版本；新增 `tests/s1-overlap.test.mjs` 检查原版版式的文字重叠；版本表下载链接不再从中间断行。

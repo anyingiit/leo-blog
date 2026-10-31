@@ -1,0 +1,50 @@
+[
+ {
+  "card": "opus-5.5",
+  "page": 16,
+  "font": "NotoSansCJKsc-Regular",
+  "text": "【译注】本节（2.2 节）译文由项目发起人使用 GPT‑� Astra 翻译提供，经脚本格式检查后排入，未经 Claude 审校。"
+ },
+ {
+  "card": "fable-5-mythos-5",
+  "page": 129,
+  "font": "Lora-Regular",
+  "text": "1.",
+  "hidden": true
+ },
+ {
+  "card": "fable-5-mythos-5",
+  "page": 129,
+  "font": "Lora-Regular",
+  "text": "2.",
+  "hidden": true
+ },
+ {
+  "card": "fable-5-mythos-5",
+  "page": 130,
+  "font": "Lora-Regular",
+  "text": "3.",
+  "hidden": true
+ },
+ {
+  "card": "opus-4.7",
+  "page": 229,
+  "font": "Lora-Regular",
+  "text": "​229​",
+  "hidden": true
+ },
+ {
+  "card": "mythos-preview",
+  "page": 111,
+  "font": "Lora-Regular",
+  "text": "42.",
+  "hidden": true
+ },
+ {
+  "card": "mythos-preview",
+  "page": 111,
+  "font": "Lora-Italic",
+  "text": " ",
+  "hidden": true
+ }
+]

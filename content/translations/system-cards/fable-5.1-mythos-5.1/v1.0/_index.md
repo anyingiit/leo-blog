@@ -5,7 +5,7 @@ version: "v1.0"
 repoVersion: "1.0.0"
 tag: "fable-5.1-mythos-5.1/v1.0.0"
 versionDate: "2026-10-30"
-sourceCommit: "12c8996cc3bea9dd896b85d8ddb4bb3215bc50f4"
+sourceCommit: "2eaff38120987a4f1878179f48d2a15d9f178c9a"
 date: "2026-10-30"
 weight: 1
 titleEn: "Claude Fable 5.1 & Claude Mythos 5.1 System Card"

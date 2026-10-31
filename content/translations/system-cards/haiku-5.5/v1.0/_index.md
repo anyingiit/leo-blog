@@ -5,7 +5,7 @@ version: "v1.0"
 repoVersion: "1.0.0"
 tag: "haiku-5.5/v1.0.0"
 versionDate: "2026-10-30"
-sourceCommit: "12c8996cc3bea9dd896b85d8ddb4bb3215bc50f4"
+sourceCommit: "2eaff38120987a4f1878179f48d2a15d9f178c9a"
 date: "2026-10-30"
 weight: 1
 titleEn: "Claude Haiku 5.5 System Card"

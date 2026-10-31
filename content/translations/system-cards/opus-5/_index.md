@@ -8,7 +8,7 @@ official: "https://www.anthropic.com/claude-opus-5-system-card"
 date: "2026-10-30"
 weight: 5
 latest: "v1.0"
-sourceCommit: "12c8996cc3bea9dd896b85d8ddb4bb3215bc50f4"
+sourceCommit: "2eaff38120987a4f1878179f48d2a15d9f178c9a"
 sourceDate: "2026-10-31"
 facts: {"units": 1245, "images": 101, "s22": [16, 28], "scattered": 10, "scatteredPages": "3、14、15、67、106、120", "s22Units": 89, "s22Images": 5, "s22Model": "", "layoutFixes": 28, "unverifiedNumbers": null, "linksLost": true, "emoji": true}
 ---
