@@ -52,7 +52,7 @@ export function missingSri(html) {
 // 行内 <script type=module> 里 import 外站模块（import 语句没法写 integrity）
 export function externalImports(html) {
   const found = [];
-  for (const [, body] of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) {
+  for (const [, body] of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\b[^>]*>/gi)) {
     for (const [, url] of body.matchAll(/\bimport\s*(?:[^'"()]*?\bfrom\s*)?\(?\s*["']([^"']+)["']/g)) {
       if (external(url)) found.push(url);
     }
