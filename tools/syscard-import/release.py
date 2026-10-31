@@ -261,7 +261,8 @@ def main(argv=None):
         root = fm_of(os.path.join(OUT, slug, "_index.md"))
         for ver in sorted(os.listdir(os.path.join(OUT, slug))):
             index = os.path.join(OUT, slug, ver, "_index.md")
-            if os.path.isfile(index) and "source" not in fm_of(index)["downloads"]["html"]:
+            # 哪个下载文件没有 source（导入后还没加声明）就处理哪个：只换了 HTML 时可以只放回 HTML、去掉它的 source
+            if os.path.isfile(index) and any("source" not in d for d in fm_of(index)["downloads"].values()):
                 todo.append((slug, ver, root, index))
     if not todo:
         print("没有要处理的版本（都已加过声明；要重做先重新导入）")
@@ -280,6 +281,8 @@ def main(argv=None):
             vdir = os.path.join(OUT, slug, ver)
             dl = v["downloads"]
             for kind in ("html", "pdf"):
+                if "source" in dl[kind]:
+                    continue
                 path = os.path.join(vdir, dl[kind]["file"])
                 if sha256(path) != dl[kind]["sha256"]:
                     sys.exit(f"{path} 和 front matter 记的 sha256 不同")

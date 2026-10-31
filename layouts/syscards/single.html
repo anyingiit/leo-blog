@@ -53,6 +53,9 @@
     </div>
     <a class="s1-read-link" href="?read=1" data-enter title="隐藏网站页头页脚，只留正文">⤢ 全屏阅读</a>
   </div>
+  {{- /* 电脑上默认显示原版版式：s1.js（defer）运行前先不排版重排版（syscards.css 的 .sc-pre），免得重排版开头的配图白白下载；
+         判断同 s1.js（记住的版式，否则按屏宽），DOMContentLoaded 时去掉，那时 s1.js 已经显示了该显示的版式 */}}
+  <script>(function(){var d=document.documentElement,n=!matchMedia("(min-width: 900px)").matches,v=null;try{v=localStorage.getItem(n?"s1-view-narrow":"s1-view")}catch(e){}if((v||(n?"reflow":"original"))==="original"){d.classList.add("sc-pre");document.addEventListener("DOMContentLoaded",function(){d.classList.remove("sc-pre")})}})()</script>
   <div class="post-content md-content s1-reflow" data-view="reflow">{{ .Content }}</div>
   <div class="s1-original" data-view="original" hidden></div>
   <template class="s1-original-tpl">{{ partial "syscards/original.html" (dict "page" .) }}</template>
