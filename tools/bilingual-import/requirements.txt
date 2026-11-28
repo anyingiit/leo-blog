@@ -4,4 +4,4 @@
 pypdf==6.21.4
 pikepdf==10.17.0
 beautifulsoup4==4.15.0
-PyYAML==6.0.3
+PyYAML==6.0.4
